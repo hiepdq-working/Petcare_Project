@@ -8,9 +8,13 @@ build/
 *.log
 .DS_Store
 coverage/
+.claude/scheduled_tasks.lock
 
 # Prisma
 apps/api/prisma/migrations/dev.db
+
+# Uploaded files (local disk storage for MVP — see ARCHITECTURE.md)
+apps/api/uploads/
 
 # Expo / React Native
 apps/mobile/.expo/

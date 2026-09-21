@@ -13,6 +13,9 @@ export const env = {
   port: Number(process.env.PORT ?? 4000),
   webOrigin: required("WEB_ORIGIN"),
   appUrl: required("APP_URL"),
+  // Origin this API is publicly reachable at — used to build absolute
+  // URLs for uploaded files (e.g. Pet avatars) returned to clients.
+  apiPublicUrl: process.env.API_PUBLIC_URL ?? `http://localhost:${process.env.PORT ?? 4000}`,
 
   databaseUrl: required("DATABASE_URL"),
 
