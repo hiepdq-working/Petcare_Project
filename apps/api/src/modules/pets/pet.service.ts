@@ -1,14 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import type { Pet } from "@prisma/client";
-import type { PetDto } from "@petcare/types";
+import type { PetDto, PetEventDto } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
+import { PetEventService } from "../pet-events/pet-event.service";
+import { toPetEventDto } from "../pet-events/pet-event.types";
 import { PetRepository } from "./pet.repository";
 import { toPetDto } from "./pet.types";
 import type { CreatePetInput, UpdatePetInput } from "./pet.validator";
 
 @Injectable()
 export class PetService {
-  constructor(private readonly repository: PetRepository) {}
+  constructor(
+    private readonly repository: PetRepository,
+    private readonly petEventService: PetEventService,
+  ) {}
 
   // Ownership is a business rule, not just a role check — RolesGuard only
   // proves "this user is a Pet Owner", not "this user owns THIS pet".
@@ -65,5 +70,11 @@ export class PetService {
   async remove(petId: string, requesterId: string): Promise<void> {
     await this.findOwnedOrThrow(petId, requesterId);
     await this.repository.delete(petId);
+  }
+
+  async getTimeline(petId: string, requesterId: string): Promise<PetEventDto[]> {
+    await this.findOwnedOrThrow(petId, requesterId);
+    const events = await this.petEventService.listByPet(petId);
+    return events.map(toPetEventDto);
   }
 }

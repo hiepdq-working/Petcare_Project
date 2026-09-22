@@ -50,17 +50,18 @@ model User {
   likes                PostLike[]
   comments             PostComment[]
   reviews              Review[]
-  sentMessages         Message[]             @relation("Sender")
-  conversationsAsUser1 Conversation[]        @relation("User1")
-  conversationsAsUser2 Conversation[]        @relation("User2")
+  sentMessages         Message[]              @relation("Sender")
+  conversationsAsUser1 Conversation[]         @relation("User1")
+  conversationsAsUser2 Conversation[]         @relation("User2")
   notifications        Notification[]
   sessions             RefreshToken[]
-  auditLogs            AuditLog[]            @relation("AuditActor")
-  petEvents            PetEvent[]            @relation("EventActor")
-  ownershipFrom        PetOwnershipHistory[] @relation("PreviousOwner")
-  ownershipTo          PetOwnershipHistory[] @relation("NewOwner")
-  ownedHospitals       Hospital[]            @relation("HospitalOwner")
-  veterinarian         Veterinarian?         @relation("VetAccount")
+  auditLogs            AuditLog[]             @relation("AuditActor")
+  petEvents            PetEvent[]             @relation("EventActor")
+  ownershipFrom        PetOwnershipHistory[]  @relation("PreviousOwner")
+  ownershipTo          PetOwnershipHistory[]  @relation("NewOwner")
+  ownedHospitals       Hospital[]             @relation("HospitalOwner")
+  veterinarian         Veterinarian?          @relation("VetAccount")
+  medicalRecordEdits   MedicalRecordVersion[] @relation("MedicalRecordEditor")
 
   @@map("users")
 }
@@ -200,21 +201,25 @@ model Vaccination {
 }
 
 model MedicalRecord {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  petId            String   @map("pet_id") @db.Uuid
-  pet              Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  vetId            String?  @map("vet_id") @db.Uuid
-  hospitalId       String?  @map("hospital_id") @db.Uuid
-  status           String   @default("NEW") @db.VarChar(20)
-  recordDate       DateTime @default(now()) @map("record_date")
-  currentVersionId String?  @unique @map("current_version_id") @db.Uuid
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId            String        @map("pet_id") @db.Uuid
+  pet              Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vetId            String?       @map("vet_id") @db.Uuid
+  vet              Veterinarian? @relation(fields: [vetId], references: [id], onDelete: SetNull)
+  hospitalId       String?       @map("hospital_id") @db.Uuid
+  hospital         Hospital?     @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  status           String        @default("NEW") @db.VarChar(20)
+  recordDate       DateTime      @default(now()) @map("record_date")
+  currentVersionId String?       @unique @map("current_version_id") @db.Uuid
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
 
   versions MedicalRecordVersion[] @relation("RecordVersions")
   files    MedicalFile[]
 
   @@index([petId])
+  @@index([vetId])
+  @@index([hospitalId])
   @@map("medical_records")
 }
 
@@ -230,6 +235,7 @@ model MedicalRecordVersion {
   conclusion String?       @db.Text
   notes      String?       @db.Text
   editedById String        @map("edited_by_id") @db.Uuid
+  editedBy   User          @relation("MedicalRecordEditor", fields: [editedById], references: [id])
   createdAt  DateTime      @default(now()) @map("created_at")
 
   @@unique([recordId, versionNo])
@@ -274,9 +280,10 @@ model Hospital {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
-  services      Service[]
-  veterinarians Veterinarian[]
-  appointments  Appointment[]
+  services       Service[]
+  veterinarians  Veterinarian[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
 
   @@index([lat, lng])
   @@map("hospitals")
@@ -296,7 +303,8 @@ model Veterinarian {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  appointments Appointment[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
 
   @@index([hospitalId])
   @@map("veterinarians")

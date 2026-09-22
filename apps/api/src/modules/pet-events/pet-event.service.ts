@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { PetEventType, Prisma } from "@prisma/client";
+import type { PetEvent, PetEventType, Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 
 interface PublishInput {
@@ -34,5 +34,11 @@ export class PetEventService {
         createdById: input.createdById,
       },
     });
+  }
+
+  // Reverse chronological — the Pet Timeline reads newest-first, same as
+  // every other feed-style list in the app.
+  listByPet(petId: string): Promise<PetEvent[]> {
+    return this.prisma.petEvent.findMany({ where: { petId }, orderBy: { eventDate: "desc" } });
   }
 }

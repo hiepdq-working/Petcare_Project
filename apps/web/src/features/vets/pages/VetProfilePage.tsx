@@ -1,9 +1,15 @@
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { vetsApi } from "../api/vets.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { AppointmentStatusBadge } from "../../appointments/components/AppointmentStatusBadge";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+
+// A vet may only start a medical record once the hospital has actually
+// engaged with the pet — mirrors MedicalRecordRepository.hasHospitalTreatedPet
+// on the backend (CONFIRMED/IN_PROGRESS/COMPLETED).
+const RECORD_ELIGIBLE_STATUSES = new Set(["CONFIRMED", "IN_PROGRESS", "COMPLETED"]);
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("vi-VN");
@@ -67,7 +73,12 @@ export function VetProfilePage() {
 
       </div>
 
-      <h2 className="mb-3 mt-8 text-lg font-bold text-brand-900">Lịch hẹn của tôi</h2>
+      <div className="mb-3 mt-8 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-brand-900">Lịch hẹn của tôi</h2>
+        <Link to="/vet/medical-records" className="text-sm font-semibold text-brand-700 hover:underline">
+          Hồ sơ bệnh án →
+        </Link>
+      </div>
       <p className="mb-4 text-sm text-brand-700/70">
         Chỉ mang tính thông báo — việc xác nhận hoặc huỷ lịch do phòng khám quyết định.
       </p>
@@ -91,6 +102,14 @@ export function VetProfilePage() {
               </div>
               <AppointmentStatusBadge status={appointment.status} />
             </div>
+            {RECORD_ELIGIBLE_STATUSES.has(appointment.status) ? (
+              <Link
+                to={`/vet/medical-records/new?petId=${appointment.petId}&petName=${encodeURIComponent(appointment.petName)}`}
+                className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline"
+              >
+                Lập hồ sơ bệnh án
+              </Link>
+            ) : null}
           </div>
         ))}
       </div>

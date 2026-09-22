@@ -99,6 +99,12 @@ export function PetDetailPage() {
             Đặt lịch khám
           </Link>
           <Link
+            to={`/pets/${pet.id}/timeline`}
+            className="rounded-xl border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+          >
+            Dòng thời gian
+          </Link>
+          <Link
             to={`/pets/${pet.id}/edit`}
             className="rounded-xl border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
           >

@@ -34,6 +34,12 @@ export class PetController {
     return ok(pet);
   }
 
+  @Get(":id/timeline")
+  async getTimeline(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
+    const events = await this.petService.getTimeline(id, auth.userId);
+    return ok(events);
+  }
+
   @Patch(":id")
   async update(
     @CurrentUser() auth: RequestAuth,

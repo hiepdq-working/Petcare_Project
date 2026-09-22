@@ -22,6 +22,10 @@ import { BookHospitalSearchPage } from "../features/appointments/pages/BookHospi
 import { BookAppointmentPage } from "../features/appointments/pages/BookAppointmentPage";
 import { MyAppointmentsPage } from "../features/appointments/pages/MyAppointmentsPage";
 import { HospitalAppointmentsPage } from "../features/appointments/pages/HospitalAppointmentsPage";
+import { PetTimelinePage } from "../features/medical-records/pages/PetTimelinePage";
+import { MedicalRecordDetailPage } from "../features/medical-records/pages/MedicalRecordDetailPage";
+import { VetMedicalRecordsPage } from "../features/medical-records/pages/VetMedicalRecordsPage";
+import { CreateMedicalRecordPage } from "../features/medical-records/pages/CreateMedicalRecordPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -66,6 +70,38 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.PET_OWNER}>
                   <MyAppointmentsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/pets/:petId/timeline"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <PetTimelinePage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/medical-records/:id"
+              element={
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.VET]}>
+                  <MedicalRecordDetailPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/vet/medical-records"
+              element={
+                <RequireRole role={UserRole.VET}>
+                  <VetMedicalRecordsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/vet/medical-records/new"
+              element={
+                <RequireRole role={UserRole.VET}>
+                  <CreateMedicalRecordPage />
                 </RequireRole>
               }
             />

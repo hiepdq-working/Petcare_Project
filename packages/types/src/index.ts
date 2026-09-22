@@ -8,3 +8,5 @@ export * from "./vet";
 export * from "./service";
 export * from "./appointment";
 export * from "./notification";
+export * from "./medical-record";
+export * from "./pet-event";

@@ -1,5 +1,6 @@
 import { PetService } from "./pet.service";
 import { PetRepository } from "./pet.repository";
+import { PetEventService } from "../pet-events/pet-event.service";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { PetStatus } from "@petcare/types";
 import type { Pet } from "@prisma/client";
@@ -31,8 +32,13 @@ function setup() {
     delete: jest.fn(),
   } as unknown as jest.Mocked<PetRepository>;
 
-  const service = new PetService(repository);
-  return { service, repository };
+  const petEventService = {
+    publish: jest.fn(),
+    listByPet: jest.fn(),
+  } as unknown as jest.Mocked<PetEventService>;
+
+  const service = new PetService(repository, petEventService);
+  return { service, repository, petEventService };
 }
 
 describe("PetService.create", () => {
