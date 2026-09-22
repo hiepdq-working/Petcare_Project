@@ -30,6 +30,8 @@ import { VaccinationsPage } from "../features/vaccinations/pages/VaccinationsPag
 import { CreateVaccinationPage } from "../features/vaccinations/pages/CreateVaccinationPage";
 import { FeedPage } from "../features/social/pages/FeedPage";
 import { PostDetailPage } from "../features/social/pages/PostDetailPage";
+import { ConversationsPage } from "../features/chat/pages/ConversationsPage";
+import { ConversationPage } from "../features/chat/pages/ConversationPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -138,6 +140,22 @@ export function AppRoutes() {
               element={
                 <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
                   <PostDetailPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
+                  <ConversationsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/messages/:id"
+              element={
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
+                  <ConversationPage />
                 </RequireRole>
               }
             />

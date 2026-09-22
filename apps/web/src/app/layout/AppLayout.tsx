@@ -17,9 +17,14 @@ export function AppLayout() {
           <span className="text-lg font-bold text-brand-900">🐾 PetCare</span>
           <div className="flex items-center gap-3 text-sm">
             {user?.role === UserRole.PET_OWNER || user?.role === UserRole.HOSPITAL_OWNER ? (
-              <Link to="/feed" className="font-semibold text-brand-700 hover:underline">
-                Bảng tin
-              </Link>
+              <>
+                <Link to="/feed" className="font-semibold text-brand-700 hover:underline">
+                  Bảng tin
+                </Link>
+                <Link to="/messages" className="font-semibold text-brand-700 hover:underline">
+                  Tin nhắn
+                </Link>
+              </>
             ) : null}
             <NotificationBell />
             <span className="text-brand-700/80">{user?.name}</span>

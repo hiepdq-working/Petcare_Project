@@ -13,3 +13,4 @@ export * from "./pet-event";
 export * from "./vaccination";
 export * from "./post";
 export * from "./review";
+export * from "./chat";

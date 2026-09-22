@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { UserRole } from "@petcare/types";
 import { hospitalApi } from "../api/hospital.api";
 import { servicesApi } from "../../services/api/services.api";
 import { petsApi } from "../../pets/api/pets.api";
 import { HospitalReviewsSection } from "../../reviews/components/HospitalReviewsSection";
+import { chatApi } from "../../chat/api/chat.api";
 import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
@@ -38,6 +39,11 @@ export function HospitalDetailPage() {
     queryKey: ["pets"],
     queryFn: petsApi.list,
     enabled: showPetPicker,
+  });
+
+  const messageMutation = useMutation({
+    mutationFn: () => chatApi.startWithHospital(id!),
+    onSuccess: (conversation) => navigate(`/messages/${conversation.id}`),
   });
 
   function handleBookClick() {
@@ -118,7 +124,21 @@ export function HospitalDetailPage() {
 
             {authStatus === "authenticated" && user?.role === UserRole.PET_OWNER ? (
               <div className="mt-6">
-                <Button onClick={handleBookClick}>Liên hệ đặt lịch</Button>
+                {messageMutation.isError ? (
+                  <div className="mb-3">
+                    <Alert message={extractErrorMessage(messageMutation.error)} />
+                  </div>
+                ) : null}
+                <div className="flex gap-3">
+                  <Button onClick={handleBookClick}>Liên hệ đặt lịch</Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => messageMutation.mutate()}
+                    loading={messageMutation.isPending}
+                  >
+                    💬 Nhắn tin
+                  </Button>
+                </div>
                 {showPetPicker ? (
                   <div className="mt-3 rounded-xl border border-brand-200 p-4">
                     <p className="mb-2 text-sm font-medium text-brand-900">Chọn thú cưng cần khám:</p>

@@ -503,6 +503,9 @@ model Conversation {
   user2Id   String   @map("user2_id") @db.Uuid
   user2     User     @relation("User2", fields: [user2Id], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
+  // Bumped whenever a message is sent (even with no other field changing) so
+  // the inbox can ORDER BY this instead of joining/aggregating messages.
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   messages Message[]
 
@@ -519,6 +522,7 @@ model Message {
   message        String       @db.Text
   messageType    String       @default("text") @map("message_type") @db.VarChar(10)
   mediaUrl       String?      @map("media_url") @db.VarChar(500)
+  isRead         Boolean      @default(false) @map("is_read")
   createdAt      DateTime     @default(now()) @map("created_at")
 
   @@index([conversationId])

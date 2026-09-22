@@ -16,6 +16,7 @@ import { MedicalRecordModule } from "./modules/medical-records/medical-record.mo
 import { VaccinationModule } from "./modules/vaccinations/vaccination.module";
 import { PostModule } from "./modules/posts/post.module";
 import { ReviewModule } from "./modules/reviews/review.module";
+import { ChatModule } from "./modules/chat/chat.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ReviewModule } from "./modules/reviews/review.module";
     VaccinationModule,
     PostModule,
     ReviewModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
