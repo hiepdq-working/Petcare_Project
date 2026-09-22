@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { PrismaModule } from "./prisma/prisma.module";
 import { SecurityModule } from "./common/security/security.module";
 import { AuditModule } from "./modules/audit/audit.module";
+import { RealtimeModule } from "./modules/realtime/realtime.module";
 import { PetEventModule } from "./modules/pet-events/pet-event.module";
 import { NotificationModule } from "./modules/notifications/notification.module";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -23,6 +24,7 @@ import { ChatModule } from "./modules/chat/chat.module";
     PrismaModule,
     SecurityModule,
     AuditModule,
+    RealtimeModule,
     PetEventModule,
     NotificationModule,
     AuthModule,

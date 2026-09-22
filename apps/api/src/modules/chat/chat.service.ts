@@ -3,6 +3,7 @@ import type { ConversationDto, MessageDto } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { NotificationService } from "../notifications/notification.service";
+import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { ChatRepository } from "./chat.repository";
 import { toConversationDto, toMessageDto } from "./chat.types";
 import type { SendMessageInput } from "./chat.validator";
@@ -13,6 +14,7 @@ export class ChatService {
     private readonly repository: ChatRepository,
     private readonly hospitalRepository: HospitalRepository,
     private readonly notificationService: NotificationService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private async assertParticipant(conversationId: string, userId: string) {
@@ -81,6 +83,13 @@ export class ChatService {
       refId: conversation.id,
     });
 
-    return toMessageDto(message);
+    const dto = toMessageDto(message);
+    // Pushed to the recipient (new message to react to) and back to the
+    // sender (so their other open tabs/devices stay in sync too).
+    this.realtime.emitToUser(recipientId, "message:new", dto);
+    this.realtime.emitToUser(recipientId, "conversation:updated", { conversationId: conversation.id });
+    this.realtime.emitToUser(userId, "conversation:updated", { conversationId: conversation.id });
+
+    return dto;
   }
 }

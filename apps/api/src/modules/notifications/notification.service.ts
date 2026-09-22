@@ -3,6 +3,7 @@ import type { NotificationType } from "@prisma/client";
 import type { NotificationDto } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { PrismaService } from "../../prisma/prisma.service";
+import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { toNotificationDto } from "./notification.types";
 
 interface CreateInput {
@@ -20,10 +21,13 @@ interface CreateInput {
 // one explicitly to publish.
 @Injectable()
 export class NotificationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: RealtimeGateway,
+  ) {}
 
   async create(input: CreateInput): Promise<void> {
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: input.userId,
         type: input.type,
@@ -32,6 +36,7 @@ export class NotificationService {
         refId: input.refId,
       },
     });
+    this.realtime.emitToUser(input.userId, "notification:new", toNotificationDto(notification));
   }
 
   async listMine(userId: string): Promise<NotificationDto[]> {

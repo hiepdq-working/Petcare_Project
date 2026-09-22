@@ -1,10 +1,10 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { chatApi } from "../api/chat.api";
+import { getSocket } from "../../../shared/realtime/socket";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
-
-const POLL_INTERVAL_MS = 10_000;
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -17,11 +17,24 @@ function timeAgo(iso: string): string {
 }
 
 export function ConversationsPage() {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["conversations"],
     queryFn: chatApi.listConversations,
-    refetchInterval: POLL_INTERVAL_MS,
   });
+
+  // "conversation:updated" fires on either side of any message send (see
+  // ChatService.sendMessage) — invalidating here refreshes ordering,
+  // previews, and unread counts the instant something changes.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const handleUpdate = () => queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    socket.on("conversation:updated", handleUpdate);
+    return () => {
+      socket.off("conversation:updated", handleUpdate);
+    };
+  }, [queryClient]);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">

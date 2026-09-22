@@ -3,6 +3,7 @@ import { ChatService } from "./chat.service";
 import { ChatRepository, type ConversationWithUsers, type MessageWithSender } from "./chat.repository";
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { NotificationService } from "../notifications/notification.service";
+import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 
 function makeUser(overrides: Partial<User> = {}): User {
@@ -55,10 +56,11 @@ function setup() {
 
   const hospitalRepository = { findById: jest.fn() } as unknown as jest.Mocked<HospitalRepository>;
   const notificationService = { create: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<NotificationService>;
+  const realtime = { emitToUser: jest.fn() } as unknown as jest.Mocked<RealtimeGateway>;
 
-  const service = new ChatService(repository, hospitalRepository, notificationService);
+  const service = new ChatService(repository, hospitalRepository, notificationService, realtime);
 
-  return { service, repository, hospitalRepository, notificationService };
+  return { service, repository, hospitalRepository, notificationService, realtime };
 }
 
 describe("ChatService.startWithHospital", () => {

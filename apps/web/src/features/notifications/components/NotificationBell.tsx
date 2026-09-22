@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notificationsApi } from "../api/notifications.api";
-
-const POLL_INTERVAL_MS = 30_000;
+import { getSocket } from "../../../shared/realtime/socket";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -14,9 +13,10 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hours / 24)} ngày trước`;
 }
 
-// Simple polling instead of real-time push/sockets — appropriate for MVP
-// scale (see ARCHITECTURE.md roadmap: Redis/sockets are a later-phase
-// concern once there's a reason to need instant delivery).
+// Pushed via WebSocket (see shared/realtime/socket.ts) — the server emits
+// "notification:new" to this user's room the instant one is created
+// (NotificationService.create), so this just invalidates the cache and
+// lets React Query refetch instead of polling on a timer.
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -24,7 +24,6 @@ export function NotificationBell() {
   const unreadQuery = useQuery({
     queryKey: ["notifications", "unread-count"],
     queryFn: notificationsApi.unreadCount,
-    refetchInterval: POLL_INTERVAL_MS,
   });
 
   const listQuery = useQuery({
@@ -32,6 +31,16 @@ export function NotificationBell() {
     queryFn: notificationsApi.list,
     enabled: open,
   });
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const handleNew = () => queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    socket.on("notification:new", handleNew);
+    return () => {
+      socket.off("notification:new", handleNew);
+    };
+  }, [queryClient]);
 
   const markReadMutation = useMutation({
     mutationFn: (id: string) => notificationsApi.markRead(id),

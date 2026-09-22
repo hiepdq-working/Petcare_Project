@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { join } from "node:path";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
@@ -10,6 +11,7 @@ import { env } from "./config/env";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // Default CORP is "same-origin", which blocks the SPA (a different
   // origin/port in dev, and typically a different subdomain/CDN in

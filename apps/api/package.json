@@ -20,6 +20,8 @@
     "@nestjs/core": "^10.4.6",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.4.6",
+    "@nestjs/platform-socket.io": "^10.4.22",
+    "@nestjs/websockets": "^10.4.22",
     "@petcare/types": "workspace:*",
     "@prisma/client": "^5.22.0",
     "bcrypt": "^5.1.1",
@@ -31,6 +33,7 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^4.0.1",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {

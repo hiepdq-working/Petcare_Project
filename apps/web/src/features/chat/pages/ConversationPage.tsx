@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { MessageDto } from "@petcare/types";
 import { chatApi } from "../api/chat.api";
 import { useAuthStore } from "../../auth/store";
+import { getSocket } from "../../../shared/realtime/socket";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
-
-const POLL_INTERVAL_MS = 3_000;
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
@@ -27,8 +27,24 @@ export function ConversationPage() {
   const messagesQuery = useQuery({
     queryKey: ["conversations", id, "messages"],
     queryFn: () => chatApi.getMessages(id!),
-    refetchInterval: POLL_INTERVAL_MS,
   });
+
+  // "message:new" fires the instant either side sends (see
+  // ChatService.sendMessage) — only react to it for the thread that's
+  // actually open right now.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const handleNewMessage = (message: MessageDto) => {
+      if (message.conversationId === id) {
+        queryClient.invalidateQueries({ queryKey: ["conversations", id, "messages"] });
+      }
+    };
+    socket.on("message:new", handleNewMessage);
+    return () => {
+      socket.off("message:new", handleNewMessage);
+    };
+  }, [id, queryClient]);
 
   const sendMutation = useMutation({
     mutationFn: (input: { message?: string; mediaUrl?: string }) => chatApi.sendMessage(id!, input),
