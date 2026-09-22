@@ -5,6 +5,7 @@ import { UserRole } from "@petcare/types";
 import { hospitalApi } from "../api/hospital.api";
 import { servicesApi } from "../../services/api/services.api";
 import { petsApi } from "../../pets/api/pets.api";
+import { HospitalReviewsSection } from "../../reviews/components/HospitalReviewsSection";
 import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
@@ -182,6 +183,8 @@ export function HospitalDetailPage() {
             </div>
           ))}
         </div>
+
+        <HospitalReviewsSection hospitalId={hospital.id} />
       </div>
     </div>
   );

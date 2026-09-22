@@ -12,3 +12,4 @@ export * from "./medical-record";
 export * from "./pet-event";
 export * from "./vaccination";
 export * from "./post";
+export * from "./review";
