@@ -5,6 +5,8 @@ import { chatApi } from "../api/chat.api";
 import { getSocket } from "../../../shared/realtime/socket";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -38,15 +40,11 @@ export function ConversationsPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Tin nhắn</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">Tin nhắn</h1>
 
-      {query.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+      {query.isLoading ? <LoadingState /> : null}
       {query.isError ? <Alert message={extractErrorMessage(query.error)} /> : null}
-      {query.data?.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-          Chưa có cuộc trò chuyện nào.
-        </div>
-      ) : null}
+      {query.data?.length === 0 ? <EmptyState title="Chưa có cuộc trò chuyện nào" /> : null}
 
       <div className="flex flex-col gap-2">
         {query.data?.map((conversation) => (

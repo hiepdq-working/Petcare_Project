@@ -6,6 +6,7 @@ import { medicalRecordsApi } from "../api/medical-records.api";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
+import { Card } from "../../../shared/components/Card";
 
 const CONTENT_FIELDS: { key: keyof MedicalRecordContent; label: string }[] = [
   { key: "symptoms", label: "Triệu chứng" },
@@ -41,9 +42,9 @@ export function CreateMedicalRecordPage() {
         ← Quay lại
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-900">Lập hồ sơ bệnh án cho {petName}</h1>
+      <h1 className="mt-4 font-display text-2xl font-semibold text-brand-900">Lập hồ sơ bệnh án cho {petName}</h1>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+      <Card as="form" onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 p-6">
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
 
         {CONTENT_FIELDS.map(({ key, label }) => (
@@ -64,7 +65,7 @@ export function CreateMedicalRecordPage() {
         <Button type="submit" loading={mutation.isPending} disabled={!petId || !hasContent}>
           Lưu hồ sơ bệnh án
         </Button>
-      </form>
+      </Card>
     </div>
   );
 }

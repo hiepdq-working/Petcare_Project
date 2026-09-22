@@ -7,6 +7,8 @@ import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
 import { ImageUploader } from "../../../shared/components/ImageUploader";
+import { Card } from "../../../shared/components/Card";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 export function SettingsPage() {
   const storeUser = useAuthStore((state) => state.user);
@@ -58,7 +60,11 @@ export function SettingsPage() {
     passwordForm.confirmPassword.length > 0 && passwordForm.newPassword !== passwordForm.confirmPassword;
 
   if (meQuery.isLoading && !storeUser) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (!user) {
@@ -71,41 +77,43 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Cài đặt</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">Cài đặt</h1>
 
-      <h2 className="mb-3 text-lg font-bold text-brand-900">Thông tin cá nhân</h2>
-      <form onSubmit={handleProfileSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
-        {profileMutation.isError ? <Alert message={extractErrorMessage(profileMutation.error)} /> : null}
-        {profileMutation.isSuccess ? <Alert kind="success" message="Đã lưu thông tin cá nhân" /> : null}
+      <h2 className="mb-3 text-lg font-semibold text-brand-900">Thông tin cá nhân</h2>
+      <form onSubmit={handleProfileSubmit}>
+        <Card className="flex flex-col gap-4 p-6">
+          {profileMutation.isError ? <Alert message={extractErrorMessage(profileMutation.error)} /> : null}
+          {profileMutation.isSuccess ? <Alert kind="success" message="Đã lưu thông tin cá nhân" /> : null}
 
-        <ImageUploader
-          value={profileForm.avatar}
-          onChange={(url) => setProfileForm((f) => ({ ...f, avatar: url }))}
-          uploadFn={authApi.uploadAvatar}
-          label="Chọn ảnh đại diện"
-          shape="circle"
-          placeholderIcon="🙂"
-        />
+          <ImageUploader
+            value={profileForm.avatar}
+            onChange={(url) => setProfileForm((f) => ({ ...f, avatar: url }))}
+            uploadFn={authApi.uploadAvatar}
+            label="Chọn ảnh đại diện"
+            shape="circle"
+            placeholderIcon="🙂"
+          />
 
-        <TextField
-          label="Họ và tên"
-          required
-          value={profileForm.name}
-          onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))}
-        />
-        <TextField label="Email" value={user.email} disabled className="opacity-60" />
-        <TextField
-          label="Số điện thoại"
-          value={profileForm.phone}
-          onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))}
-        />
+          <TextField
+            label="Họ và tên"
+            required
+            value={profileForm.name}
+            onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))}
+          />
+          <TextField label="Email" value={user.email} disabled className="opacity-60" />
+          <TextField
+            label="Số điện thoại"
+            value={profileForm.phone}
+            onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))}
+          />
 
-        <Button type="submit" loading={profileMutation.isPending} disabled={profileForm.name.trim().length === 0}>
-          Lưu thông tin
-        </Button>
+          <Button type="submit" loading={profileMutation.isPending} disabled={profileForm.name.trim().length === 0}>
+            Lưu thông tin
+          </Button>
+        </Card>
       </form>
 
-      <h2 className="mb-3 mt-8 text-lg font-bold text-brand-900">
+      <h2 className="mb-3 mt-8 text-lg font-semibold text-brand-900">
         {user.hasPassword ? "Đổi mật khẩu" : "Đặt mật khẩu"}
       </h2>
       {!user.hasPassword ? (
@@ -114,47 +122,49 @@ export function SettingsPage() {
           nữa.
         </p>
       ) : null}
-      <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
-        {passwordMutation.isError ? <Alert message={extractErrorMessage(passwordMutation.error)} /> : null}
-        {passwordMutation.isSuccess ? <Alert kind="success" message="Đã cập nhật mật khẩu" /> : null}
+      <form onSubmit={handlePasswordSubmit}>
+        <Card className="flex flex-col gap-4 p-6">
+          {passwordMutation.isError ? <Alert message={extractErrorMessage(passwordMutation.error)} /> : null}
+          {passwordMutation.isSuccess ? <Alert kind="success" message="Đã cập nhật mật khẩu" /> : null}
 
-        {user.hasPassword ? (
+          {user.hasPassword ? (
+            <TextField
+              label="Mật khẩu hiện tại"
+              type="password"
+              required
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm((f) => ({ ...f, currentPassword: e.target.value }))}
+            />
+          ) : null}
           <TextField
-            label="Mật khẩu hiện tại"
+            label="Mật khẩu mới"
             type="password"
             required
-            value={passwordForm.currentPassword}
-            onChange={(e) => setPasswordForm((f) => ({ ...f, currentPassword: e.target.value }))}
+            minLength={8}
+            value={passwordForm.newPassword}
+            onChange={(e) => setPasswordForm((f) => ({ ...f, newPassword: e.target.value }))}
           />
-        ) : null}
-        <TextField
-          label="Mật khẩu mới"
-          type="password"
-          required
-          minLength={8}
-          value={passwordForm.newPassword}
-          onChange={(e) => setPasswordForm((f) => ({ ...f, newPassword: e.target.value }))}
-        />
-        <TextField
-          label="Xác nhận mật khẩu mới"
-          type="password"
-          required
-          value={passwordForm.confirmPassword}
-          onChange={(e) => setPasswordForm((f) => ({ ...f, confirmPassword: e.target.value }))}
-          error={passwordMismatch ? "Mật khẩu xác nhận không khớp" : undefined}
-        />
+          <TextField
+            label="Xác nhận mật khẩu mới"
+            type="password"
+            required
+            value={passwordForm.confirmPassword}
+            onChange={(e) => setPasswordForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+            error={passwordMismatch ? "Mật khẩu xác nhận không khớp" : undefined}
+          />
 
-        <Button
-          type="submit"
-          loading={passwordMutation.isPending}
-          disabled={
-            passwordForm.newPassword.length < 8 ||
-            passwordMismatch ||
-            (user.hasPassword && passwordForm.currentPassword.length === 0)
-          }
-        >
-          {user.hasPassword ? "Đổi mật khẩu" : "Đặt mật khẩu"}
-        </Button>
+          <Button
+            type="submit"
+            loading={passwordMutation.isPending}
+            disabled={
+              passwordForm.newPassword.length < 8 ||
+              passwordMismatch ||
+              (user.hasPassword && passwordForm.currentPassword.length === 0)
+            }
+          >
+            {user.hasPassword ? "Đổi mật khẩu" : "Đặt mật khẩu"}
+          </Button>
+        </Card>
       </form>
     </div>
   );

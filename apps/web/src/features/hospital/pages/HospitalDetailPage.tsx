@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { UserRole } from "@petcare/types";
+import { Phone, MessageCircle } from "lucide-react";
 import { hospitalApi } from "../api/hospital.api";
 import { servicesApi } from "../../services/api/services.api";
 import { petsApi } from "../../pets/api/pets.api";
@@ -11,6 +12,9 @@ import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
+import { Card } from "../../../shared/components/Card";
+import { Badge } from "../../../shared/components/Badge";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatPrice(price: number | null): string {
   if (price === null) return "Liên hệ";
@@ -55,7 +59,11 @@ export function HospitalDetailPage() {
   }
 
   if (hospitalQuery.isLoading) {
-    return <p className="mx-auto max-w-2xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (hospitalQuery.isError || !hospitalQuery.data) {
@@ -69,11 +77,12 @@ export function HospitalDetailPage() {
   const hospital = hospitalQuery.data;
 
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="border-b border-brand-100 bg-white">
+    <div className="min-h-screen bg-app-gradient">
+      <header className="border-b border-brand-100 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <Link to="/hospitals/nearby" className="text-lg font-bold text-brand-900">
-            🐾 PetCare
+          <Link to="/hospitals/nearby" className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-lg">🐾</span>
+            <span className="font-display text-lg font-semibold text-brand-900">PetCare</span>
           </Link>
           {authStatus !== "authenticated" ? (
             <Link to="/login" className="text-sm font-semibold text-brand-700">
@@ -84,7 +93,7 @@ export function HospitalDetailPage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+        <Card className="overflow-hidden">
           <div className="aspect-[3/1] w-full bg-brand-100">
             {hospital.cover ? (
               <img src={hospital.cover} alt="" className="h-full w-full object-cover" />
@@ -102,20 +111,19 @@ export function HospitalDetailPage() {
                 )}
               </div>
               <div>
-                <h1 className="text-xl font-bold text-brand-900">{hospital.name}</h1>
+                <h1 className="font-display text-xl font-semibold text-brand-900">{hospital.name}</h1>
                 {hospital.address ? <p className="text-sm text-brand-700/80">{hospital.address}</p> : null}
               </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {hospital.isEmergency ? (
-                <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
-                  Cấp cứu 24/7
-                </span>
-              ) : null}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {hospital.isEmergency ? <Badge tone="red">Cấp cứu 24/7</Badge> : null}
               {hospital.phone ? (
-                <a href={`tel:${hospital.phone}`} className="text-xs font-semibold text-brand-700 hover:underline">
-                  📞 {hospital.phone}
+                <a
+                  href={`tel:${hospital.phone}`}
+                  className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
+                >
+                  <Phone size={12} /> {hospital.phone}
                 </a>
               ) : null}
             </div>
@@ -130,13 +138,17 @@ export function HospitalDetailPage() {
                   </div>
                 ) : null}
                 <div className="flex gap-3">
-                  <Button onClick={handleBookClick}>Liên hệ đặt lịch</Button>
+                  <Button fullWidth={false} onClick={handleBookClick}>
+                    Liên hệ đặt lịch
+                  </Button>
                   <Button
                     variant="ghost"
+                    fullWidth={false}
                     onClick={() => messageMutation.mutate()}
                     loading={messageMutation.isPending}
+                    className="flex items-center gap-2"
                   >
-                    💬 Nhắn tin
+                    <MessageCircle size={16} /> Nhắn tin
                   </Button>
                 </div>
                 {showPetPicker ? (
@@ -181,15 +193,15 @@ export function HospitalDetailPage() {
               </div>
             ) : null}
           </div>
-        </div>
+        </Card>
 
-        <h2 className="mb-3 mt-8 text-lg font-bold text-brand-900">Dịch vụ</h2>
+        <h2 className="mb-3 mt-8 font-display text-lg font-semibold text-brand-900">Dịch vụ</h2>
         {servicesQuery.data?.length === 0 ? (
           <p className="text-brand-700/70">Phòng khám chưa cập nhật dịch vụ.</p>
         ) : null}
         <div className="flex flex-col gap-3">
           {servicesQuery.data?.map((item) => (
-            <div key={item.id} className="rounded-2xl bg-white p-4 shadow-sm">
+            <Card key={item.id} className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-brand-900">{item.name}</p>
@@ -200,7 +212,7 @@ export function HospitalDetailPage() {
                   {item.duration ? <p className="text-brand-700/70">{item.duration} phút</p> : null}
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 

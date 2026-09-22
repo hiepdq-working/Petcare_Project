@@ -8,6 +8,8 @@ import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
+import { Card } from "../../../shared/components/Card";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("vi-VN");
@@ -64,7 +66,11 @@ export function PostDetailPage() {
   }
 
   if (query.isLoading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (query.isError || !query.data) {
@@ -95,9 +101,9 @@ export function PostDetailPage() {
         />
       </div>
 
-      <h2 className="mb-3 mt-6 text-lg font-bold text-brand-900">Bình luận</h2>
+      <h2 className="mb-3 mt-6 font-display text-lg font-semibold text-brand-900">Bình luận</h2>
 
-      <form onSubmit={handleSubmitComment} className="mb-4 flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm">
+      <Card as="form" onSubmit={handleSubmitComment} className="mb-4 flex flex-col gap-2 p-4">
         {commentMutation.isError ? <Alert message={extractErrorMessage(commentMutation.error)} /> : null}
         {replyTo ? (
           <div className="flex items-center justify-between text-sm text-brand-700/70">
@@ -117,7 +123,7 @@ export function PostDetailPage() {
         <Button type="submit" loading={commentMutation.isPending} disabled={content.trim().length === 0}>
           Gửi bình luận
         </Button>
-      </form>
+      </Card>
 
       <div className="flex flex-col gap-3">
         {topLevel.length === 0 ? <p className="text-center text-brand-700/70">Chưa có bình luận nào.</p> : null}
@@ -161,7 +167,7 @@ function CommentRow({
   onDelete: () => void;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm">
+    <Card className="p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-brand-900">
@@ -184,6 +190,6 @@ function CommentRow({
           Trả lời
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -4,21 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Warm cream + deep green, matching the UI references
-        // (Downloads/Requirement_Petcare.docx mockups).
+        // Warm mint/cream + deep teal-green, sampled from the PetConnect UI
+        // reference set (UX:UI.zip) provided by the user.
         brand: {
-          50: "#f3f6f2",
-          100: "#e4ebe1",
-          200: "#c8d6c2",
-          400: "#7a9e6d",
-          600: "#3f6b3a",
-          700: "#2f5c2b", // primary actions
-          900: "#16311a",
+          50: "#f3f9f6",
+          100: "#e6f4ec",
+          200: "#c9e4d5",
+          300: "#a3d0b9",
+          400: "#74b494",
+          500: "#4c9977",
+          600: "#327d60",
+          700: "#1f6b53", // primary actions
+          800: "#1b5645",
+          900: "#16302a",
         },
         cream: "#faf6ef",
       },
+      backgroundImage: {
+        // Soft diagonal mint-to-cream page background used by every
+        // authenticated shell, matching the reference mockups.
+        "app-gradient": "linear-gradient(135deg, #f6faf7 0%, #fefaf6 100%)",
+      },
       fontFamily: {
-        sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        display: ["Fraunces", "Georgia", "serif"],
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
       },
     },
   },

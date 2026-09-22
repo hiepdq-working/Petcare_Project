@@ -7,6 +7,7 @@ import { useAuthStore } from "../../auth/store";
 import { getSocket } from "../../../shared/realtime/socket";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
@@ -80,7 +81,7 @@ export function ConversationPage() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-57px)] max-w-xl flex-col px-4 py-4">
+    <div className="mx-auto flex h-[calc(100vh-57px-6rem)] max-w-xl flex-col px-4 py-4">
       <div className="mb-3 flex items-center gap-3 border-b border-brand-100 pb-3">
         <Link to="/messages" className="text-brand-700 hover:underline">
           ←
@@ -96,7 +97,7 @@ export function ConversationPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {messagesQuery.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+        {messagesQuery.isLoading ? <LoadingState /> : null}
         {messagesQuery.isError ? <Alert message={extractErrorMessage(messagesQuery.error)} /> : null}
 
         <div className="flex flex-col gap-2">

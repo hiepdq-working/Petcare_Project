@@ -33,7 +33,7 @@ import { PostDetailPage } from "../features/social/pages/PostDetailPage";
 import { ConversationsPage } from "../features/chat/pages/ConversationsPage";
 import { ConversationPage } from "../features/chat/pages/ConversationPage";
 import { SettingsPage } from "../features/settings/pages/SettingsPage";
-import { AppLayout } from "./layout/AppLayout";
+import { AppShell } from "./layout/AppShell";
 import { DashboardRedirect } from "./DashboardRedirect";
 
 export function AppRoutes() {
@@ -50,7 +50,7 @@ export function AppRoutes() {
         <Route path="/hospitals/:id" element={<HospitalDetailPage />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
+          <Route element={<AppShell />}>
             <Route path="/" element={<DashboardRedirect />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/pets" element={<PetsListPage />} />

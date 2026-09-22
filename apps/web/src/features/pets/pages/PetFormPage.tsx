@@ -8,6 +8,8 @@ import { extractErrorMessage } from "../../../shared/api/client";
 import { TextField } from "../../../shared/components/TextField";
 import { Button } from "../../../shared/components/Button";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 interface FormState {
   name: string;
@@ -98,16 +100,21 @@ export function PetFormPage() {
   }
 
   if (isEdit && petQuery.isLoading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">
         {isEdit ? "Sửa hồ sơ thú cưng" : "Thêm thú cưng mới"}
       </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+      <form onSubmit={handleSubmit}>
+      <Card className="flex flex-col gap-4 p-6">
         <AvatarUploader value={form.avatar} onChange={(url) => setForm((f) => ({ ...f, avatar: url }))} />
 
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
@@ -187,6 +194,7 @@ export function PetFormPage() {
         <Button type="submit" loading={mutation.isPending}>
           {isEdit ? "Lưu thay đổi" : "Tạo hồ sơ"}
         </Button>
+      </Card>
       </form>
     </div>
   );

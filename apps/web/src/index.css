@@ -3,5 +3,13 @@
 @tailwind utilities;
 
 body {
-  @apply bg-cream text-brand-900;
+  @apply bg-app-gradient bg-fixed text-brand-900;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  @apply font-display;
 }

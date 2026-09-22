@@ -9,6 +9,7 @@ import { petsApi } from "../../pets/api/pets.api";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Button } from "../../../shared/components/Button";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
 
 export function BookAppointmentPage() {
   const { petId, hospitalId } = useParams<{ petId: string; hospitalId: string }>();
@@ -57,12 +58,12 @@ export function BookAppointmentPage() {
         ← Quay lại hồ sơ phòng khám
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-900">Đặt lịch khám</h1>
+      <h1 className="mt-4 font-display text-2xl font-semibold text-brand-900">Đặt lịch khám</h1>
       <p className="mt-1 text-brand-700/80">
         {petQuery.data?.name ?? "..."} tại {hospitalQuery.data?.name ?? "..."}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+      <Card as="form" onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 p-6">
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
 
         <div className="flex flex-col gap-1.5">
@@ -138,7 +139,7 @@ export function BookAppointmentPage() {
         <Button type="submit" loading={mutation.isPending} disabled={!serviceId || !dateTime}>
           Gửi yêu cầu đặt lịch
         </Button>
-      </form>
+      </Card>
     </div>
   );
 }

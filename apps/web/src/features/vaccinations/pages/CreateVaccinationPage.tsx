@@ -6,6 +6,7 @@ import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
+import { Card } from "../../../shared/components/Card";
 
 export function CreateVaccinationPage() {
   const [searchParams] = useSearchParams();
@@ -37,9 +38,9 @@ export function CreateVaccinationPage() {
         ← Quay lại
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-900">Ghi nhận tiêm phòng cho {petName}</h1>
+      <h1 className="mt-4 font-display text-2xl font-semibold text-brand-900">Ghi nhận tiêm phòng cho {petName}</h1>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+      <Card as="form" onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 p-6">
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
 
         <TextField
@@ -77,7 +78,7 @@ export function CreateVaccinationPage() {
         <Button type="submit" loading={mutation.isPending} disabled={!petId || !form.vaccineName || !form.dateGiven}>
           Lưu
         </Button>
-      </form>
+      </Card>
     </div>
   );
 }

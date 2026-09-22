@@ -4,6 +4,9 @@ import type { PetEventDto, PetEventType } from "@petcare/types";
 import { petsApi } from "../../pets/api/pets.api";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 const EVENT_ICON: Record<PetEventType, string> = {
   MEDICAL: "🏥",
@@ -42,7 +45,7 @@ function EventCard({ event }: { event: PetEventDto }) {
   const summary = event.payload?.summary as string | undefined;
 
   const body = (
-    <div className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-sm">
+    <Card className="flex items-start gap-3 p-4">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg">
         {EVENT_ICON[event.eventType]}
       </div>
@@ -51,7 +54,7 @@ function EventCard({ event }: { event: PetEventDto }) {
         {summary ? <p className="text-sm text-brand-700/80">{summary}</p> : null}
         <p className="mt-1 text-xs text-brand-700/60">{formatDate(event.eventDate)}</p>
       </div>
-    </div>
+    </Card>
   );
 
   if (event.eventType === "MEDICAL" && event.referenceId) {
@@ -92,17 +95,15 @@ export function PetTimelinePage() {
         ← Quay lại hồ sơ thú cưng
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-900">
+      <h1 className="mt-4 font-display text-2xl font-semibold text-brand-900">
         Dòng thời gian của {petQuery.data?.name ?? "thú cưng"}
       </h1>
 
       <div className="mt-6 flex flex-col gap-3">
-        {timelineQuery.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+        {timelineQuery.isLoading ? <LoadingState /> : null}
         {timelineQuery.isError ? <Alert message={extractErrorMessage(timelineQuery.error)} /> : null}
         {timelineQuery.data?.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-            Chưa có sự kiện nào trong dòng thời gian.
-          </div>
+          <EmptyState title="Chưa có sự kiện nào trong dòng thời gian" />
         ) : null}
         {timelineQuery.data?.map((event) => <EventCard key={event.id} event={event} />)}
       </div>

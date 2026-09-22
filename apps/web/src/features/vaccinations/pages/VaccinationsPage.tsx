@@ -7,6 +7,9 @@ import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
+import { Card } from "../../../shared/components/Card";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("vi-VN");
@@ -51,7 +54,9 @@ export function VaccinationsPage() {
       </Link>
 
       <div className="mt-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-900">Sổ tiêm phòng của {petQuery.data?.name ?? "thú cưng"}</h1>
+        <h1 className="font-display text-2xl font-semibold text-brand-900">
+          Sổ tiêm phòng của {petQuery.data?.name ?? "thú cưng"}
+        </h1>
       </div>
 
       {!showForm ? (
@@ -59,7 +64,7 @@ export function VaccinationsPage() {
           + Thêm mũi tiêm
         </Button>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+        <Card as="form" onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4 p-6">
           {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
 
           <TextField
@@ -102,19 +107,15 @@ export function VaccinationsPage() {
               Huỷ
             </Button>
           </div>
-        </form>
+        </Card>
       )}
 
       <div className="mt-6 flex flex-col gap-3">
-        {query.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+        {query.isLoading ? <LoadingState /> : null}
         {query.isError ? <Alert message={extractErrorMessage(query.error)} /> : null}
-        {query.data?.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-            Chưa có mũi tiêm nào được ghi nhận.
-          </div>
-        ) : null}
+        {query.data?.length === 0 ? <EmptyState title="Chưa có mũi tiêm nào được ghi nhận" /> : null}
         {query.data?.map((vaccination) => (
-          <div key={vaccination.id} className="rounded-2xl bg-white p-4 shadow-sm">
+          <Card key={vaccination.id} className="p-4">
             <p className="font-semibold text-brand-900">{vaccination.vaccineName}</p>
             <p className="text-sm text-brand-700/80">Ngày tiêm: {formatDate(vaccination.dateGiven)}</p>
             {vaccination.nextDueDate ? (
@@ -122,7 +123,7 @@ export function VaccinationsPage() {
             ) : null}
             {vaccination.notes ? <p className="mt-1 text-sm text-brand-700/70">{vaccination.notes}</p> : null}
             <p className="mt-1 text-xs text-brand-700/60">Ghi nhận bởi {vaccination.createdByName}</p>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

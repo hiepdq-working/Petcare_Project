@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { petsApi } from "../api/pets.api";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "Chưa cập nhật";
@@ -24,7 +26,11 @@ export function PetDetailPage() {
   });
 
   if (query.isLoading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (query.isError || !query.data) {
@@ -49,7 +55,7 @@ export function PetDetailPage() {
         ← Quay lại danh sách
       </Link>
 
-      <div className="mt-4 rounded-2xl bg-white p-6 shadow-sm">
+      <Card className="mt-4 p-6">
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-brand-100">
             {pet.avatar ? (
@@ -59,7 +65,7 @@ export function PetDetailPage() {
             )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-brand-900">{pet.name}</h1>
+            <h1 className="font-display text-2xl font-semibold text-brand-900">{pet.name}</h1>
             <p className="text-brand-700/80">
               {pet.species}
               {pet.breed ? ` · ${pet.breed}` : ""}
@@ -124,7 +130,7 @@ export function PetDetailPage() {
             {deleteMutation.isPending ? "Đang xoá..." : "Xoá hồ sơ"}
           </button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

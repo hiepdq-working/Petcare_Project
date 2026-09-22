@@ -10,6 +10,9 @@ import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
+import { Card } from "../../../shared/components/Card";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 const HOSPITAL_MAX_MEDIA = 5;
 
@@ -39,7 +42,7 @@ export function FeedPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Bảng tin</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">Bảng tin</h1>
 
       {user?.role === UserRole.HOSPITAL_OWNER ? (
         <HospitalPostComposer onPosted={invalidateFeed} />
@@ -48,12 +51,10 @@ export function FeedPage() {
       )}
 
       <div className="mt-6 flex flex-col gap-4">
-        {feedQuery.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+        {feedQuery.isLoading ? <LoadingState /> : null}
         {feedQuery.isError ? <Alert message={extractErrorMessage(feedQuery.error)} /> : null}
         {feedQuery.data?.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-            Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!
-          </div>
+          <EmptyState title="Chưa có bài viết nào" description="Hãy là người đầu tiên chia sẻ khoảnh khắc!" />
         ) : null}
         {feedQuery.data?.map((post) => (
           <PostCard
@@ -113,7 +114,7 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
   const canPost = content.trim().length > 0 || media.length > 0;
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-5 shadow-sm">
+    <Card as="form" onSubmit={handleSubmit} className="p-5">
       {createMutation.isError ? (
         <div className="mb-3">
           <Alert message={extractErrorMessage(createMutation.error)} />
@@ -178,7 +179,7 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
       <Button type="submit" className="mt-4" loading={createMutation.isPending} disabled={!canPost || uploading}>
         Đăng bài
       </Button>
-    </form>
+    </Card>
   );
 }
 
@@ -241,7 +242,7 @@ function PetOwnerPostComposer({ onPosted }: { onPosted: () => void }) {
   }
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm">
+    <Card className="p-5">
       {cameraOpen ? <CameraCapture onCapture={handleCapture} onClose={() => setCameraOpen(false)} /> : null}
 
       {!captured ? (
@@ -297,6 +298,6 @@ function PetOwnerPostComposer({ onPosted }: { onPosted: () => void }) {
           </div>
         </form>
       )}
-    </div>
+    </Card>
   );
 }

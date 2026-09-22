@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AppointmentStatus } from "@petcare/types";
+import { CalendarClock, Stethoscope, Clock3, CheckCircle2 } from "lucide-react";
 import { appointmentsApi } from "../api/appointments.api";
 import { AppointmentStatusBadge } from "../components/AppointmentStatusBadge";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { StatCard } from "../../../shared/components/StatCard";
+import { PillTabs } from "../../../shared/components/PillTabs";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 const TABS: { value: AppointmentStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "Tất cả" },
@@ -41,9 +47,11 @@ export function HospitalAppointmentsPage() {
   const [tab, setTab] = useState<AppointmentStatus | "ALL">("ALL");
   const queryClient = useQueryClient();
 
+  // Fetched unfiltered so the stat row and the tab filter can both work off
+  // one list instead of issuing a request per tab.
   const query = useQuery({
-    queryKey: ["appointments", "hospital", tab],
-    queryFn: () => appointmentsApi.listForHospital(tab === "ALL" ? undefined : tab),
+    queryKey: ["appointments", "hospital", "ALL"],
+    queryFn: () => appointmentsApi.listForHospital(),
   });
 
   const mutation = useMutation({
@@ -52,22 +60,36 @@ export function HospitalAppointmentsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["appointments", "hospital"] }),
   });
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Lịch hẹn tại phòng khám</h1>
+  const counts = useMemo(() => {
+    const all = query.data ?? [];
+    return {
+      total: all.length,
+      inProgress: all.filter((a) => a.status === "IN_PROGRESS").length,
+      pending: all.filter((a) => a.status === "PENDING" || a.status === "CONFIRMED").length,
+      completed: all.filter((a) => a.status === "COMPLETED").length,
+    };
+  }, [query.data]);
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.value}
-            onClick={() => setTab(t.value)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              tab === t.value ? "bg-brand-700 text-white" : "bg-white text-brand-700 hover:bg-brand-50"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+  const visible = useMemo(
+    () => (query.data ?? []).filter((a) => tab === "ALL" || a.status === tab),
+    [query.data, tab],
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Lịch khám</p>
+      <h1 className="mt-1 font-display text-2xl font-semibold text-brand-900">Lịch hẹn tại phòng khám</h1>
+      <p className="mt-1 text-sm text-brand-700/70">Theo dõi các ca khám, tình trạng tiếp nhận và bác sĩ phụ trách.</p>
+
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard icon={<CalendarClock size={18} />} tone="mint" value={counts.total} label="Tổng lịch khám" />
+        <StatCard icon={<Stethoscope size={18} />} tone="blue" value={counts.inProgress} label="Đang khám" />
+        <StatCard icon={<Clock3 size={18} />} tone="amber" value={counts.pending} label="Chờ khám" />
+        <StatCard icon={<CheckCircle2 size={18} />} tone="violet" value={counts.completed} label="Hoàn thành" />
+      </div>
+
+      <div className="mt-6 mb-4">
+        <PillTabs tabs={TABS} value={tab} onChange={setTab} />
       </div>
 
       {mutation.isError ? (
@@ -76,16 +98,14 @@ export function HospitalAppointmentsPage() {
         </div>
       ) : null}
 
-      {query.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
-      {query.data?.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-          Không có lịch hẹn nào ở mục này.
-        </div>
+      {query.isLoading ? <LoadingState /> : null}
+      {!query.isLoading && visible.length === 0 ? (
+        <EmptyState title="Không có lịch hẹn nào ở mục này" />
       ) : null}
 
       <div className="flex flex-col gap-3">
-        {query.data?.map((appointment) => (
-          <div key={appointment.id} className="rounded-2xl bg-white p-5 shadow-sm">
+        {visible.map((appointment) => (
+          <Card key={appointment.id} className="p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-brand-900">
@@ -116,7 +136,7 @@ export function HospitalAppointmentsPage() {
                 ))}
               </div>
             ) : null}
-          </div>
+          </Card>
         ))}
       </div>
     </div>

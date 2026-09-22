@@ -7,6 +7,9 @@ import { LocationPicker } from "../../../shared/components/LocationPicker";
 import { Button } from "../../../shared/components/Button";
 import { Alert } from "../../../shared/components/Alert";
 import { extractErrorMessage } from "../../../shared/api/client";
+import { Card } from "../../../shared/components/Card";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 // Step 1 of booking: "sau khi chọn pet sẽ có mục tìm kiếm phòng khám
 // thông qua map" — pet is already chosen (via the route param, set by
@@ -22,14 +25,14 @@ export function BookHospitalSearchPage() {
         ← Quay lại hồ sơ thú cưng
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-brand-900">
+      <h1 className="mt-4 font-display text-2xl font-semibold text-brand-900">
         Tìm phòng khám cho {petQuery.data?.name ?? "thú cưng"}
       </h1>
       <p className="mt-1 text-brand-700/80">
         Dùng vị trí hiện tại hoặc chọn trên bản đồ để tìm phòng khám thú y gần nhất.
       </p>
 
-      <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+      <Card className="mt-6 p-6">
         <Button onClick={useMyLocation} loading={locating}>
           📍 Dùng vị trí của tôi
         </Button>
@@ -61,16 +64,17 @@ export function BookHospitalSearchPage() {
             ))}
           </select>
         </div>
-      </div>
+      </Card>
 
       <div className="mt-6 flex flex-col gap-3">
         {!center ? <p className="text-center text-brand-700/70">Chọn vị trí ở trên để bắt đầu tìm kiếm.</p> : null}
-        {query.isLoading ? <p className="text-center text-brand-700">Đang tìm kiếm...</p> : null}
+        {query.isLoading ? <LoadingState label="Đang tìm kiếm..." /> : null}
         {query.isError ? <Alert message={extractErrorMessage(query.error)} /> : null}
         {query.data?.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-            Không tìm thấy phòng khám nào trong bán kính {radiusKm}km. Hãy thử tăng bán kính.
-          </div>
+          <EmptyState
+            title="Không tìm thấy phòng khám nào"
+            description={`Không có phòng khám trong bán kính ${radiusKm}km. Hãy thử tăng bán kính.`}
+          />
         ) : null}
         {query.data?.map((hospital) => (
           <HospitalResultCard key={hospital.id} hospital={hospital} bookingPetId={petId} />

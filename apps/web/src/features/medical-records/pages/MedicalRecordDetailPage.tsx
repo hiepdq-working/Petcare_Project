@@ -7,6 +7,8 @@ import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 import { Button } from "../../../shared/components/Button";
+import { Card } from "../../../shared/components/Card";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 const CONTENT_FIELDS: { key: keyof MedicalRecordContent; label: string }[] = [
   { key: "symptoms", label: "Triệu chứng" },
@@ -74,7 +76,11 @@ export function MedicalRecordDetailPage() {
   }
 
   if (query.isLoading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (query.isError || !query.data) {
@@ -95,7 +101,7 @@ export function MedicalRecordDetailPage() {
       </Link>
 
       <div className="mt-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-900">Hồ sơ bệnh án của {record.petName}</h1>
+        <h1 className="font-display text-2xl font-semibold text-brand-900">Hồ sơ bệnh án của {record.petName}</h1>
       </div>
       <p className="mt-1 text-brand-700/80">
         {record.hospitalName ?? "Phòng khám"} · {record.vetName ?? "Bác sĩ"} · {formatDateTime(record.recordDate)}
@@ -107,7 +113,7 @@ export function MedicalRecordDetailPage() {
         </div>
       ) : null}
 
-      <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+      <Card className="mt-6 p-6">
         {!editing ? (
           <>
             <dl className="flex flex-col gap-4">
@@ -159,9 +165,9 @@ export function MedicalRecordDetailPage() {
             </div>
           </form>
         )}
-      </div>
+      </Card>
 
-      <h2 className="mb-3 mt-8 text-lg font-bold text-brand-900">File đính kèm</h2>
+      <h2 className="mb-3 mt-8 font-display text-lg font-semibold text-brand-900">File đính kèm</h2>
       {fileMutation.isError ? (
         <div className="mb-3">
           <Alert message={extractErrorMessage(fileMutation.error)} />
@@ -175,7 +181,7 @@ export function MedicalRecordDetailPage() {
             href={file.fileUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-xl bg-white p-3 text-sm text-brand-700 shadow-sm hover:underline"
+            className="flex items-center gap-2 rounded-xl bg-white p-3 text-sm text-brand-700 shadow-sm ring-1 ring-black/5 hover:underline"
           >
             📎 {file.fileName}
           </a>
@@ -197,7 +203,7 @@ export function MedicalRecordDetailPage() {
       {showHistory ? (
         <div className="flex flex-col gap-3">
           {record.versions.map((version) => (
-            <div key={version.id} className="rounded-2xl bg-white p-4 text-sm shadow-sm">
+            <Card key={version.id} className="p-4 text-sm">
               <p className="font-semibold text-brand-900">
                 Phiên bản {version.versionNo} · {version.editedByName}
               </p>
@@ -212,7 +218,7 @@ export function MedicalRecordDetailPage() {
                   ) : null,
                 )}
               </dl>
-            </div>
+            </Card>
           ))}
         </div>
       ) : null}

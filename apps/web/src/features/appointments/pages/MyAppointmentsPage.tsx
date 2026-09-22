@@ -3,6 +3,9 @@ import { appointmentsApi } from "../api/appointments.api";
 import { AppointmentStatusBadge } from "../components/AppointmentStatusBadge";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("vi-VN");
@@ -25,7 +28,7 @@ export function MyAppointmentsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Lịch hẹn của tôi</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">Lịch hẹn của tôi</h1>
 
       {cancelMutation.isError ? (
         <div className="mb-4">
@@ -33,16 +36,17 @@ export function MyAppointmentsPage() {
         </div>
       ) : null}
 
-      {query.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
-      {query.data?.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-          Bạn chưa có lịch hẹn nào. Hãy tìm phòng khám từ trang hồ sơ thú cưng.
-        </div>
+      {query.isLoading ? <LoadingState /> : null}
+      {!query.isLoading && query.data?.length === 0 ? (
+        <EmptyState
+          title="Bạn chưa có lịch hẹn nào"
+          description="Hãy tìm phòng khám từ trang hồ sơ thú cưng để đặt lịch."
+        />
       ) : null}
 
       <div className="flex flex-col gap-3">
         {query.data?.map((appointment) => (
-          <div key={appointment.id} className="rounded-2xl bg-white p-5 shadow-sm">
+          <Card key={appointment.id} className="p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-brand-900">
@@ -67,7 +71,7 @@ export function MyAppointmentsPage() {
                 Huỷ lịch hẹn
               </button>
             ) : null}
-          </div>
+          </Card>
         ))}
       </div>
     </div>

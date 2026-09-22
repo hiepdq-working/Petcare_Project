@@ -3,6 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { partnersApi } from "../../partners/api/partners.api";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
+import { Card } from "../../../shared/components/Card";
+import { Badge, type BadgeTone } from "../../../shared/components/Badge";
+import { PillTabs } from "../../../shared/components/PillTabs";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { LoadingState } from "../../../shared/components/LoadingState";
+
+const STATUS_TONE: Record<string, BadgeTone> = { PENDING: "amber", APPROVED: "green", REJECTED: "red" };
+const STATUS_LABEL: Record<string, string> = { PENDING: "Chờ duyệt", APPROVED: "Đã duyệt", REJECTED: "Đã từ chối" };
 
 const TABS = [
   { value: "PENDING", label: "Chờ duyệt" },
@@ -11,7 +19,7 @@ const TABS = [
 ] as const;
 
 export function PartnerRegistrationsPage() {
-  const [status, setStatus] = useState<string>("PENDING");
+  const [status, setStatus] = useState<(typeof TABS)[number]["value"]>("PENDING");
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["partner-registrations", status], queryFn: () => partnersApi.list(status) });
 
@@ -34,20 +42,10 @@ export function PartnerRegistrationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Duyệt phòng khám đối tác</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-brand-900">Duyệt phòng khám đối tác</h1>
 
-      <div className="mb-6 flex gap-2">
-        {TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setStatus(tab.value)}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              status === tab.value ? "bg-brand-700 text-white" : "bg-white text-brand-700 hover:bg-brand-50"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="mb-6">
+        <PillTabs tabs={[...TABS]} value={status} onChange={setStatus} />
       </div>
 
       {activeError ? (
@@ -56,17 +54,15 @@ export function PartnerRegistrationsPage() {
         </div>
       ) : null}
 
-      {query.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+      {query.isLoading ? <LoadingState /> : null}
 
-      {query.data?.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
-          Không có hồ sơ nào ở mục này.
-        </div>
+      {!query.isLoading && query.data?.length === 0 ? (
+        <EmptyState title="Không có hồ sơ nào ở mục này" />
       ) : null}
 
       <div className="flex flex-col gap-3">
         {query.data?.map((registration) => (
-          <div key={registration.id} className="rounded-2xl bg-white p-5 shadow-sm">
+          <Card key={registration.id} className="p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-brand-900">{registration.shopName}</p>
@@ -100,9 +96,9 @@ export function PartnerRegistrationsPage() {
                   ) : null}
                 </div>
               </div>
-              <span className="whitespace-nowrap rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
-                {registration.status}
-              </span>
+              <Badge tone={STATUS_TONE[registration.status] ?? "neutral"}>
+                {STATUS_LABEL[registration.status] ?? registration.status}
+              </Badge>
             </div>
 
             {registration.status === "PENDING" ? (
@@ -123,7 +119,7 @@ export function PartnerRegistrationsPage() {
                 </button>
               </div>
             ) : null}
-          </div>
+          </Card>
         ))}
       </div>
     </div>
