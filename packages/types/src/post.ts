@@ -1,3 +1,5 @@
+import type { UserRole } from "./enums";
+
 export interface PostMediaDto {
   id: string;
   mediaUrl: string;
@@ -10,6 +12,9 @@ export interface PostCommentDto {
   userId: string;
   userName: string;
   userAvatar: string | null;
+  // Lets the UI badge a Hospital's own reply as an official response,
+  // distinct from an ordinary Pet Owner commenting.
+  userRole: UserRole;
   parentId: string | null;
   content: string;
   createdAt: string;

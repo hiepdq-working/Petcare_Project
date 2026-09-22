@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PostCommentDto } from "@petcare/types";
+import { UserRole, type PostCommentDto } from "@petcare/types";
 import { socialApi } from "../api/social.api";
 import { PostCard } from "../components/PostCard";
 import { useAuthStore } from "../../auth/store";
@@ -164,7 +164,12 @@ function CommentRow({
     <div className="rounded-2xl bg-white p-3 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-brand-900">{comment.userName}</p>
+          <p className="text-sm font-semibold text-brand-900">
+            {comment.userName}
+            {comment.userRole === UserRole.HOSPITAL_OWNER ? (
+              <span className="ml-1.5 text-xs font-semibold text-brand-700/70">🏥 Phòng khám</span>
+            ) : null}
+          </p>
           <p className="text-sm text-brand-900">{comment.content}</p>
         </div>
         {isOwn ? (

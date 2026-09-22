@@ -32,6 +32,7 @@ export function toCommentDto(comment: CommentWithUser): PostCommentDto {
     userId: comment.userId,
     userName: comment.user.name,
     userAvatar: comment.user.avatar,
+    userRole: comment.user.role,
     parentId: comment.parentId,
     content: comment.content,
     createdAt: comment.createdAt.toISOString(),
