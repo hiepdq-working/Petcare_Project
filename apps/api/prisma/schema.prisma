@@ -10,6 +10,11 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
+  // "native" covers local dev (macOS/Linux glibc); the musl target is for
+  // the Docker images, which run on node:20-alpine — without this, Prisma
+  // can't detect the right engine binary there and migrate/generate fail
+  // at runtime with an opaque "Could not parse schema engine response".
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {

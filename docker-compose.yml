@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: petcare
+      POSTGRES_PASSWORD: petcare_dev_password
+      POSTGRES_DB: petcare
+    ports:
+      # Host 5433, not the default 5432 — avoids colliding with a Postgres
+      # you might already have running locally. The api container always
+      # reaches this over the internal Docker network at postgres:5432
+      # regardless of this mapping; 5433 is only for connecting a GUI
+      # tool (psql, TablePlus, ...) from the host if you want to look.
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petcare -d petcare"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # development (not production) so the mailer logs to this
+      # container's console instead of requiring a real RESEND_API_KEY —
+      # see apps/api/src/lib/mailer.service.ts. Set to "production" once
+      # you have real email/Google credentials and are deploying for
+      # real users.
+      NODE_ENV: development
+      PORT: "4000"
+      DATABASE_URL: postgresql://petcare:petcare_dev_password@postgres:5432/petcare?schema=public
+      WEB_ORIGIN: http://localhost:5173
+      APP_URL: http://localhost:5173
+      API_PUBLIC_URL: http://localhost:4000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-change-me-before-deploying}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN_DAYS: "30"
+      COOKIE_DOMAIN: localhost
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: "PetCare <no-reply@petcare.local>"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    ports:
+      - "4000:4000"
+    volumes:
+      # Uploaded files (avatars, photos, documents) live on disk — see
+      # apps/api/src/modules/uploads. Named volume so they survive
+      # `docker compose down` (not `-v`).
+      - api_uploads:/repo/apps/api/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Must be reachable from your browser, not from inside the
+        # Docker network — this is why it's "localhost:4000", the host
+        # port api is published on above, not "http://api:4000".
+        VITE_API_URL: http://localhost:4000/api
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:
+  api_uploads:
