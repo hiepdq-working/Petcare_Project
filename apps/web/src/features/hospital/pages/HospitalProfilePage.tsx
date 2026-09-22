@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { hospitalApi } from "../api/hospital.api";
 import { extractErrorMessage } from "../../../shared/api/client";
@@ -95,7 +96,12 @@ export function HospitalProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-900">Hồ sơ phòng khám</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-brand-900">Hồ sơ phòng khám</h1>
+        <Link to="/hospital/vets" className="text-sm font-semibold text-brand-700 hover:underline">
+          Quản lý bác sĩ →
+        </Link>
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}

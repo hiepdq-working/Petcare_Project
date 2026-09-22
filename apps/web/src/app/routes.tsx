@@ -14,6 +14,8 @@ import { PartnerRegisterPage } from "../features/partners/pages/PartnerRegisterP
 import { PartnerRegistrationsPage } from "../features/admin/pages/PartnerRegistrationsPage";
 import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfilePage";
 import { HospitalFinderPage } from "../features/hospital/pages/HospitalFinderPage";
+import { VetsManagementPage } from "../features/vets/pages/VetsManagementPage";
+import { VetProfilePage } from "../features/vets/pages/VetProfilePage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -49,6 +51,22 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.HOSPITAL_OWNER}>
                   <HospitalProfilePage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/hospital/vets"
+              element={
+                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                  <VetsManagementPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/vet/profile"
+              element={
+                <RequireRole role={UserRole.VET}>
+                  <VetProfilePage />
                 </RequireRole>
               }
             />

@@ -3,8 +3,8 @@ import { UserRole } from "@petcare/types";
 import { useAuthStore } from "../features/auth/store";
 
 // Pet Owners land on their pet list, Admin lands on the approval queue,
-// Hospital Owner lands on their own hospital profile. Other roles (Vet,
-// Hospital Staff) get a placeholder until their dashboards are built.
+// Hospital Owner lands on their own hospital profile, Vet lands on their
+// own profile. Hospital Staff gets a placeholder until its role is built.
 export function DashboardRedirect() {
   const role = useAuthStore((state) => state.user?.role);
 
@@ -18,6 +18,10 @@ export function DashboardRedirect() {
 
   if (role === UserRole.HOSPITAL_OWNER) {
     return <Navigate to="/hospital/profile" replace />;
+  }
+
+  if (role === UserRole.VET) {
+    return <Navigate to="/vet/profile" replace />;
   }
 
   return (
