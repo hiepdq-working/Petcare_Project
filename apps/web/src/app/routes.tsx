@@ -28,6 +28,8 @@ import { VetMedicalRecordsPage } from "../features/medical-records/pages/VetMedi
 import { CreateMedicalRecordPage } from "../features/medical-records/pages/CreateMedicalRecordPage";
 import { VaccinationsPage } from "../features/vaccinations/pages/VaccinationsPage";
 import { CreateVaccinationPage } from "../features/vaccinations/pages/CreateVaccinationPage";
+import { FeedPage } from "../features/social/pages/FeedPage";
+import { PostDetailPage } from "../features/social/pages/PostDetailPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -120,6 +122,22 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.VET}>
                   <CreateVaccinationPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/feed"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <FeedPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/posts/:id"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <PostDetailPage />
                 </RequireRole>
               }
             />

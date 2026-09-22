@@ -11,7 +11,12 @@ import { env } from "./config/env";
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.use(helmet());
+  // Default CORP is "same-origin", which blocks the SPA (a different
+  // origin/port in dev, and typically a different subdomain/CDN in
+  // production) from loading images served under /uploads. These are
+  // public media (avatars, post photos, hospital logos) meant to be
+  // embedded cross-origin, so relax just that policy.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(cookieParser());
   app.enableCors({ origin: env.webOrigin, credentials: true });
   app.setGlobalPrefix("api");

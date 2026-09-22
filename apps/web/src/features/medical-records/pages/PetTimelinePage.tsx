@@ -70,6 +70,14 @@ function EventCard({ event }: { event: PetEventDto }) {
     );
   }
 
+  if (event.eventType === "SOCIAL_POST" && event.referenceId) {
+    return (
+      <Link to={`/posts/${event.referenceId}`} className="block transition hover:opacity-80">
+        {body}
+      </Link>
+    );
+  }
+
   return body;
 }
 
