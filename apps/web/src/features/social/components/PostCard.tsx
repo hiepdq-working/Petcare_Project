@@ -5,6 +5,10 @@ function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("vi-VN");
 }
 
+function osmUrl(lat: number, lng: number): string {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+}
+
 interface PostCardProps {
   post: PostDto;
   currentUserId?: string;
@@ -15,21 +19,37 @@ interface PostCardProps {
 
 export function PostCard({ post, currentUserId, onToggleLike, onDelete, linkToDetail = true }: PostCardProps) {
   const isOwn = post.userId === currentUserId;
+  const isHospitalPost = post.hospitalId !== null;
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-lg">
-          {post.userAvatar ? <img src={post.userAvatar} alt="" className="h-full w-full object-cover" /> : "🙂"}
+          {post.userAvatar ? (
+            <img src={post.userAvatar} alt="" className="h-full w-full object-cover" />
+          ) : isHospitalPost ? (
+            "🏥"
+          ) : (
+            "🙂"
+          )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-brand-900">{post.userName}</p>
+          <p className="font-semibold text-brand-900">
+            {post.userName}
+            {isHospitalPost ? <span className="ml-1.5 text-xs font-semibold text-brand-700/70">🏥 Phòng khám</span> : null}
+          </p>
           <p className="text-xs text-brand-700/60">
             {formatDateTime(post.createdAt)}
             {post.petName ? (
               <>
                 {" · "}
                 <span className="text-brand-700/80">🐾 {post.petName}</span>
+              </>
+            ) : null}
+            {post.vetName ? (
+              <>
+                {" · "}
+                <span className="text-brand-700/80">🩺 {post.vetName}</span>
               </>
             ) : null}
           </p>
@@ -49,6 +69,17 @@ export function PostCard({ post, currentUserId, onToggleLike, onDelete, linkToDe
             <img key={m.id} src={m.mediaUrl} alt="" className="aspect-square w-full rounded-xl object-cover" />
           ))}
         </div>
+      ) : null}
+
+      {isHospitalPost && post.hospitalLat !== null && post.hospitalLng !== null ? (
+        <a
+          href={osmUrl(post.hospitalLat, post.hospitalLng)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100"
+        >
+          📍 Xem vị trí {post.hospitalName ?? "phòng khám"} trên bản đồ
+        </a>
       ) : null}
 
       <div className="mt-4 flex items-center gap-4 text-sm text-brand-700/80">

@@ -17,7 +17,7 @@ import {
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.PET_OWNER)
+@Roles(UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER)
 export class PostController {
   constructor(private readonly service: PostService) {}
 
@@ -26,7 +26,7 @@ export class PostController {
     @CurrentUser() auth: RequestAuth,
     @Body(new ZodValidationPipe(createPostSchema)) body: CreatePostInput,
   ) {
-    const post = await this.service.create(auth.userId, body);
+    const post = await this.service.create(auth.userId, auth.role, body);
     return ok(post, "Đã đăng bài viết");
   }
 

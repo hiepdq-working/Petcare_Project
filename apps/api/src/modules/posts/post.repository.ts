@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import type { Pet, Post, PostComment, PostMedia, Prisma, User } from "@prisma/client";
+import type { Hospital, Pet, Post, PostComment, PostMedia, Prisma, User, Veterinarian } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 
 export type PostWithRelations = Post & {
   user: User;
   pet: Pet | null;
+  hospital: Hospital | null;
+  vet: (Veterinarian & { user: User }) | null;
   media: PostMedia[];
   // Filtered to just the requester's own like (if any) — see `include()`.
   likes: { id: string }[];
@@ -24,6 +26,8 @@ export class PostRepository {
     return {
       user: true,
       pet: true,
+      hospital: true,
+      vet: { include: { user: true } },
       media: true,
       likes: { where: { userId: requesterId }, select: { id: true } },
       _count: { select: { likes: true, comments: true } },
@@ -31,13 +35,22 @@ export class PostRepository {
   }
 
   async create(
-    data: { userId: string; petId?: string; content?: string; media: { mediaUrl: string; mediaType: string }[] },
+    data: {
+      userId: string;
+      petId?: string;
+      hospitalId?: string;
+      vetId?: string;
+      content?: string;
+      media: { mediaUrl: string; mediaType: string }[];
+    },
     requesterId: string,
   ): Promise<PostWithRelations> {
     const post = await this.prisma.post.create({
       data: {
         userId: data.userId,
         petId: data.petId,
+        hospitalId: data.hospitalId,
+        vetId: data.vetId,
         content: data.content,
         media: { create: data.media },
       },

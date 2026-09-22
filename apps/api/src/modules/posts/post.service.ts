@@ -1,33 +1,71 @@
 import { Injectable } from "@nestjs/common";
-import type { PostDetailDto, PostDto } from "@petcare/types";
+import { UserRole, type PostDetailDto, type PostDto } from "@petcare/types";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
+import { HospitalRepository } from "../hospitals/hospital.repository";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { PetRepository } from "../pets/pet.repository";
+import { VetRepository } from "../vets/vet.repository";
 import { PostRepository } from "./post.repository";
 import { toCommentDto, toPostDto } from "./post.types";
 import type { CreateCommentInput, CreatePostInput } from "./post.validator";
+
+// A Pet Owner's post is a personal moment about their own pet, captured
+// live (the frontend only offers a camera, never a file picker) — a single
+// photo keeps that intent honest. A Hospital's post is more like a small
+// gallery (clinic photos, a vet spotlight), so it gets the fuller 5-image
+// allowance the Zod schema caps at.
+const PET_OWNER_MAX_MEDIA = 1;
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly repository: PostRepository,
     private readonly petRepository: PetRepository,
+    private readonly hospitalRepository: HospitalRepository,
+    private readonly vetRepository: VetRepository,
     private readonly petEventService: PetEventService,
   ) {}
 
-  async create(userId: string, input: CreatePostInput): Promise<PostDto> {
-    if (input.petId) {
-      const pet = await this.petRepository.findById(input.petId);
-      if (!pet) {
-        throw new NotFoundError("Không tìm thấy thú cưng");
+  async create(userId: string, role: UserRole, input: CreatePostInput): Promise<PostDto> {
+    const media = input.media ?? [];
+    let hospitalId: string | undefined;
+
+    if (role === UserRole.HOSPITAL_OWNER) {
+      if (input.petId) {
+        throw new BadRequestError("Phòng khám không thể gắn thẻ thú cưng vào bài viết");
       }
-      if (pet.ownerId !== userId) {
-        throw new ForbiddenError("Thú cưng này không thuộc tài khoản của bạn");
+      const hospital = await this.hospitalRepository.findByOwnerId(userId);
+      if (!hospital) {
+        throw new NotFoundError("Không tìm thấy phòng khám của tài khoản này");
+      }
+      hospitalId = hospital.id;
+
+      if (input.vetId) {
+        const vet = await this.vetRepository.findById(input.vetId);
+        if (!vet || vet.hospitalId !== hospital.id) {
+          throw new BadRequestError("Bác sĩ không thuộc phòng khám này");
+        }
+      }
+    } else {
+      if (input.vetId) {
+        throw new BadRequestError("Chỉ phòng khám mới có thể gắn thẻ bác sĩ vào bài viết");
+      }
+      if (media.length > PET_OWNER_MAX_MEDIA) {
+        throw new BadRequestError("Bạn chỉ có thể đăng 1 ảnh cho mỗi bài viết");
+      }
+      if (input.petId) {
+        const pet = await this.petRepository.findById(input.petId);
+        if (!pet) {
+          throw new NotFoundError("Không tìm thấy thú cưng");
+        }
+        if (pet.ownerId !== userId) {
+          throw new ForbiddenError("Thú cưng này không thuộc tài khoản của bạn");
+        }
       }
     }
 
     const post = await this.repository.create(
-      { userId, petId: input.petId, content: input.content, media: input.media ?? [] },
+      { userId, petId: input.petId, hospitalId, vetId: input.vetId, content: input.content, media },
       userId,
     );
 

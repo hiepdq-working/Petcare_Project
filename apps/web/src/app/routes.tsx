@@ -128,7 +128,7 @@ export function AppRoutes() {
             <Route
               path="/feed"
               element={
-                <RequireRole role={UserRole.PET_OWNER}>
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
                   <FeedPage />
                 </RequireRole>
               }
@@ -136,7 +136,7 @@ export function AppRoutes() {
             <Route
               path="/posts/:id"
               element={
-                <RequireRole role={UserRole.PET_OWNER}>
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
                   <PostDetailPage />
                 </RequireRole>
               }

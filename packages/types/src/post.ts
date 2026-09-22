@@ -23,6 +23,14 @@ export interface PostDto {
   petId: string | null;
   petName: string | null;
   petAvatar: string | null;
+  // Set only for a Hospital's own post (never for a Pet Owner's) — presence
+  // of hospitalId is what the frontend uses to tell the two apart.
+  hospitalId: string | null;
+  hospitalName: string | null;
+  hospitalLat: number | null;
+  hospitalLng: number | null;
+  vetId: string | null;
+  vetName: string | null;
   content: string | null;
   media: PostMediaDto[];
   likeCount: number;
@@ -39,6 +47,7 @@ export interface PostDetailDto {
 export interface CreatePostRequest {
   content?: string;
   petId?: string;
+  vetId?: string;
   media?: { mediaUrl: string; mediaType: string }[];
 }
 

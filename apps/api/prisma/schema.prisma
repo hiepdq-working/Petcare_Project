@@ -288,6 +288,7 @@ model Hospital {
   veterinarians  Veterinarian[]
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
+  posts          Post[]
 
   @@index([lat, lng])
   @@map("hospitals")
@@ -309,6 +310,7 @@ model Veterinarian {
 
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
+  posts          Post[]
 
   @@index([hospitalId])
   @@map("veterinarians")
@@ -418,13 +420,22 @@ model AppointmentHistory {
 // ----------------------------------------------------------------------------
 
 model Post {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  petId     String?  @map("pet_id") @db.Uuid
-  pet       Pet?     @relation(fields: [petId], references: [id], onDelete: SetNull)
-  content   String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  petId      String?       @map("pet_id") @db.Uuid
+  pet        Pet?          @relation(fields: [petId], references: [id], onDelete: SetNull)
+  // Set server-side only, from the Hospital Owner's own hospital — never
+  // client-supplied. Lets a Hospital's post surface a "xem vị trí" button
+  // and distinguishes a Hospital post from a Pet Owner post.
+  hospitalId String?       @map("hospital_id") @db.Uuid
+  hospital   Hospital?     @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  // Optional vet tag — only a Hospital Owner posting about their own
+  // hospital may set this (see PostService.create).
+  vetId      String?       @map("vet_id") @db.Uuid
+  vet        Veterinarian? @relation(fields: [vetId], references: [id], onDelete: SetNull)
+  content    String?       @db.Text
+  createdAt  DateTime      @default(now()) @map("created_at")
 
   media    PostMedia[]
   likes    PostLike[]
@@ -432,6 +443,7 @@ model Post {
 
   @@index([userId])
   @@index([petId])
+  @@index([hospitalId])
   @@map("posts")
 }
 

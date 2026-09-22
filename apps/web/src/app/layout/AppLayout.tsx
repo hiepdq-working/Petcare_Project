@@ -16,7 +16,7 @@ export function AppLayout() {
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-brand-900">🐾 PetCare</span>
           <div className="flex items-center gap-3 text-sm">
-            {user?.role === UserRole.PET_OWNER ? (
+            {user?.role === UserRole.PET_OWNER || user?.role === UserRole.HOSPITAL_OWNER ? (
               <Link to="/feed" className="font-semibold text-brand-700 hover:underline">
                 Bảng tin
               </Link>

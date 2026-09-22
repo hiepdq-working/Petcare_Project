@@ -1,7 +1,10 @@
-import type { Pet, Post, PostComment } from "@prisma/client";
+import { UserRole } from "@petcare/types";
+import type { Hospital, Pet, Post, PostComment } from "@prisma/client";
 import { PostService } from "./post.service";
 import { PostRepository, type PostWithRelations } from "./post.repository";
 import { PetRepository } from "../pets/pet.repository";
+import { HospitalRepository } from "../hospitals/hospital.repository";
+import { VetRepository, type VetWithUser } from "../vets/vet.repository";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 
@@ -23,15 +26,46 @@ function makePet(overrides: Partial<Pet> = {}): Pet {
   } as Pet;
 }
 
+function makeHospital(overrides: Partial<Hospital> = {}): Hospital {
+  return {
+    id: "hospital-1",
+    ownerId: "hospital-owner-1",
+    name: "Happy Paws",
+    lat: null,
+    lng: null,
+    status: "ACTIVE",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  } as Hospital;
+}
+
+function makeVet(overrides: Partial<VetWithUser> = {}): VetWithUser {
+  return {
+    id: "vet-1",
+    hospitalId: "hospital-1",
+    userId: "vet-user-1",
+    status: "ACTIVE",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    user: { id: "vet-user-1", name: "BS. Minh" } as never,
+    ...overrides,
+  } as VetWithUser;
+}
+
 function makePost(overrides: Partial<PostWithRelations> = {}): PostWithRelations {
   return {
     id: "post-1",
     userId: "owner-1",
     petId: null,
+    hospitalId: null,
+    vetId: null,
     content: "Xin chào",
     createdAt: new Date(),
     user: { id: "owner-1", name: "Chủ nuôi", avatar: null },
     pet: null,
+    hospital: null,
+    vet: null,
     media: [],
     likes: [],
     _count: { likes: 0, comments: 0 },
@@ -78,22 +112,24 @@ function setup() {
   } as unknown as jest.Mocked<PostRepository>;
 
   const petRepository = { findById: jest.fn() } as unknown as jest.Mocked<PetRepository>;
+  const hospitalRepository = { findByOwnerId: jest.fn() } as unknown as jest.Mocked<HospitalRepository>;
+  const vetRepository = { findById: jest.fn() } as unknown as jest.Mocked<VetRepository>;
   const petEventService = { publish: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<PetEventService>;
 
-  const service = new PostService(repository, petRepository, petEventService);
+  const service = new PostService(repository, petRepository, hospitalRepository, vetRepository, petEventService);
 
-  return { service, repository, petRepository, petEventService };
+  return { service, repository, petRepository, hospitalRepository, vetRepository, petEventService };
 }
 
-describe("PostService.create", () => {
+describe("PostService.create — Pet Owner", () => {
   it("creates a post with no pet tag and does not publish a PetEvent", async () => {
     const { service, repository, petEventService } = setup();
     repository.create.mockResolvedValue(makePost());
 
-    await service.create("owner-1", { content: "Xin chào" });
+    await service.create("owner-1", UserRole.PET_OWNER, { content: "Xin chào" });
 
     expect(repository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: "owner-1", content: "Xin chào" }),
+      expect.objectContaining({ userId: "owner-1", content: "Xin chào", hospitalId: undefined }),
       "owner-1",
     );
     expect(petEventService.publish).not.toHaveBeenCalled();
@@ -104,7 +140,7 @@ describe("PostService.create", () => {
     petRepository.findById.mockResolvedValue(makePet());
     repository.create.mockResolvedValue(makePost({ petId: "pet-1" }));
 
-    await service.create("owner-1", { content: "Ảnh dễ thương", petId: "pet-1" });
+    await service.create("owner-1", UserRole.PET_OWNER, { content: "Ảnh dễ thương", petId: "pet-1" });
 
     expect(petEventService.publish).toHaveBeenCalledWith(
       expect.objectContaining({ petId: "pet-1", eventType: "SOCIAL_POST", referenceId: "post-1" }),
@@ -115,7 +151,75 @@ describe("PostService.create", () => {
     const { service, petRepository } = setup();
     petRepository.findById.mockResolvedValue(makePet({ ownerId: "someone-else" }));
 
-    await expect(service.create("owner-1", { content: "x", petId: "pet-1" })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(
+      service.create("owner-1", UserRole.PET_OWNER, { content: "x", petId: "pet-1" }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("rejects more than 1 photo", async () => {
+    const { service } = setup();
+
+    await expect(
+      service.create("owner-1", UserRole.PET_OWNER, {
+        content: "x",
+        media: [
+          { mediaUrl: "https://x.test/a.png", mediaType: "image" },
+          { mediaUrl: "https://x.test/b.png", mediaType: "image" },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(BadRequestError);
+  });
+
+  it("rejects tagging a vet — only a Hospital may do that", async () => {
+    const { service } = setup();
+
+    await expect(
+      service.create("owner-1", UserRole.PET_OWNER, { content: "x", vetId: "vet-1" }),
+    ).rejects.toBeInstanceOf(BadRequestError);
+  });
+});
+
+describe("PostService.create — Hospital", () => {
+  it("auto-attaches the caller's own hospital and allows up to 5 photos", async () => {
+    const { service, repository, hospitalRepository } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
+    repository.create.mockResolvedValue(makePost({ hospitalId: "hospital-1" }));
+
+    const media = Array.from({ length: 5 }, (_, i) => ({ mediaUrl: `https://x.test/${i}.png`, mediaType: "image" as const }));
+    await service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "Phòng khám của chúng tôi", media });
+
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ hospitalId: "hospital-1", petId: undefined }),
+      "hospital-owner-1",
+    );
+  });
+
+  it("validates a tagged vet belongs to the caller's own hospital", async () => {
+    const { service, hospitalRepository, vetRepository } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
+    vetRepository.findById.mockResolvedValue(makeVet({ hospitalId: "another-hospital" }));
+
+    await expect(
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x", vetId: "vet-1" }),
+    ).rejects.toBeInstanceOf(BadRequestError);
+  });
+
+  it("rejects tagging a pet — that's a Pet Owner concept", async () => {
+    const { service, hospitalRepository } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
+
+    await expect(
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x", petId: "pet-1" }),
+    ).rejects.toBeInstanceOf(BadRequestError);
+  });
+
+  it("raises NotFoundError when the caller has no hospital", async () => {
+    const { service, hospitalRepository } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(null);
+
+    await expect(
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x" }),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 });
 

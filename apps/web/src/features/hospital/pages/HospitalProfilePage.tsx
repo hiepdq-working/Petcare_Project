@@ -108,6 +108,9 @@ export function HospitalProfilePage() {
           <Link to="/hospital/appointments" className="text-sm font-semibold text-brand-700 hover:underline">
             Lịch hẹn →
           </Link>
+          <Link to="/feed" className="text-sm font-semibold text-brand-700 hover:underline">
+            Bảng tin →
+          </Link>
         </div>
       </div>
 
