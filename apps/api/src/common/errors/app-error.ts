@@ -44,3 +44,9 @@ export class ConflictError extends AppError {
     super(message, 409, meta);
   }
 }
+
+export class TooManyRequestsError extends AppError {
+  constructor(message = "Bạn đã thao tác quá nhiều lần, vui lòng thử lại sau") {
+    super(message, 429);
+  }
+}

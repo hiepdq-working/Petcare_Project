@@ -42,4 +42,24 @@ export class MailerService {
       html: `<p>Chào ${name},</p><p>Bạn vừa yêu cầu đặt lại mật khẩu. Nhấn vào liên kết dưới đây (hiệu lực trong 1 giờ):</p><p><a href="${link}">${link}</a></p><p>Nếu không phải bạn, hãy bỏ qua email này.</p>`,
     };
   }
+
+  // Reuses the reset-password page/flow as the account-activation flow —
+  // the new HOSPITAL_OWNER user has no password yet, so "reset" and "set
+  // for the first time" are the same operation.
+  buildPartnerApprovedContent(ownerName: string, token: string): { subject: string; html: string } {
+    const link = `${env.appUrl}/reset-password?token=${token}`;
+    return {
+      subject: "Hồ sơ phòng khám của bạn đã được duyệt",
+      html: `<p>Chào ${ownerName},</p><p>Phòng khám của bạn đã được PetCare duyệt. Nhấn vào liên kết dưới đây để đặt mật khẩu và bắt đầu sử dụng tài khoản (hiệu lực trong 7 ngày):</p><p><a href="${link}">${link}</a></p>`,
+    };
+  }
+
+  buildPartnerRejectedContent(ownerName: string, reason?: string): { subject: string; html: string } {
+    return {
+      subject: "Hồ sơ đăng ký phòng khám chưa được duyệt",
+      html: `<p>Chào ${ownerName},</p><p>Rất tiếc, hồ sơ đăng ký phòng khám của bạn chưa được duyệt.</p>${
+        reason ? `<p>Lý do: ${reason}</p>` : ""
+      }<p>Bạn có thể liên hệ với chúng tôi để biết thêm chi tiết hoặc nộp lại hồ sơ.</p>`,
+    };
+  }
 }

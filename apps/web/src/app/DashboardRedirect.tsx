@@ -2,14 +2,18 @@ import { Navigate } from "react-router-dom";
 import { UserRole } from "@petcare/types";
 import { useAuthStore } from "../features/auth/store";
 
-// Pet Profile is the first (and so far only) built feature — Pet Owners
-// land on their pet list. Other roles get a placeholder until their
-// dashboards (Hospital, Admin) are built.
+// Pet Profile and Admin > Duyệt phòng khám are the only built features so
+// far — Pet Owners land on their pet list, Admin lands on the approval
+// queue. Other roles get a placeholder until their dashboards are built.
 export function DashboardRedirect() {
   const role = useAuthStore((state) => state.user?.role);
 
   if (role === UserRole.PET_OWNER) {
     return <Navigate to="/pets" replace />;
+  }
+
+  if (role === UserRole.ADMIN) {
+    return <Navigate to="/admin/partner-registrations" replace />;
   }
 
   return (

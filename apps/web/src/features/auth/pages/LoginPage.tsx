@@ -34,10 +34,18 @@ export function LoginPage() {
       subtitle="Chào mừng bạn quay lại PetCare"
       footer={
         <>
-          Chưa có tài khoản?{" "}
-          <Link to="/register" className="font-semibold text-brand-700">
-            Đăng ký ngay
-          </Link>
+          <p>
+            Chưa có tài khoản?{" "}
+            <Link to="/register" className="font-semibold text-brand-700">
+              Đăng ký ngay
+            </Link>
+          </p>
+          <p className="mt-1">
+            Bạn là chủ phòng khám?{" "}
+            <Link to="/partner/register" className="font-semibold text-brand-700">
+              Đăng ký đối tác
+            </Link>
+          </p>
         </>
       }
     >
