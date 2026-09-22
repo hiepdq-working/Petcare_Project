@@ -62,6 +62,14 @@ function EventCard({ event }: { event: PetEventDto }) {
     );
   }
 
+  if (event.eventType === "VACCINATION") {
+    return (
+      <Link to={`/pets/${event.petId}/vaccinations`} className="block transition hover:opacity-80">
+        {body}
+      </Link>
+    );
+  }
+
   return body;
 }
 

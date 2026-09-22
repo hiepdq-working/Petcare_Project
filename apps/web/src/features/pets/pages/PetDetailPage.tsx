@@ -105,6 +105,12 @@ export function PetDetailPage() {
             Dòng thời gian
           </Link>
           <Link
+            to={`/pets/${pet.id}/vaccinations`}
+            className="rounded-xl border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+          >
+            Sổ tiêm phòng
+          </Link>
+          <Link
             to={`/pets/${pet.id}/edit`}
             className="rounded-xl border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
           >

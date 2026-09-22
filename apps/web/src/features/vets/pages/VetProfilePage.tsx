@@ -103,12 +103,20 @@ export function VetProfilePage() {
               <AppointmentStatusBadge status={appointment.status} />
             </div>
             {RECORD_ELIGIBLE_STATUSES.has(appointment.status) ? (
-              <Link
-                to={`/vet/medical-records/new?petId=${appointment.petId}&petName=${encodeURIComponent(appointment.petName)}`}
-                className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline"
-              >
-                Lập hồ sơ bệnh án
-              </Link>
+              <div className="mt-3 flex gap-4">
+                <Link
+                  to={`/vet/medical-records/new?petId=${appointment.petId}&petName=${encodeURIComponent(appointment.petName)}`}
+                  className="text-sm font-semibold text-brand-700 hover:underline"
+                >
+                  Lập hồ sơ bệnh án
+                </Link>
+                <Link
+                  to={`/vet/vaccinations/new?petId=${appointment.petId}&petName=${encodeURIComponent(appointment.petName)}`}
+                  className="text-sm font-semibold text-brand-700 hover:underline"
+                >
+                  Ghi nhận tiêm phòng
+                </Link>
+              </div>
             ) : null}
           </div>
         ))}

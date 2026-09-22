@@ -26,6 +26,8 @@ import { PetTimelinePage } from "../features/medical-records/pages/PetTimelinePa
 import { MedicalRecordDetailPage } from "../features/medical-records/pages/MedicalRecordDetailPage";
 import { VetMedicalRecordsPage } from "../features/medical-records/pages/VetMedicalRecordsPage";
 import { CreateMedicalRecordPage } from "../features/medical-records/pages/CreateMedicalRecordPage";
+import { VaccinationsPage } from "../features/vaccinations/pages/VaccinationsPage";
+import { CreateVaccinationPage } from "../features/vaccinations/pages/CreateVaccinationPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -102,6 +104,22 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.VET}>
                   <CreateMedicalRecordPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/pets/:petId/vaccinations"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <VaccinationsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/vet/vaccinations/new"
+              element={
+                <RequireRole role={UserRole.VET}>
+                  <CreateVaccinationPage />
                 </RequireRole>
               }
             />

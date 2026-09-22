@@ -13,6 +13,7 @@ import { VetModule } from "./modules/vets/vet.module";
 import { ServiceModule } from "./modules/services/service.module";
 import { AppointmentModule } from "./modules/appointments/appointment.module";
 import { MedicalRecordModule } from "./modules/medical-records/medical-record.module";
+import { VaccinationModule } from "./modules/vaccinations/vaccination.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MedicalRecordModule } from "./modules/medical-records/medical-record.mo
     ServiceModule,
     AppointmentModule,
     MedicalRecordModule,
+    VaccinationModule,
   ],
 })
 export class AppModule {}
