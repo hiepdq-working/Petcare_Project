@@ -45,6 +45,8 @@ function setup() {
     markEmailVerified: jest.fn(),
     setPasswordResetToken: jest.fn(),
     resetPassword: jest.fn(),
+    updateProfile: jest.fn(),
+    updatePassword: jest.fn(),
     createRefreshToken: jest.fn(),
     findRefreshToken: jest.fn(),
     deleteRefreshToken: jest.fn(),
@@ -245,5 +247,50 @@ describe("AuthService.verifyEmail / forgotPassword / resetPassword", () => {
 
     expect(repository.resetPassword).toHaveBeenCalledWith("user-1", "hashed-password");
     expect(repository.deleteAllRefreshTokensForUser).toHaveBeenCalledWith("user-1");
+  });
+});
+
+describe("AuthService.changePassword", () => {
+  it("requires the correct current password when the account already has one", async () => {
+    const { service, repository, passwordHasher } = setup();
+    repository.findById.mockResolvedValue(makeUser());
+    passwordHasher.compare.mockResolvedValue(false);
+
+    await expect(
+      service.changePassword("user-1", { currentPassword: "wrong", newPassword: "newpassword123" }),
+    ).rejects.toBeInstanceOf(UnauthorizedError);
+    expect(repository.updatePassword).not.toHaveBeenCalled();
+  });
+
+  it("changes the password when the current one matches", async () => {
+    const { service, repository, passwordHasher } = setup();
+    repository.findById.mockResolvedValue(makeUser());
+    passwordHasher.compare.mockResolvedValue(true);
+
+    await service.changePassword("user-1", { currentPassword: "correct", newPassword: "newpassword123" });
+
+    expect(repository.updatePassword).toHaveBeenCalledWith("user-1", "hashed-password");
+  });
+
+  it("lets a Google-only account set a password without a current one", async () => {
+    const { service, repository, passwordHasher } = setup();
+    repository.findById.mockResolvedValue(makeUser({ password: null }));
+
+    await service.changePassword("user-1", { newPassword: "newpassword123" });
+
+    expect(passwordHasher.compare).not.toHaveBeenCalled();
+    expect(repository.updatePassword).toHaveBeenCalledWith("user-1", "hashed-password");
+  });
+});
+
+describe("AuthService.updateProfile", () => {
+  it("updates and returns the profile", async () => {
+    const { service, repository } = setup();
+    repository.updateProfile.mockResolvedValue(makeUser({ name: "New Name", phone: "0909123456" }));
+
+    const result = await service.updateProfile("user-1", { name: "New Name", phone: "0909123456" });
+
+    expect(repository.updateProfile).toHaveBeenCalledWith("user-1", { name: "New Name", phone: "0909123456" });
+    expect(result.name).toBe("New Name");
   });
 });

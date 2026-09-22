@@ -1,22 +1,29 @@
-import { Body, Controller, HttpCode, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
 import type { Request, Response } from "express";
 import { ok } from "../../common/response/api-response";
 import { UnauthorizedError } from "../../common/errors/app-error";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
+import { JwtAuthGuard } from "../../common/security/jwt-auth.guard";
+import { CurrentUser } from "../../common/security/current-user.decorator";
+import type { RequestAuth } from "../../common/security/jwt-payload";
 import { AuthService, type Session } from "./auth.service";
 import { clearRefreshTokenCookie, REFRESH_TOKEN_COOKIE, setRefreshTokenCookie } from "./auth.cookie";
 import {
+  changePasswordSchema,
   forgotPasswordSchema,
   googleLoginSchema,
   loginSchema,
   registerSchema,
   resetPasswordSchema,
+  updateProfileSchema,
   verifyEmailSchema,
+  type ChangePasswordInput,
   type ForgotPasswordInput,
   type GoogleLoginInput,
   type LoginInput,
   type RegisterInput,
   type ResetPasswordInput,
+  type UpdateProfileInput,
   type VerifyEmailInput,
 } from "./auth.validator";
 
@@ -96,5 +103,32 @@ export class AuthController {
   async resetPassword(@Body(new ZodValidationPipe(resetPasswordSchema)) body: ResetPasswordInput) {
     await this.authService.resetPassword(body);
     return ok(null, "Đặt lại mật khẩu thành công");
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  async getMe(@CurrentUser() auth: RequestAuth) {
+    const user = await this.authService.getProfile(auth.userId);
+    return ok(user);
+  }
+
+  @Patch("me")
+  @UseGuards(JwtAuthGuard)
+  async updateMe(
+    @CurrentUser() auth: RequestAuth,
+    @Body(new ZodValidationPipe(updateProfileSchema)) body: UpdateProfileInput,
+  ) {
+    const user = await this.authService.updateProfile(auth.userId, body);
+    return ok(user, "Đã cập nhật thông tin cá nhân");
+  }
+
+  @Patch("password")
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @CurrentUser() auth: RequestAuth,
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
+  ) {
+    await this.authService.changePassword(auth.userId, body);
+    return ok(null, "Đã đổi mật khẩu");
   }
 }

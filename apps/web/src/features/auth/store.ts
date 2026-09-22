@@ -11,6 +11,10 @@ interface AuthState {
   status: "checking" | "authenticated" | "guest";
   setSession: (user: AuthUser, accessToken: string) => void;
   clearSession: () => void;
+  // Patches the cached user after a Settings update (name/phone/avatar) —
+  // no new token involved, just keeps the header/etc. in sync without a
+  // full re-login.
+  updateUser: (user: AuthUser) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,4 +30,5 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, status: "guest" });
     disconnectSocket();
   },
+  updateUser: (user) => set({ user }),
 }));

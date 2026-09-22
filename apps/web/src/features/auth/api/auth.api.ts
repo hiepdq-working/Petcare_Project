@@ -1,11 +1,14 @@
 import { apiClient, unwrap, unwrapMessage } from "../../../shared/api/client";
 import type {
   AuthResponse,
+  AuthUser,
+  ChangePasswordRequest,
   ForgotPasswordRequest,
   GoogleLoginRequest,
   LoginRequest,
   RegisterRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
   VerifyEmailRequest,
 } from "@petcare/types";
 
@@ -43,5 +46,23 @@ export const authApi = {
 
   async resetPassword(input: ResetPasswordRequest): Promise<void> {
     await apiClient.post("/auth/reset-password", input);
+  },
+
+  async getMe(): Promise<AuthUser> {
+    return unwrap(await apiClient.get("/auth/me"));
+  },
+
+  async updateProfile(input: UpdateProfileRequest): Promise<AuthUser> {
+    return unwrap(await apiClient.patch("/auth/me", input));
+  },
+
+  async changePassword(input: ChangePasswordRequest): Promise<void> {
+    await apiClient.patch("/auth/password", input);
+  },
+
+  async uploadAvatar(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return unwrap(await apiClient.post("/uploads", formData));
   },
 };

@@ -3,7 +3,13 @@ import { JwtService } from "@nestjs/jwt";
 import type { User } from "@prisma/client";
 import { UserStatus } from "@petcare/types";
 import type { AuthUser } from "@petcare/types";
-import { BadRequestError, ConflictError, ForbiddenError, UnauthorizedError } from "../../common/errors/app-error";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../common/errors/app-error";
 import { PasswordHasher } from "../../common/security/password-hasher.service";
 import { GoogleAuthService } from "../../lib/google-auth.service";
 import { MailerService } from "../../lib/mailer.service";
@@ -11,11 +17,13 @@ import { generateOpaqueToken } from "../../lib/tokens";
 import { AuthRepository } from "./auth.repository";
 import { toAuthUser } from "./auth.types";
 import type {
+  ChangePasswordInput,
   ForgotPasswordInput,
   GoogleLoginInput,
   LoginInput,
   RegisterInput,
   ResetPasswordInput,
+  UpdateProfileInput,
 } from "./auth.validator";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -189,5 +197,37 @@ export class AuthService {
     await this.repository.resetPassword(user.id, passwordHash);
     // Force re-login on every device once the password changes.
     await this.repository.deleteAllRefreshTokensForUser(user.id);
+  }
+
+  async getProfile(userId: string): Promise<AuthUser> {
+    const user = await this.repository.findById(userId);
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy tài khoản");
+    }
+    return toAuthUser(user);
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileInput): Promise<AuthUser> {
+    const user = await this.repository.updateProfile(userId, input);
+    return toAuthUser(user);
+  }
+
+  // Doubles as "set a password" for a Google-only account: hasPassword
+  // (see AuthUser) tells the client whether to collect currentPassword at
+  // all, and this only checks it when the account actually has one.
+  async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+    const user = await this.repository.findById(userId);
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy tài khoản");
+    }
+
+    if (user.password) {
+      if (!input.currentPassword || !(await this.passwordHasher.compare(input.currentPassword, user.password))) {
+        throw new UnauthorizedError("Mật khẩu hiện tại không đúng");
+      }
+    }
+
+    const passwordHash = await this.passwordHasher.hash(input.newPassword);
+    await this.repository.updatePassword(userId, passwordHash);
   }
 }

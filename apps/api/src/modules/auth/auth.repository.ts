@@ -92,6 +92,14 @@ export class AuthRepository {
     });
   }
 
+  updateProfile(userId: string, data: { name?: string; phone?: string; avatar?: string | null }): Promise<User> {
+    return this.prisma.user.update({ where: { id: userId }, data });
+  }
+
+  updatePassword(userId: string, passwordHash: string): Promise<User> {
+    return this.prisma.user.update({ where: { id: userId }, data: { password: passwordHash } });
+  }
+
   createRefreshToken(userId: string, token: string, expiresAt: Date) {
     return this.prisma.refreshToken.create({ data: { userId, token, expiresAt } });
   }

@@ -6,9 +6,11 @@ export function toAuthUser(user: User): AuthUser {
     id: user.id,
     name: user.name,
     email: user.email,
+    phone: user.phone,
     avatar: user.avatar,
     role: user.role,
     status: user.status,
     emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
+    hasPassword: user.password !== null,
   };
 }

@@ -27,7 +27,9 @@ export function AppLayout() {
               </>
             ) : null}
             <NotificationBell />
-            <span className="text-brand-700/80">{user?.name}</span>
+            <Link to="/settings" className="text-brand-700/80 hover:underline">
+              {user?.name}
+            </Link>
             <button
               onClick={() => logoutMutation.mutate()}
               className="font-semibold text-brand-700 hover:underline"
