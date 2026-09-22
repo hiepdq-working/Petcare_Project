@@ -12,6 +12,7 @@ import { PetFormPage } from "../features/pets/pages/PetFormPage";
 import { PetDetailPage } from "../features/pets/pages/PetDetailPage";
 import { PartnerRegisterPage } from "../features/partners/pages/PartnerRegisterPage";
 import { PartnerRegistrationsPage } from "../features/admin/pages/PartnerRegistrationsPage";
+import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfilePage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -38,6 +39,14 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.ADMIN}>
                   <PartnerRegistrationsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/hospital/profile"
+              element={
+                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                  <HospitalProfilePage />
                 </RequireRole>
               }
             />

@@ -26,3 +26,10 @@ export const AuthProvider = {
   GOOGLE: "GOOGLE",
 } as const;
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];
+
+export const ShopStatus = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  PENDING: "PENDING",
+} as const;
+export type ShopStatus = (typeof ShopStatus)[keyof typeof ShopStatus];
