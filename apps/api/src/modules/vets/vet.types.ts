@@ -1,4 +1,4 @@
-import type { VetDto } from "@petcare/types";
+import type { VetDto, VetSummaryDto } from "@petcare/types";
 import type { VetWithUser } from "./vet.repository";
 
 export function toVetDto(vet: VetWithUser): VetDto {
@@ -14,5 +14,15 @@ export function toVetDto(vet: VetWithUser): VetDto {
     licenseNumber: vet.licenseNumber,
     status: vet.status,
     createdAt: vet.createdAt.toISOString(),
+  };
+}
+
+export function toVetSummaryDto(vet: VetWithUser): VetSummaryDto {
+  return {
+    id: vet.id,
+    name: vet.user.name,
+    avatar: vet.user.avatar,
+    specialty: vet.specialty,
+    experience: vet.experience,
   };
 }

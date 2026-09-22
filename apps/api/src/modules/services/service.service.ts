@@ -45,6 +45,13 @@ export class ServiceService {
     return services.map(toServiceDto);
   }
 
+  // Public — a Pet Owner browsing a hospital's page needs to see what's
+  // bookable before they can pick one during Appointment creation.
+  async listPublicByHospital(hospitalId: string): Promise<ServiceDto[]> {
+    const services = await this.repository.findManyByHospital(hospitalId);
+    return services.map(toServiceDto);
+  }
+
   async update(ownerId: string, serviceId: string, input: UpdateServiceInput): Promise<ServiceDto> {
     const hospitalId = await this.resolveHospitalId(ownerId);
     await this.findOwnedOrThrow(serviceId, hospitalId);

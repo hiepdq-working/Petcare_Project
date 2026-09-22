@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Body, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { UserRole } from "@petcare/types";
 import { ok } from "../../common/response/api-response";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -48,5 +48,13 @@ export class HospitalController {
   ) {
     const hospital = await this.service.updateMine(auth.userId, body);
     return ok(hospital, "Cập nhật thông tin phòng khám thành công");
+  }
+
+  // Public — the ":id" wildcard must stay declared after "nearby"/"me"
+  // above, or it would swallow those static routes instead.
+  @Get(":id")
+  async getPublicOne(@Param("id") id: string) {
+    const hospital = await this.service.getPublicById(id);
+    return ok(hospital);
   }
 }

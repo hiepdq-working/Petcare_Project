@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import type { VetDto } from "@petcare/types";
+import type { VetDto, VetSummaryDto } from "@petcare/types";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { MailerService } from "../../lib/mailer.service";
 import { generateOpaqueToken } from "../../lib/tokens";
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { VetRepository, type VetWithUser } from "./vet.repository";
-import { toVetDto } from "./vet.types";
+import { toVetDto, toVetSummaryDto } from "./vet.types";
 import type { CreateVetInput, UpdateVetInput } from "./vet.validator";
 
 const INVITE_TOKEN_TTL_DAYS = 7;
@@ -86,5 +86,11 @@ export class VetService {
       throw new NotFoundError("Không tìm thấy hồ sơ bác sĩ");
     }
     return toVetDto(vet);
+  }
+
+  // Public — the "pick a vet" step of booking an Appointment.
+  async listPublicByHospital(hospitalId: string): Promise<VetSummaryDto[]> {
+    const vets = await this.repository.findManyActiveByHospital(hospitalId);
+    return vets.map(toVetSummaryDto);
   }
 }

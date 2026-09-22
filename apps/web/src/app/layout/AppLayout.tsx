@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../../features/auth/api/auth.api";
 import { useAuthStore } from "../../features/auth/store";
+import { NotificationBell } from "../../features/notifications/components/NotificationBell";
 
 export function AppLayout() {
   const user = useAuthStore((state) => state.user);
@@ -14,6 +15,7 @@ export function AppLayout() {
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-brand-900">🐾 PetCare</span>
           <div className="flex items-center gap-3 text-sm">
+            <NotificationBell />
             <span className="text-brand-700/80">{user?.name}</span>
             <button
               onClick={() => logoutMutation.mutate()}

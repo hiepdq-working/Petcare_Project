@@ -1,13 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { vetsApi } from "../api/vets.api";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { AppointmentStatusBadge } from "../../appointments/components/AppointmentStatusBadge";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
 
-// First slice of the Vet role — just their own profile. Once Appointment
-// and Medical Record exist, this page grows into "lịch khám của tôi" and
-// "danh sách pet mình đã từng khám" per the earlier product decision.
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("vi-VN");
+}
+
+// First slice of the Vet role — just their own profile, now with a
+// read-only appointments list. The Vet is notification-only: they can see
+// what is booked with them but only the Hospital can confirm/cancel.
 export function VetProfilePage() {
   const query = useQuery({ queryKey: ["vets", "me"], queryFn: vetsApi.getMyProfile });
+  const appointmentsQuery = useQuery({ queryKey: ["appointments", "vet"], queryFn: appointmentsApi.listForVet });
 
   if (query.isLoading) {
     return <p className="mx-auto max-w-xl px-4 py-8 text-brand-700">Đang tải...</p>;
@@ -58,9 +65,34 @@ export function VetProfilePage() {
           </div>
         </dl>
 
-        <p className="mt-6 text-center text-sm text-brand-700/60">
-          Lịch khám và danh sách thú cưng đã khám sẽ hiển thị ở đây khi tính năng Đặt lịch khám hoàn thành.
-        </p>
+      </div>
+
+      <h2 className="mb-3 mt-8 text-lg font-bold text-brand-900">Lịch hẹn của tôi</h2>
+      <p className="mb-4 text-sm text-brand-700/70">
+        Chỉ mang tính thông báo — việc xác nhận hoặc huỷ lịch do phòng khám quyết định.
+      </p>
+
+      {appointmentsQuery.isLoading ? <p className="text-brand-700">Đang tải...</p> : null}
+      {appointmentsQuery.data?.length === 0 ? (
+        <div className="rounded-2xl bg-white p-8 text-center text-brand-700/80 shadow-sm">
+          Bạn chưa có lịch hẹn nào.
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-3">
+        {appointmentsQuery.data?.map((appointment) => (
+          <div key={appointment.id} className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-semibold text-brand-900">
+                  {appointment.petName} · {appointment.serviceName}
+                </p>
+                <p className="text-sm text-brand-700/80">{formatDateTime(appointment.dateTime)}</p>
+              </div>
+              <AppointmentStatusBadge status={appointment.status} />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

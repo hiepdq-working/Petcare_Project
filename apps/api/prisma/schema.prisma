@@ -8,7 +8,7 @@
 // ============================================================================
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
@@ -23,17 +23,17 @@ datasource db {
 // ----------------------------------------------------------------------------
 
 model User {
-  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String     @db.VarChar(100)
-  email     String     @unique @db.VarChar(100)
-  phone     String?    @db.VarChar(20)
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String     @db.VarChar(100)
+  email    String     @unique @db.VarChar(100)
+  phone    String?    @db.VarChar(20)
   // Nullable: a user who signed up via Google has no password until they
   // set one explicitly (Settings > Security).
-  password  String?    @db.VarChar(255)
-  googleId  String?    @unique @map("google_id") @db.VarChar(100)
-  avatar    String?    @db.VarChar(500)
-  role      UserRole   @default(PET_OWNER)
-  status    UserStatus @default(ACTIVE)
+  password String?    @db.VarChar(255)
+  googleId String?    @unique @map("google_id") @db.VarChar(100)
+  avatar   String?    @db.VarChar(500)
+  role     UserRole   @default(PET_OWNER)
+  status   UserStatus @default(ACTIVE)
 
   emailVerifiedAt            DateTime? @map("email_verified_at")
   emailVerificationToken     String?   @unique @map("email_verification_token") @db.VarChar(255)
@@ -42,25 +42,25 @@ model User {
   passwordResetToken     String?   @unique @map("password_reset_token") @db.VarChar(255)
   passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
 
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  pets          Pet[]
-  posts         Post[]
-  likes         PostLike[]
-  comments      PostComment[]
-  reviews       Review[]
-  sentMessages  Message[]      @relation("Sender")
-  conversationsAsUser1 Conversation[] @relation("User1")
-  conversationsAsUser2 Conversation[] @relation("User2")
-  notifications Notification[]
-  sessions      RefreshToken[]
-  auditLogs     AuditLog[]     @relation("AuditActor")
-  petEvents     PetEvent[]     @relation("EventActor")
-  ownershipFrom PetOwnershipHistory[] @relation("PreviousOwner")
-  ownershipTo   PetOwnershipHistory[] @relation("NewOwner")
-  ownedHospitals Hospital[]    @relation("HospitalOwner")
-  veterinarian  Veterinarian?  @relation("VetAccount")
+  pets                 Pet[]
+  posts                Post[]
+  likes                PostLike[]
+  comments             PostComment[]
+  reviews              Review[]
+  sentMessages         Message[]             @relation("Sender")
+  conversationsAsUser1 Conversation[]        @relation("User1")
+  conversationsAsUser2 Conversation[]        @relation("User2")
+  notifications        Notification[]
+  sessions             RefreshToken[]
+  auditLogs            AuditLog[]            @relation("AuditActor")
+  petEvents            PetEvent[]            @relation("EventActor")
+  ownershipFrom        PetOwnershipHistory[] @relation("PreviousOwner")
+  ownershipTo          PetOwnershipHistory[] @relation("NewOwner")
+  ownedHospitals       Hospital[]            @relation("HospitalOwner")
+  veterinarian         Veterinarian?         @relation("VetAccount")
 
   @@map("users")
 }
@@ -115,10 +115,10 @@ model Pet {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  vaccinations    Vaccination[]
-  medicalRecords  MedicalRecord[]
-  appointments    Appointment[]
-  events          PetEvent[]
+  vaccinations     Vaccination[]
+  medicalRecords   MedicalRecord[]
+  appointments     Appointment[]
+  events           PetEvent[]
   ownershipHistory PetOwnershipHistory[]
 
   @@index([ownerId])
@@ -128,15 +128,15 @@ model Pet {
 // Lịch sử đổi chủ — pet có thể được cứu hộ, nhận nuôi, chuyển nhượng.
 // Pet.ownerId luôn là chủ HIỆN TẠI; bảng này chỉ để tra cứu lịch sử.
 model PetOwnershipHistory {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  petId          String   @map("pet_id") @db.Uuid
-  pet            Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  previousOwnerId String? @map("previous_owner_id") @db.Uuid
-  previousOwner  User?    @relation("PreviousOwner", fields: [previousOwnerId], references: [id])
-  newOwnerId     String   @map("new_owner_id") @db.Uuid
-  newOwner       User     @relation("NewOwner", fields: [newOwnerId], references: [id])
-  reason         String?  @db.VarChar(200)
-  transferredAt  DateTime @default(now()) @map("transferred_at")
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId           String   @map("pet_id") @db.Uuid
+  pet             Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  previousOwnerId String?  @map("previous_owner_id") @db.Uuid
+  previousOwner   User?    @relation("PreviousOwner", fields: [previousOwnerId], references: [id])
+  newOwnerId      String   @map("new_owner_id") @db.Uuid
+  newOwner        User     @relation("NewOwner", fields: [newOwnerId], references: [id])
+  reason          String?  @db.VarChar(200)
+  transferredAt   DateTime @default(now()) @map("transferred_at")
 
   @@index([petId])
   @@map("pet_ownership_history")
@@ -144,17 +144,17 @@ model PetOwnershipHistory {
 
 // TRỤC THỜI GIAN CỦA PET — mọi domain publish sự kiện vào đây.
 model PetEvent {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  petId         String        @map("pet_id") @db.Uuid
-  pet           Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
-  eventType     PetEventType  @map("event_type")
-  eventDate     DateTime      @map("event_date")
-  referenceType String?       @map("reference_type") @db.VarChar(50)
-  referenceId   String?       @map("reference_id") @db.Uuid
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId         String       @map("pet_id") @db.Uuid
+  pet           Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  eventType     PetEventType @map("event_type")
+  eventDate     DateTime     @map("event_date")
+  referenceType String?      @map("reference_type") @db.VarChar(50)
+  referenceId   String?      @map("reference_id") @db.Uuid
   payload       Json?
-  createdById   String?       @map("created_by_id") @db.Uuid
-  createdBy     User?         @relation("EventActor", fields: [createdById], references: [id])
-  createdAt     DateTime      @default(now()) @map("created_at")
+  createdById   String?      @map("created_by_id") @db.Uuid
+  createdBy     User?        @relation("EventActor", fields: [createdById], references: [id])
+  createdAt     DateTime     @default(now()) @map("created_at")
 
   @@index([petId, eventDate])
   @@map("pet_events")
@@ -200,16 +200,16 @@ model Vaccination {
 }
 
 model MedicalRecord {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  petId            String    @map("pet_id") @db.Uuid
-  pet              Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
-  vetId            String?   @map("vet_id") @db.Uuid
-  hospitalId       String?   @map("hospital_id") @db.Uuid
-  status           String    @default("NEW") @db.VarChar(20)
-  recordDate       DateTime  @default(now()) @map("record_date")
-  currentVersionId String?   @unique @map("current_version_id") @db.Uuid
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId            String   @map("pet_id") @db.Uuid
+  pet              Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vetId            String?  @map("vet_id") @db.Uuid
+  hospitalId       String?  @map("hospital_id") @db.Uuid
+  status           String   @default("NEW") @db.VarChar(20)
+  recordDate       DateTime @default(now()) @map("record_date")
+  currentVersionId String?  @unique @map("current_version_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   versions MedicalRecordVersion[] @relation("RecordVersions")
   files    MedicalFile[]
@@ -219,18 +219,18 @@ model MedicalRecord {
 }
 
 model MedicalRecordVersion {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  recordId    String        @map("record_id") @db.Uuid
-  record      MedicalRecord @relation("RecordVersions", fields: [recordId], references: [id], onDelete: Cascade)
-  versionNo   Int           @map("version_no")
-  diagnosis   String?       @db.Text
-  treatment   String?       @db.Text
-  symptoms    String?       @db.Text
-  cause       String?       @db.Text
-  conclusion  String?       @db.Text
-  notes       String?       @db.Text
-  editedById  String        @map("edited_by_id") @db.Uuid
-  createdAt   DateTime      @default(now()) @map("created_at")
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recordId   String        @map("record_id") @db.Uuid
+  record     MedicalRecord @relation("RecordVersions", fields: [recordId], references: [id], onDelete: Cascade)
+  versionNo  Int           @map("version_no")
+  diagnosis  String?       @db.Text
+  treatment  String?       @db.Text
+  symptoms   String?       @db.Text
+  cause      String?       @db.Text
+  conclusion String?       @db.Text
+  notes      String?       @db.Text
+  editedById String        @map("edited_by_id") @db.Uuid
+  createdAt  DateTime      @default(now()) @map("created_at")
 
   @@unique([recordId, versionNo])
   @@map("medical_record_versions")
@@ -276,24 +276,27 @@ model Hospital {
 
   services      Service[]
   veterinarians Veterinarian[]
+  appointments  Appointment[]
 
   @@index([lat, lng])
   @@map("hospitals")
 }
 
 model Veterinarian {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  hospitalId    String    @map("hospital_id") @db.Uuid
-  hospital      Hospital  @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hospitalId    String   @map("hospital_id") @db.Uuid
+  hospital      Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
   // Every vet logs in themselves in MVP (role VET) — 1:1 with a User.
-  userId        String    @unique @map("user_id") @db.Uuid
-  user          User      @relation("VetAccount", fields: [userId], references: [id], onDelete: Cascade)
-  specialty     String?   @db.VarChar(200)
+  userId        String   @unique @map("user_id") @db.Uuid
+  user          User     @relation("VetAccount", fields: [userId], references: [id], onDelete: Cascade)
+  specialty     String?  @db.VarChar(200)
   experience    Int?
-  licenseNumber String?   @map("license_number") @db.VarChar(50)
-  status        String    @default("ACTIVE") @db.VarChar(20)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  licenseNumber String?  @map("license_number") @db.VarChar(50)
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  appointments Appointment[]
 
   @@index([hospitalId])
   @@map("veterinarians")
@@ -365,7 +368,12 @@ model Appointment {
   serviceId  String            @map("service_id") @db.Uuid
   service    Service           @relation(fields: [serviceId], references: [id])
   vetId      String?           @map("vet_id") @db.Uuid
+  // Pet Owner may request a specific vet, but Hospital has final say on
+  // actual assignment (see AppointmentService) — kept optional and
+  // SetNull so removing a vet profile later doesn't destroy history.
+  vet        Veterinarian?     @relation(fields: [vetId], references: [id], onDelete: SetNull)
   hospitalId String?           @map("hospital_id") @db.Uuid
+  hospital   Hospital?         @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
   dateTime   DateTime          @map("date_time")
   notes      String?           @db.Text
   status     AppointmentStatus @default(PENDING)
@@ -375,6 +383,8 @@ model Appointment {
 
   @@index([petId])
   @@index([userId])
+  @@index([vetId, dateTime])
+  @@index([hospitalId, dateTime])
   @@map("appointments")
 }
 

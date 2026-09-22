@@ -1,6 +1,17 @@
+import { Link } from "react-router-dom";
 import type { HospitalSearchResultDto } from "@petcare/types";
 
-export function HospitalResultCard({ hospital }: { hospital: HospitalSearchResultDto }) {
+interface HospitalResultCardProps {
+  hospital: HospitalSearchResultDto;
+  // When present, this search is happening as part of booking for a
+  // specific pet (see PetDetailPage "Đặt lịch khám" → /pets/:petId/book),
+  // so the card also offers a direct "contact to book" action.
+  bookingPetId?: string;
+}
+
+export function HospitalResultCard({ hospital, bookingPetId }: HospitalResultCardProps) {
+  const profileHref = bookingPetId ? `/hospitals/${hospital.id}?petId=${bookingPetId}` : `/hospitals/${hospital.id}`;
+
   return (
     <div className="flex gap-4 rounded-2xl bg-white p-4 shadow-sm">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-100">
@@ -31,6 +42,19 @@ export function HospitalResultCard({ hospital }: { hospital: HospitalSearchResul
             <a href={`tel:${hospital.phone}`} className="text-xs font-semibold text-brand-700 hover:underline">
               📞 {hospital.phone}
             </a>
+          ) : null}
+        </div>
+        <div className="mt-3 flex gap-3">
+          <Link to={profileHref} className="text-sm font-semibold text-brand-700 hover:underline">
+            Xem hồ sơ phòng khám
+          </Link>
+          {bookingPetId ? (
+            <Link
+              to={`/pets/${bookingPetId}/book/${hospital.id}`}
+              className="text-sm font-semibold text-brand-700 hover:underline"
+            >
+              Liên hệ đặt lịch
+            </Link>
           ) : null}
         </div>
       </div>

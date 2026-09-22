@@ -6,6 +6,11 @@ export const servicesApi = {
     return unwrap(await apiClient.get("/services"));
   },
 
+  // Public — for the booking flow's "pick a service" step.
+  async listPublicByHospital(hospitalId: string): Promise<ServiceDto[]> {
+    return unwrap(await apiClient.get(`/services/hospital/${hospitalId}`));
+  },
+
   async create(input: CreateServiceRequest): Promise<ServiceDto> {
     return unwrap(await apiClient.post("/services", input));
   },

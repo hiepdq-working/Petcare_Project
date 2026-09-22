@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { PrismaModule } from "./prisma/prisma.module";
 import { SecurityModule } from "./common/security/security.module";
 import { AuditModule } from "./modules/audit/audit.module";
+import { PetEventModule } from "./modules/pet-events/pet-event.module";
+import { NotificationModule } from "./modules/notifications/notification.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { PetModule } from "./modules/pets/pet.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
@@ -9,12 +11,15 @@ import { PartnerRegistrationModule } from "./modules/partners/partner-registrati
 import { HospitalModule } from "./modules/hospitals/hospital.module";
 import { VetModule } from "./modules/vets/vet.module";
 import { ServiceModule } from "./modules/services/service.module";
+import { AppointmentModule } from "./modules/appointments/appointment.module";
 
 @Module({
   imports: [
     PrismaModule,
     SecurityModule,
     AuditModule,
+    PetEventModule,
+    NotificationModule,
     AuthModule,
     PetModule,
     UploadsModule,
@@ -22,6 +27,7 @@ import { ServiceModule } from "./modules/services/service.module";
     HospitalModule,
     VetModule,
     ServiceModule,
+    AppointmentModule,
   ],
 })
 export class AppModule {}

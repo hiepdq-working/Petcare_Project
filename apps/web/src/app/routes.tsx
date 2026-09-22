@@ -14,9 +14,14 @@ import { PartnerRegisterPage } from "../features/partners/pages/PartnerRegisterP
 import { PartnerRegistrationsPage } from "../features/admin/pages/PartnerRegistrationsPage";
 import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfilePage";
 import { HospitalFinderPage } from "../features/hospital/pages/HospitalFinderPage";
+import { HospitalDetailPage } from "../features/hospital/pages/HospitalDetailPage";
 import { VetsManagementPage } from "../features/vets/pages/VetsManagementPage";
 import { VetProfilePage } from "../features/vets/pages/VetProfilePage";
 import { ServicesManagementPage } from "../features/services/pages/ServicesManagementPage";
+import { BookHospitalSearchPage } from "../features/appointments/pages/BookHospitalSearchPage";
+import { BookAppointmentPage } from "../features/appointments/pages/BookAppointmentPage";
+import { MyAppointmentsPage } from "../features/appointments/pages/MyAppointmentsPage";
+import { HospitalAppointmentsPage } from "../features/appointments/pages/HospitalAppointmentsPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -31,6 +36,7 @@ export function AppRoutes() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/partner/register" element={<PartnerRegisterPage />} />
         <Route path="/hospitals/nearby" element={<HospitalFinderPage />} />
+        <Route path="/hospitals/:id" element={<HospitalDetailPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
@@ -39,6 +45,30 @@ export function AppRoutes() {
             <Route path="/pets/new" element={<PetFormPage />} />
             <Route path="/pets/:petId" element={<PetDetailPage />} />
             <Route path="/pets/:petId/edit" element={<PetFormPage />} />
+            <Route
+              path="/pets/:petId/book"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <BookHospitalSearchPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/pets/:petId/book/:hospitalId"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <BookAppointmentPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/appointments"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <MyAppointmentsPage />
+                </RequireRole>
+              }
+            />
             <Route
               path="/admin/partner-registrations"
               element={
@@ -68,6 +98,14 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.HOSPITAL_OWNER}>
                   <ServicesManagementPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/hospital/appointments"
+              element={
+                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                  <HospitalAppointmentsPage />
                 </RequireRole>
               }
             />

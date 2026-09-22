@@ -11,11 +11,18 @@ import { VetService } from "./vet.service";
 import { createVetSchema, updateVetSchema, type CreateVetInput, type UpdateVetInput } from "./vet.validator";
 
 @Controller("vets")
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class VetController {
   constructor(private readonly service: VetService) {}
 
+  // Public — the "pick a vet" step of booking an Appointment.
+  @Get("hospital/:hospitalId")
+  async listPublicByHospital(@Param("hospitalId") hospitalId: string) {
+    const vets = await this.service.listPublicByHospital(hospitalId);
+    return ok(vets);
+  }
+
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.HOSPITAL_OWNER)
   async create(@CurrentUser() auth: RequestAuth, @Body(new ZodValidationPipe(createVetSchema)) body: CreateVetInput) {
     const vet = await this.service.create(auth.userId, body);
@@ -23,6 +30,7 @@ export class VetController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.HOSPITAL_OWNER)
   async list(@CurrentUser() auth: RequestAuth) {
     const vets = await this.service.listMine(auth.userId);
@@ -32,6 +40,7 @@ export class VetController {
   // Static "me" route must be declared before the dynamic ":id" route
   // below, or Nest would try to match "me" as an :id param instead.
   @Get("me")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.VET)
   async me(@CurrentUser() auth: RequestAuth) {
     const vet = await this.service.getMyProfile(auth.userId);
@@ -39,6 +48,7 @@ export class VetController {
   }
 
   @Get(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.HOSPITAL_OWNER)
   async getOne(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
     const vet = await this.service.getOneMine(auth.userId, id);
@@ -46,6 +56,7 @@ export class VetController {
   }
 
   @Patch(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.HOSPITAL_OWNER)
   async update(
     @CurrentUser() auth: RequestAuth,

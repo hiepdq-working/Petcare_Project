@@ -26,6 +26,16 @@ export class HospitalService {
     return toHospitalDto(updated);
   }
 
+  // Public — only an ACTIVE hospital is visible to browsing Pet Owners,
+  // same rule the geo-search list applies.
+  async getPublicById(id: string): Promise<HospitalDto> {
+    const hospital = await this.repository.findById(id);
+    if (!hospital || hospital.status !== "ACTIVE") {
+      throw new NotFoundError("Không tìm thấy phòng khám");
+    }
+    return toHospitalDto(hospital);
+  }
+
   async searchNearby(input: SearchHospitalsInput): Promise<HospitalSearchResultDto[]> {
     const radiusMeters = input.radiusKm * 1000;
     const rows = await this.repository.findNearby(input.lat, input.lng, radiusMeters, input.limit);

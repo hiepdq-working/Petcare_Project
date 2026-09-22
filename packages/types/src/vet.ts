@@ -27,3 +27,13 @@ export interface UpdateVetRequest {
   licenseNumber?: string;
   status?: string;
 }
+
+// Public-safe subset — no email/phone/license, unlike VetDto which the
+// vet's own hospital sees.
+export interface VetSummaryDto {
+  id: string;
+  name: string;
+  avatar: string | null;
+  specialty: string | null;
+  experience: number | null;
+}

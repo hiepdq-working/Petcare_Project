@@ -91,10 +91,16 @@ export function PetDetailPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            to={`/pets/${pet.id}/book`}
+            className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+          >
+            Đặt lịch khám
+          </Link>
           <Link
             to={`/pets/${pet.id}/edit`}
-            className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+            className="rounded-xl border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
           >
             Sửa hồ sơ
           </Link>

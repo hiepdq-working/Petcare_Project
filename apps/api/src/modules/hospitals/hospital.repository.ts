@@ -26,6 +26,10 @@ export class HospitalRepository {
     return this.prisma.hospital.findFirst({ where: { ownerId } });
   }
 
+  findById(id: string): Promise<Hospital | null> {
+    return this.prisma.hospital.findUnique({ where: { id } });
+  }
+
   update(id: string, data: Prisma.HospitalUpdateInput): Promise<Hospital> {
     return this.prisma.hospital.update({ where: { id }, data });
   }

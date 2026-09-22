@@ -6,3 +6,5 @@ export * from "./partner";
 export * from "./hospital";
 export * from "./vet";
 export * from "./service";
+export * from "./appointment";
+export * from "./notification";

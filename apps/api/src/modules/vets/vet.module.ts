@@ -9,5 +9,8 @@ import { MailerService } from "../../lib/mailer.service";
   imports: [HospitalModule],
   controllers: [VetController],
   providers: [VetService, VetRepository, MailerService],
+  // AppointmentModule needs VetRepository to validate a requested vet and
+  // to resolve "which vet am I" when a VET lists their own appointments.
+  exports: [VetRepository],
 })
 export class VetModule {}

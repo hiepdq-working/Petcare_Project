@@ -60,6 +60,16 @@ export class VetRepository {
     });
   }
 
+  // Public listing (for the "pick a vet" step of booking) only shows
+  // vets currently taking appointments.
+  findManyActiveByHospital(hospitalId: string): Promise<VetWithUser[]> {
+    return this.prisma.veterinarian.findMany({
+      where: { hospitalId, status: "ACTIVE" },
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   findById(id: string): Promise<VetWithUser | null> {
     return this.prisma.veterinarian.findUnique({ where: { id }, include: { user: true } });
   }

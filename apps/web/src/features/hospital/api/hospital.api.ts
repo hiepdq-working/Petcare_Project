@@ -13,6 +13,10 @@ export const hospitalApi = {
     return unwrap(await apiClient.get("/hospitals/nearby", { params: query }));
   },
 
+  async getPublicById(id: string): Promise<HospitalDto> {
+    return unwrap(await apiClient.get(`/hospitals/${id}`));
+  },
+
   async getMine(): Promise<HospitalDto> {
     return unwrap(await apiClient.get("/hospitals/me"));
   },
