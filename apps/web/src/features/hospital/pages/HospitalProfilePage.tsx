@@ -98,9 +98,14 @@ export function HospitalProfilePage() {
     <div className="mx-auto max-w-xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-brand-900">Hồ sơ phòng khám</h1>
-        <Link to="/hospital/vets" className="text-sm font-semibold text-brand-700 hover:underline">
-          Quản lý bác sĩ →
-        </Link>
+        <div className="flex gap-4">
+          <Link to="/hospital/services" className="text-sm font-semibold text-brand-700 hover:underline">
+            Dịch vụ →
+          </Link>
+          <Link to="/hospital/vets" className="text-sm font-semibold text-brand-700 hover:underline">
+            Quản lý bác sĩ →
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">

@@ -5,3 +5,4 @@ export * from "./pet";
 export * from "./partner";
 export * from "./hospital";
 export * from "./vet";
+export * from "./service";

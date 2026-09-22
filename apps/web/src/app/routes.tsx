@@ -16,6 +16,7 @@ import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfileP
 import { HospitalFinderPage } from "../features/hospital/pages/HospitalFinderPage";
 import { VetsManagementPage } from "../features/vets/pages/VetsManagementPage";
 import { VetProfilePage } from "../features/vets/pages/VetProfilePage";
+import { ServicesManagementPage } from "../features/services/pages/ServicesManagementPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -59,6 +60,14 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.HOSPITAL_OWNER}>
                   <VetsManagementPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/hospital/services"
+              element={
+                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                  <ServicesManagementPage />
                 </RequireRole>
               }
             />
