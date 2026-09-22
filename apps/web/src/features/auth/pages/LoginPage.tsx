@@ -46,6 +46,12 @@ export function LoginPage() {
               Đăng ký đối tác
             </Link>
           </p>
+          <p className="mt-1">
+            <Link to="/hospitals/nearby" className="font-semibold text-brand-700">
+              🔍 Tìm phòng khám gần bạn
+            </Link>{" "}
+            (không cần đăng nhập)
+          </p>
         </>
       }
     >

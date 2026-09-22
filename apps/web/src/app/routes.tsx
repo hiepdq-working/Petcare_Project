@@ -13,6 +13,7 @@ import { PetDetailPage } from "../features/pets/pages/PetDetailPage";
 import { PartnerRegisterPage } from "../features/partners/pages/PartnerRegisterPage";
 import { PartnerRegistrationsPage } from "../features/admin/pages/PartnerRegistrationsPage";
 import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfilePage";
+import { HospitalFinderPage } from "../features/hospital/pages/HospitalFinderPage";
 import { AppLayout } from "./layout/AppLayout";
 import { DashboardRedirect } from "./DashboardRedirect";
 
@@ -26,6 +27,7 @@ export function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/partner/register" element={<PartnerRegisterPage />} />
+        <Route path="/hospitals/nearby" element={<HospitalFinderPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>

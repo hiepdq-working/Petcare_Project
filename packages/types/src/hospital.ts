@@ -28,3 +28,24 @@ export interface UpdateHospitalRequest {
   email?: string;
   isEmergency?: boolean;
 }
+
+export interface HospitalSearchResultDto {
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  cover: string | null;
+  address: string | null;
+  lat: number;
+  lng: number;
+  phone: string | null;
+  isEmergency: boolean;
+  distanceKm: number;
+}
+
+export interface SearchHospitalsQuery {
+  lat: number;
+  lng: number;
+  radiusKm?: number;
+  limit?: number;
+}

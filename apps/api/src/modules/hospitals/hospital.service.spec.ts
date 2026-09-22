@@ -29,6 +29,7 @@ function setup() {
   const repository = {
     findByOwnerId: jest.fn(),
     update: jest.fn(),
+    findNearby: jest.fn(),
   } as unknown as jest.Mocked<HospitalRepository>;
 
   const service = new HospitalService(repository);
@@ -72,5 +73,41 @@ describe("HospitalService.updateMine", () => {
 
     await expect(service.updateMine("owner-1", { name: "New name" })).rejects.toBeInstanceOf(NotFoundError);
     expect(repository.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("HospitalService.searchNearby", () => {
+  it("converts radiusKm to meters for the query and distance back to km, rounded to 1 decimal", async () => {
+    const { service, repository } = setup();
+    repository.findNearby.mockResolvedValue([
+      {
+        id: "hospital-1",
+        name: "Happy Paws",
+        description: null,
+        logo: null,
+        cover: null,
+        address: "123 Nguyen Trai",
+        lat: 10.75,
+        lng: 106.66,
+        phone: "0900000000",
+        isEmergency: false,
+        distanceMeters: 2345,
+      },
+    ]);
+
+    const results = await service.searchNearby({ lat: 10.75, lng: 106.66, radiusKm: 5, limit: 20 });
+
+    expect(repository.findNearby).toHaveBeenCalledWith(10.75, 106.66, 5000, 20);
+    expect(results).toHaveLength(1);
+    expect(results.at(0)?.distanceKm).toBe(2.3);
+  });
+
+  it("returns an empty array when nothing is within range", async () => {
+    const { service, repository } = setup();
+    repository.findNearby.mockResolvedValue([]);
+
+    const results = await service.searchNearby({ lat: 0, lng: 0, radiusKm: 10, limit: 20 });
+
+    expect(results).toEqual([]);
   });
 });

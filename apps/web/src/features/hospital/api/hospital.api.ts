@@ -1,7 +1,18 @@
 import { apiClient, unwrap } from "../../../shared/api/client";
-import type { HospitalDto, UpdateHospitalRequest, UploadResponse } from "@petcare/types";
+import type {
+  HospitalDto,
+  HospitalSearchResultDto,
+  SearchHospitalsQuery,
+  UpdateHospitalRequest,
+  UploadResponse,
+} from "@petcare/types";
 
 export const hospitalApi = {
+  // Public — no auth required, see hospitals.controller.ts.
+  async searchNearby(query: SearchHospitalsQuery): Promise<HospitalSearchResultDto[]> {
+    return unwrap(await apiClient.get("/hospitals/nearby", { params: query }));
+  },
+
   async getMine(): Promise<HospitalDto> {
     return unwrap(await apiClient.get("/hospitals/me"));
   },

@@ -14,3 +14,11 @@ export const updateHospitalSchema = z.object({
   isEmergency: z.boolean().optional(),
 });
 export type UpdateHospitalInput = z.infer<typeof updateHospitalSchema>;
+
+export const searchHospitalsSchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radiusKm: z.preprocess(emptyToUndefined, z.coerce.number().positive().max(100).optional()).default(10),
+  limit: z.preprocess(emptyToUndefined, z.coerce.number().int().positive().max(50).optional()).default(20),
+});
+export type SearchHospitalsInput = z.infer<typeof searchHospitalsSchema>;
