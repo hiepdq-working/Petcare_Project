@@ -43,4 +43,14 @@ export const socialApi = {
     formData.append("file", file);
     return unwrap(await apiClient.post("/uploads", formData));
   },
+
+  // Admin moderation — every post in the system, and delete bypasses the
+  // author-only check `remove()` above enforces.
+  async adminListAll(): Promise<PostDto[]> {
+    return unwrap(await apiClient.get("/posts/admin/all"));
+  },
+
+  async adminRemove(id: string): Promise<void> {
+    await apiClient.delete(`/posts/admin/${id}`);
+  },
 };

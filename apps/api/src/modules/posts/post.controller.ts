@@ -42,6 +42,24 @@ export class PostController {
     return ok(posts);
   }
 
+  // Admin moderation — method-level @Roles overrides the class-level
+  // PET_OWNER/HOSPITAL_OWNER list (RolesGuard uses getAllAndOverride), so
+  // this doesn't unlock authoring/liking/commenting for Admin, only these
+  // two routes.
+  @Get("admin/all")
+  @Roles(UserRole.ADMIN)
+  async adminListAll(@CurrentUser() auth: RequestAuth) {
+    const posts = await this.service.listAllForAdmin(auth.userId);
+    return ok(posts);
+  }
+
+  @Delete("admin/:id")
+  @Roles(UserRole.ADMIN)
+  async adminRemove(@Param("id") id: string) {
+    await this.service.removeAsAdmin(id);
+    return ok(null, "Đã xoá bài viết");
+  }
+
   @Get(":id")
   async getOne(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
     const detail = await this.service.getOne(id, auth.userId);

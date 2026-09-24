@@ -3,7 +3,12 @@ import type { HospitalDto, HospitalSearchResultDto } from "@petcare/types";
 import { NotFoundError } from "../../common/errors/app-error";
 import { HospitalRepository } from "./hospital.repository";
 import { toHospitalDto } from "./hospital.types";
-import type { SearchHospitalsInput, UpdateHospitalInput } from "./hospital.validator";
+import type {
+  AdminCreateHospitalInput,
+  AdminUpdateHospitalInput,
+  SearchHospitalsInput,
+  UpdateHospitalInput,
+} from "./hospital.validator";
 
 @Injectable()
 export class HospitalService {
@@ -34,6 +39,34 @@ export class HospitalService {
       throw new NotFoundError("Không tìm thấy phòng khám");
     }
     return toHospitalDto(hospital);
+  }
+
+  // Admin-facing — every hospital regardless of status.
+  async adminList(): Promise<HospitalDto[]> {
+    const hospitals = await this.repository.findMany();
+    return hospitals.map(toHospitalDto);
+  }
+
+  async adminCreate(input: AdminCreateHospitalInput): Promise<HospitalDto> {
+    const hospital = await this.repository.create(input);
+    return toHospitalDto(hospital);
+  }
+
+  async adminUpdate(id: string, input: AdminUpdateHospitalInput): Promise<HospitalDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) {
+      throw new NotFoundError("Không tìm thấy phòng khám");
+    }
+    const updated = await this.repository.update(id, input);
+    return toHospitalDto(updated);
+  }
+
+  // Soft delete — flips status to INACTIVE instead of a hard DB delete,
+  // since appointments/medical records/posts/reviews all cascade from a
+  // hospital row and a hard delete would silently destroy that history.
+  // adminUpdate can flip status back to ACTIVE, doubling as "reactivate".
+  async adminDeactivate(id: string): Promise<HospitalDto> {
+    return this.adminUpdate(id, { status: "INACTIVE" });
   }
 
   async searchNearby(input: SearchHospitalsInput): Promise<HospitalSearchResultDto[]> {

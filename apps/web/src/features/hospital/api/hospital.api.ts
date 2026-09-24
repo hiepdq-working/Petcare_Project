@@ -1,5 +1,7 @@
 import { apiClient, unwrap } from "../../../shared/api/client";
 import type {
+  AdminCreateHospitalRequest,
+  AdminUpdateHospitalRequest,
   HospitalDto,
   HospitalSearchResultDto,
   SearchHospitalsQuery,
@@ -31,5 +33,22 @@ export const hospitalApi = {
     const formData = new FormData();
     formData.append("file", file);
     return unwrap(await apiClient.post("/uploads", formData));
+  },
+
+  // Admin-only — every hospital regardless of status.
+  async adminList(): Promise<HospitalDto[]> {
+    return unwrap(await apiClient.get("/hospitals"));
+  },
+
+  async adminCreate(input: AdminCreateHospitalRequest): Promise<HospitalDto> {
+    return unwrap(await apiClient.post("/hospitals", input));
+  },
+
+  async adminUpdate(id: string, input: AdminUpdateHospitalRequest): Promise<HospitalDto> {
+    return unwrap(await apiClient.patch(`/hospitals/${id}`, input));
+  },
+
+  async adminDeactivate(id: string): Promise<HospitalDto> {
+    return unwrap(await apiClient.delete(`/hospitals/${id}`));
   },
 };

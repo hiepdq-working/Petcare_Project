@@ -10,6 +10,7 @@ import { PetModule } from "./modules/pets/pet.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
 import { PartnerRegistrationModule } from "./modules/partners/partner-registration.module";
 import { HospitalModule } from "./modules/hospitals/hospital.module";
+import { UserModule } from "./modules/users/user.module";
 import { VetModule } from "./modules/vets/vet.module";
 import { ServiceModule } from "./modules/services/service.module";
 import { AppointmentModule } from "./modules/appointments/appointment.module";
@@ -32,6 +33,7 @@ import { ChatModule } from "./modules/chat/chat.module";
     UploadsModule,
     PartnerRegistrationModule,
     HospitalModule,
+    UserModule,
     VetModule,
     ServiceModule,
     AppointmentModule,

@@ -30,7 +30,18 @@ export class HospitalRepository {
     return this.prisma.hospital.findUnique({ where: { id } });
   }
 
-  update(id: string, data: Prisma.HospitalUpdateInput): Promise<Hospital> {
+  // Admin-facing — every hospital regardless of status, newest first.
+  findMany(): Promise<Hospital[]> {
+    return this.prisma.hospital.findMany({ orderBy: { createdAt: "desc" } });
+  }
+
+  create(data: Prisma.HospitalUncheckedCreateInput): Promise<Hospital> {
+    return this.prisma.hospital.create({ data });
+  }
+
+  // Unchecked variant so admin updates can reassign `ownerId` directly by
+  // scalar without going through relation connect/disconnect syntax.
+  update(id: string, data: Prisma.HospitalUncheckedUpdateInput): Promise<Hospital> {
     return this.prisma.hospital.update({ where: { id }, data });
   }
 

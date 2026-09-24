@@ -15,10 +15,20 @@ interface PostCardProps {
   onToggleLike: () => void;
   onDelete?: () => void;
   linkToDetail?: boolean;
+  // Admin moderation — shows the delete button even though the viewer
+  // isn't the post's author.
+  canDelete?: boolean;
 }
 
-export function PostCard({ post, currentUserId, onToggleLike, onDelete, linkToDetail = true }: PostCardProps) {
-  const isOwn = post.userId === currentUserId;
+export function PostCard({
+  post,
+  currentUserId,
+  onToggleLike,
+  onDelete,
+  linkToDetail = true,
+  canDelete = false,
+}: PostCardProps) {
+  const isOwn = post.userId === currentUserId || canDelete;
   const isHospitalPost = post.hospitalId !== null;
 
   return (

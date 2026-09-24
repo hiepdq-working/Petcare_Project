@@ -114,6 +114,21 @@ export class PostService {
     await this.repository.delete(id);
   }
 
+  // Admin moderation — every post regardless of author, and delete bypasses
+  // the ownership check `remove()` enforces above.
+  async listAllForAdmin(requesterId: string): Promise<PostDto[]> {
+    const posts = await this.repository.findAll(requesterId);
+    return posts.map(toPostDto);
+  }
+
+  async removeAsAdmin(id: string): Promise<void> {
+    const post = await this.repository.findByIdRaw(id);
+    if (!post) {
+      throw new NotFoundError("Không tìm thấy bài viết");
+    }
+    await this.repository.delete(id);
+  }
+
   async toggleLike(id: string, userId: string): Promise<{ liked: boolean }> {
     const post = await this.repository.findByIdRaw(id);
     if (!post) {

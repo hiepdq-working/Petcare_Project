@@ -10,6 +10,8 @@ import {
   Wrench,
   Rss,
   MessageCircle,
+  Building2,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +39,9 @@ const NAV_BY_ROLE: Partial<Record<UserRole, NavItem[]>> = {
   ],
   [UserRole.ADMIN]: [
     { to: "/admin/partner-registrations", label: "Duyệt đối tác", icon: ClipboardCheck, end: true },
+    { to: "/admin/hospitals", label: "Phòng khám", icon: Building2 },
+    { to: "/admin/users", label: "Người dùng", icon: Users },
+    { to: "/admin/feed", label: "Bảng tin", icon: Rss },
     { to: "/settings", label: "Cài đặt", icon: Settings },
   ],
 };

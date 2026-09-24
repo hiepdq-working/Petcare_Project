@@ -62,6 +62,12 @@ export class PostRepository {
     return this.prisma.post.findUnique({ where: { id }, include: this.include(requesterId) });
   }
 
+  // Admin-facing — every post in the system, newest first. `requesterId`
+  // only affects the derived `likedByMe` flag (the admin's own likes).
+  findAll(requesterId: string): Promise<PostWithRelations[]> {
+    return this.prisma.post.findMany({ include: this.include(requesterId), orderBy: { createdAt: "desc" } });
+  }
+
   findByIdRaw(id: string): Promise<Post | null> {
     return this.prisma.post.findUnique({ where: { id } });
   }

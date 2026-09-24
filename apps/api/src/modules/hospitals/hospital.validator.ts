@@ -15,6 +15,24 @@ export const updateHospitalSchema = z.object({
 });
 export type UpdateHospitalInput = z.infer<typeof updateHospitalSchema>;
 
+export const adminCreateHospitalSchema = z.object({
+  name: z.string().trim().min(2, "Tên phòng khám quá ngắn").max(200),
+  description: z.preprocess(emptyToUndefined, z.string().trim().max(2000).optional()),
+  address: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+  phone: z.preprocess(emptyToUndefined, z.string().trim().max(20).optional()),
+  email: z.preprocess(emptyToUndefined, z.string().trim().toLowerCase().email("Email không hợp lệ").max(100).optional()),
+  lat: z.preprocess(emptyToUndefined, z.coerce.number().min(-90).max(90).optional()),
+  lng: z.preprocess(emptyToUndefined, z.coerce.number().min(-180).max(180).optional()),
+  isEmergency: z.boolean().optional(),
+  ownerId: z.preprocess(emptyToUndefined, z.string().uuid("ID chủ phòng khám không hợp lệ").optional()),
+});
+export type AdminCreateHospitalInput = z.infer<typeof adminCreateHospitalSchema>;
+
+export const adminUpdateHospitalSchema = adminCreateHospitalSchema.partial().extend({
+  status: z.enum(["ACTIVE", "INACTIVE", "PENDING"]).optional(),
+});
+export type AdminUpdateHospitalInput = z.infer<typeof adminUpdateHospitalSchema>;
+
 export const searchHospitalsSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),

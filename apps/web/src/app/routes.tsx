@@ -12,6 +12,9 @@ import { PetFormPage } from "../features/pets/pages/PetFormPage";
 import { PetDetailPage } from "../features/pets/pages/PetDetailPage";
 import { PartnerRegisterPage } from "../features/partners/pages/PartnerRegisterPage";
 import { PartnerRegistrationsPage } from "../features/admin/pages/PartnerRegistrationsPage";
+import { AdminHospitalsPage } from "../features/admin/pages/AdminHospitalsPage";
+import { AdminUsersPage } from "../features/admin/pages/AdminUsersPage";
+import { AdminFeedPage } from "../features/admin/pages/AdminFeedPage";
 import { HospitalProfilePage } from "../features/hospital/pages/HospitalProfilePage";
 import { HospitalFinderPage } from "../features/hospital/pages/HospitalFinderPage";
 import { HospitalDetailPage } from "../features/hospital/pages/HospitalDetailPage";
@@ -166,6 +169,30 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.ADMIN}>
                   <PartnerRegistrationsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/hospitals"
+              element={
+                <RequireRole role={UserRole.ADMIN}>
+                  <AdminHospitalsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <RequireRole role={UserRole.ADMIN}>
+                  <AdminUsersPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/feed"
+              element={
+                <RequireRole role={UserRole.ADMIN}>
+                  <AdminFeedPage />
                 </RequireRole>
               }
             />
