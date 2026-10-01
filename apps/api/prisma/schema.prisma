@@ -66,6 +66,7 @@ model User {
   ownershipTo          PetOwnershipHistory[]  @relation("NewOwner")
   ownedHospitals       Hospital[]             @relation("HospitalOwner")
   veterinarian         Veterinarian?          @relation("VetAccount")
+  hospitalStaff        HospitalStaff?         @relation("HospitalStaffAccount")
   medicalRecordEdits   MedicalRecordVersion[] @relation("MedicalRecordEditor")
   vaccinationsAdded    Vaccination[]          @relation("VaccinationCreator")
 
@@ -291,6 +292,7 @@ model Hospital {
 
   services       Service[]
   veterinarians  Veterinarian[]
+  staff          HospitalStaff[]
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
   posts          Post[]
@@ -319,6 +321,25 @@ model Veterinarian {
 
   @@index([hospitalId])
   @@map("veterinarians")
+}
+
+// Non-vet clinic staff (nurses/receptionists) — kept separate from
+// Veterinarian since that model is wired into Appointments/MedicalRecords/
+// Posts and merging would be too invasive. Reuses the same "owner invites an
+// account" pattern and the previously-unused UserRole.HOSPITAL_STAFF.
+model HospitalStaff {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hospitalId String        @map("hospital_id") @db.Uuid
+  hospital   Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  userId     String        @unique @map("user_id") @db.Uuid
+  user       User          @relation("HospitalStaffAccount", fields: [userId], references: [id], onDelete: Cascade)
+  position   StaffPosition
+  status     String        @default("ACTIVE") @db.VarChar(20)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@index([hospitalId])
+  @@map("hospital_staff")
 }
 
 // ----------------------------------------------------------------------------
@@ -617,4 +638,9 @@ enum MedicalRecordStatus {
   IN_TREATMENT // Đang điều trị
   FOLLOW_UP // Tái khám
   COMPLETED // Hoàn tất
+}
+
+enum StaffPosition {
+  NURSE // Điều dưỡng
+  RECEPTIONIST // Lễ tân
 }

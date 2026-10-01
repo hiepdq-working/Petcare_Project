@@ -84,6 +84,16 @@ export class MailerService {
     };
   }
 
+  // Same reset-password-as-first-activation pattern as buildVetInvitedContent,
+  // for nurse/receptionist (HospitalStaff) accounts the hospital creates.
+  buildStaffInvitedContent(staffName: string, hospitalName: string, token: string): { subject: string; html: string } {
+    const link = `${env.appUrl}/reset-password?token=${token}`;
+    return {
+      subject: `${hospitalName} đã tạo tài khoản nhân viên cho bạn trên PetCare`,
+      html: `<p>Chào ${staffName},</p><p>${hospitalName} đã tạo tài khoản nhân viên cho bạn trên PetCare. Nhấn vào liên kết dưới đây để đặt mật khẩu và bắt đầu sử dụng tài khoản (hiệu lực trong 7 ngày):</p><p><a href="${link}">${link}</a></p>`,
+    };
+  }
+
   // Same reset-password-as-first-activation pattern — an Admin created
   // this account directly, so the user activates via emailed link instead
   // of ever being handed a default password.

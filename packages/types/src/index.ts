@@ -5,6 +5,7 @@ export * from "./pet";
 export * from "./partner";
 export * from "./hospital";
 export * from "./vet";
+export * from "./hospital-staff";
 export * from "./service";
 export * from "./appointment";
 export * from "./notification";

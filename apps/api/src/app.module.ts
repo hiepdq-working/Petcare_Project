@@ -12,6 +12,7 @@ import { PartnerRegistrationModule } from "./modules/partners/partner-registrati
 import { HospitalModule } from "./modules/hospitals/hospital.module";
 import { UserModule } from "./modules/users/user.module";
 import { VetModule } from "./modules/vets/vet.module";
+import { HospitalStaffModule } from "./modules/hospital-staff/hospital-staff.module";
 import { ServiceModule } from "./modules/services/service.module";
 import { AppointmentModule } from "./modules/appointments/appointment.module";
 import { MedicalRecordModule } from "./modules/medical-records/medical-record.module";
@@ -35,6 +36,7 @@ import { ChatModule } from "./modules/chat/chat.module";
     HospitalModule,
     UserModule,
     VetModule,
+    HospitalStaffModule,
     ServiceModule,
     AppointmentModule,
     MedicalRecordModule,
