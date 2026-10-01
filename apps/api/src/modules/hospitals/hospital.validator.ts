@@ -14,6 +14,15 @@ export const updateHospitalSchema = z.object({
   isEmergency: z.boolean().optional(),
   notifyNewAppointment: z.boolean().optional(),
   notifyNewMessage: z.boolean().optional(),
+  brandColor: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .trim()
+      .regex(/^#[0-9a-fA-F]{6}$/, "Màu không hợp lệ")
+      .optional()
+      .nullable(),
+  ),
 });
 export type UpdateHospitalInput = z.infer<typeof updateHospitalSchema>;
 

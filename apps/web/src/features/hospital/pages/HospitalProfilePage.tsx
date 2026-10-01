@@ -28,11 +28,14 @@ interface FormState {
   isEmergency: boolean;
   notifyNewAppointment: boolean;
   notifyNewMessage: boolean;
+  brandColor: string | null;
   logo: string | null;
   cover: string | null;
   lat: number | undefined;
   lng: number | undefined;
 }
+
+const DEFAULT_BRAND_COLOR = "#1f6b53";
 
 const emptyForm: FormState = {
   name: "",
@@ -43,6 +46,7 @@ const emptyForm: FormState = {
   isEmergency: false,
   notifyNewAppointment: true,
   notifyNewMessage: true,
+  brandColor: null,
   logo: null,
   cover: null,
   lat: undefined,
@@ -87,6 +91,7 @@ export function HospitalProfilePage() {
         isEmergency: hospital.isEmergency,
         notifyNewAppointment: hospital.notifyNewAppointment,
         notifyNewMessage: hospital.notifyNewMessage,
+        brandColor: hospital.brandColor,
         logo: hospital.logo,
         cover: hospital.cover,
         lat: hospital.lat ?? undefined,
@@ -106,6 +111,7 @@ export function HospitalProfilePage() {
         isEmergency: form.isEmergency,
         notifyNewAppointment: form.notifyNewAppointment,
         notifyNewMessage: form.notifyNewMessage,
+        brandColor: form.brandColor,
         logo: form.logo ?? undefined,
         cover: form.cover ?? undefined,
         lat: form.lat,
@@ -248,6 +254,31 @@ export function HospitalProfilePage() {
               />
               Nhận thông báo khi có tin nhắn mới
             </label>
+          </Card>
+
+          <Card className="flex flex-col gap-3 p-6">
+            <h2 className="font-display text-base font-semibold text-brand-900">Màu thương hiệu</h2>
+            <p className="text-sm text-brand-700/70">
+              Áp dụng cho trang công khai của phòng khám và khu vực quản lý của bạn.
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={form.brandColor ?? DEFAULT_BRAND_COLOR}
+                onChange={(e) => setForm((f) => ({ ...f, brandColor: e.target.value }))}
+                className="h-10 w-16 cursor-pointer rounded-lg border border-brand-200 bg-white p-1"
+              />
+              <span className="text-sm text-brand-700/80">{form.brandColor ?? "Mặc định"}</span>
+              {form.brandColor ? (
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, brandColor: null }))}
+                  className="text-sm font-semibold text-brand-700 hover:underline"
+                >
+                  Khôi phục màu mặc định
+                </button>
+              ) : null}
+            </div>
           </Card>
 
           <div className="flex gap-3">

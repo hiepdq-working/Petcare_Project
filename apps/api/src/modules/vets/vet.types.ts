@@ -1,7 +1,7 @@
 import type { VetDto, VetSummaryDto } from "@petcare/types";
 import type { VetWithUser } from "./vet.repository";
 
-export function toVetDto(vet: VetWithUser): VetDto {
+export function toVetDto(vet: VetWithUser, hospitalBrandColor?: string | null): VetDto {
   return {
     id: vet.id,
     hospitalId: vet.hospitalId,
@@ -14,6 +14,7 @@ export function toVetDto(vet: VetWithUser): VetDto {
     licenseNumber: vet.licenseNumber,
     status: vet.status,
     createdAt: vet.createdAt.toISOString(),
+    ...(hospitalBrandColor !== undefined ? { hospitalBrandColor } : {}),
   };
 }
 

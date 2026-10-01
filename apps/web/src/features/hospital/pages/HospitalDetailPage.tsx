@@ -18,6 +18,7 @@ import { Card } from "../../../shared/components/Card";
 import { Badge } from "../../../shared/components/Badge";
 import { PillTabs } from "../../../shared/components/PillTabs";
 import { LoadingState } from "../../../shared/components/LoadingState";
+import { BrandScope } from "../../../shared/components/BrandScope";
 
 function formatPrice(price: number | null): string {
   if (price === null) return "Liên hệ";
@@ -75,6 +76,7 @@ export function HospitalDetailPage() {
   const canBook = authStatus === "authenticated" && user?.role === UserRole.PET_OWNER;
 
   return (
+    <BrandScope color={hospital.brandColor}>
     <div className="min-h-screen bg-app-gradient">
       <header className="border-b border-brand-100 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
@@ -221,6 +223,7 @@ export function HospitalDetailPage() {
         </div>
       </div>
     </div>
+    </BrandScope>
   );
 }
 

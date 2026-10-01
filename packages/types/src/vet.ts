@@ -10,6 +10,9 @@ export interface VetDto {
   licenseNumber: string | null;
   status: string;
   createdAt: string;
+  // Only populated on the vet's own profile (GET /vets/me) — see
+  // shared/components/BrandScope.tsx.
+  hospitalBrandColor?: string | null;
 }
 
 export interface CreateVetRequest {

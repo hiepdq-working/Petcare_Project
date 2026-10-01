@@ -64,7 +64,7 @@ export class VetService {
   async listMine(ownerId: string): Promise<VetDto[]> {
     const hospital = await this.resolveHospitalId(ownerId);
     const vets = await this.repository.findManyByHospital(hospital.id);
-    return vets.map(toVetDto);
+    return vets.map((vet) => toVetDto(vet));
   }
 
   async getOneMine(ownerId: string, vetId: string): Promise<VetDto> {
@@ -85,7 +85,8 @@ export class VetService {
     if (!vet) {
       throw new NotFoundError("Không tìm thấy hồ sơ bác sĩ");
     }
-    return toVetDto(vet);
+    const hospital = await this.hospitalRepository.findById(vet.hospitalId);
+    return toVetDto(vet, hospital?.brandColor ?? null);
   }
 
   // Public — the "pick a vet" step of booking an Appointment.

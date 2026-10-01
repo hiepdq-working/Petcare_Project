@@ -14,6 +14,7 @@ export interface HospitalDto {
   isEmergency: boolean;
   notifyNewAppointment: boolean;
   notifyNewMessage: boolean;
+  brandColor: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,7 @@ export interface UpdateHospitalRequest {
   isEmergency?: boolean;
   notifyNewAppointment?: boolean;
   notifyNewMessage?: boolean;
+  brandColor?: string | null;
 }
 
 export interface HospitalSearchResultDto {

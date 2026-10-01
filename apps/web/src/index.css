@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Default "brand" scale (RGB triplets so Tailwind's opacity modifiers,
+     e.g. bg-brand-700/80, keep working) — see tailwind.config.js. A
+     BrandScope wrapper overrides these within a specific hospital's own
+     pages/shell; everything else (Pet Owner chrome, Admin, auth pages)
+     renders with these defaults since nothing there sets an override. */
+  --brand-50: 243 249 246;
+  --brand-100: 230 244 236;
+  --brand-200: 201 228 213;
+  --brand-300: 163 208 185;
+  --brand-400: 116 180 148;
+  --brand-500: 76 153 119;
+  --brand-600: 50 125 96;
+  --brand-700: 31 107 83;
+  --brand-800: 27 86 69;
+  --brand-900: 22 48 42;
+}
+
 body {
   @apply bg-app-gradient bg-fixed text-brand-900;
   min-height: 100vh;

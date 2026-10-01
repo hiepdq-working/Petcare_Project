@@ -4,19 +4,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Warm mint/cream + deep teal-green, sampled from the PetConnect UI
-        // reference set (UX:UI.zip) provided by the user.
+        // Backed by CSS variables (defined in index.css's :root) instead of
+        // fixed hex, so a hospital's own pages/shell can override the scale
+        // with their chosen brand color — see shared/utils/brandScale.ts and
+        // shared/components/BrandScope.tsx. Default values (warm mint/cream
+        // + deep teal-green) are sampled from the PetConnect UI reference set
+        // (UX:UI.zip) provided by the user.
         brand: {
-          50: "#f3f9f6",
-          100: "#e6f4ec",
-          200: "#c9e4d5",
-          300: "#a3d0b9",
-          400: "#74b494",
-          500: "#4c9977",
-          600: "#327d60",
-          700: "#1f6b53", // primary actions
-          800: "#1b5645",
-          900: "#16302a",
+          50: "rgb(var(--brand-50) / <alpha-value>)",
+          100: "rgb(var(--brand-100) / <alpha-value>)",
+          200: "rgb(var(--brand-200) / <alpha-value>)",
+          300: "rgb(var(--brand-300) / <alpha-value>)",
+          400: "rgb(var(--brand-400) / <alpha-value>)",
+          500: "rgb(var(--brand-500) / <alpha-value>)",
+          600: "rgb(var(--brand-600) / <alpha-value>)",
+          700: "rgb(var(--brand-700) / <alpha-value>)", // primary actions
+          800: "rgb(var(--brand-800) / <alpha-value>)",
+          900: "rgb(var(--brand-900) / <alpha-value>)",
         },
         cream: "#faf6ef",
       },

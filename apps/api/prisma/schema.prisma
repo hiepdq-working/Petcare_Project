@@ -292,6 +292,9 @@ model Hospital {
   // own appointment. See AppointmentService/ChatService for the gating.
   notifyNewAppointment Boolean @default(true) @map("notify_new_appointment")
   notifyNewMessage     Boolean @default(true) @map("notify_new_message")
+  // Hex color (e.g. "#1f6b53"); null = use the app's default teal — see
+  // shared/components/BrandScope.tsx.
+  brandColor  String?    @map("brand_color") @db.VarChar(7)
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 

@@ -18,6 +18,7 @@ export function toHospitalDto(hospital: Hospital): HospitalDto {
     isEmergency: hospital.isEmergency,
     notifyNewAppointment: hospital.notifyNewAppointment,
     notifyNewMessage: hospital.notifyNewMessage,
+    brandColor: hospital.brandColor,
     createdAt: hospital.createdAt.toISOString(),
     updatedAt: hospital.updatedAt.toISOString(),
   };
