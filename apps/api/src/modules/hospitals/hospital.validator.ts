@@ -12,6 +12,8 @@ export const updateHospitalSchema = z.object({
   phone: z.preprocess(emptyToUndefined, z.string().trim().max(20).optional()),
   email: z.preprocess(emptyToUndefined, z.string().trim().toLowerCase().email("Email không hợp lệ").max(100).optional()),
   isEmergency: z.boolean().optional(),
+  notifyNewAppointment: z.boolean().optional(),
+  notifyNewMessage: z.boolean().optional(),
 });
 export type UpdateHospitalInput = z.infer<typeof updateHospitalSchema>;
 

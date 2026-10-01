@@ -12,6 +12,8 @@ export interface HospitalDto {
   email: string | null;
   status: string;
   isEmergency: boolean;
+  notifyNewAppointment: boolean;
+  notifyNewMessage: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +29,8 @@ export interface UpdateHospitalRequest {
   phone?: string;
   email?: string;
   isEmergency?: boolean;
+  notifyNewAppointment?: boolean;
+  notifyNewMessage?: boolean;
 }
 
 export interface HospitalSearchResultDto {

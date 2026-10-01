@@ -287,6 +287,11 @@ model Hospital {
   email       String?    @db.VarChar(100)
   status      ShopStatus @default(PENDING)
   isEmergency Boolean    @default(false) @map("is_emergency")
+  // Gate the hospital-facing notifications only (new/cancelled appointment,
+  // new chat message) — never the Pet Owner's own notifications about their
+  // own appointment. See AppointmentService/ChatService for the gating.
+  notifyNewAppointment Boolean @default(true) @map("notify_new_appointment")
+  notifyNewMessage     Boolean @default(true) @map("notify_new_message")
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 

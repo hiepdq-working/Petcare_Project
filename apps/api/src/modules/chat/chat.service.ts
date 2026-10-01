@@ -75,13 +75,19 @@ export class ChatService {
     });
 
     const recipientId = conversation.user1Id === userId ? conversation.user2Id : conversation.user1Id;
-    await this.notificationService.create({
-      userId: recipientId,
-      type: "MESSAGE",
-      title: `${message.sender.name} đã gửi tin nhắn`,
-      content: messageType === "image" ? "Đã gửi một ảnh" : input.message,
-      refId: conversation.id,
-    });
+    // Only gate the notification when the recipient is a Hospital Owner
+    // with the preference turned off — a Pet Owner recipient is never
+    // gated (see HospitalProfilePage's "Thông báo" toggles).
+    const recipientHospital = await this.hospitalRepository.findByOwnerId(recipientId);
+    if (!recipientHospital || recipientHospital.notifyNewMessage) {
+      await this.notificationService.create({
+        userId: recipientId,
+        type: "MESSAGE",
+        title: `${message.sender.name} đã gửi tin nhắn`,
+        content: messageType === "image" ? "Đã gửi một ảnh" : input.message,
+        refId: conversation.id,
+      });
+    }
 
     const dto = toMessageDto(message);
     // Pushed to the recipient (new message to react to) and back to the

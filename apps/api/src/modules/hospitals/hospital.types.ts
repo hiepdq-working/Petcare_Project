@@ -16,6 +16,8 @@ export function toHospitalDto(hospital: Hospital): HospitalDto {
     email: hospital.email,
     status: hospital.status,
     isEmergency: hospital.isEmergency,
+    notifyNewAppointment: hospital.notifyNewAppointment,
+    notifyNewMessage: hospital.notifyNewMessage,
     createdAt: hospital.createdAt.toISOString(),
     updatedAt: hospital.updatedAt.toISOString(),
   };

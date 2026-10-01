@@ -26,6 +26,8 @@ interface FormState {
   phone: string;
   email: string;
   isEmergency: boolean;
+  notifyNewAppointment: boolean;
+  notifyNewMessage: boolean;
   logo: string | null;
   cover: string | null;
   lat: number | undefined;
@@ -39,6 +41,8 @@ const emptyForm: FormState = {
   phone: "",
   email: "",
   isEmergency: false,
+  notifyNewAppointment: true,
+  notifyNewMessage: true,
   logo: null,
   cover: null,
   lat: undefined,
@@ -81,6 +85,8 @@ export function HospitalProfilePage() {
         phone: hospital.phone ?? "",
         email: hospital.email ?? "",
         isEmergency: hospital.isEmergency,
+        notifyNewAppointment: hospital.notifyNewAppointment,
+        notifyNewMessage: hospital.notifyNewMessage,
         logo: hospital.logo,
         cover: hospital.cover,
         lat: hospital.lat ?? undefined,
@@ -98,6 +104,8 @@ export function HospitalProfilePage() {
         phone: form.phone || undefined,
         email: form.email || undefined,
         isEmergency: form.isEmergency,
+        notifyNewAppointment: form.notifyNewAppointment,
+        notifyNewMessage: form.notifyNewMessage,
         logo: form.logo ?? undefined,
         cover: form.cover ?? undefined,
         lat: form.lat,
@@ -217,6 +225,28 @@ export function HospitalProfilePage() {
                 className="h-4 w-4 rounded border-brand-300"
               />
               Hỗ trợ cấp cứu 24/7
+            </label>
+          </Card>
+
+          <Card className="flex flex-col gap-3 p-6">
+            <h2 className="font-display text-base font-semibold text-brand-900">Thông báo</h2>
+            <label className="flex items-center gap-2 text-sm text-brand-900">
+              <input
+                type="checkbox"
+                checked={form.notifyNewAppointment}
+                onChange={(e) => setForm((f) => ({ ...f, notifyNewAppointment: e.target.checked }))}
+                className="h-4 w-4 rounded border-brand-300"
+              />
+              Nhận thông báo khi có lịch hẹn mới
+            </label>
+            <label className="flex items-center gap-2 text-sm text-brand-900">
+              <input
+                type="checkbox"
+                checked={form.notifyNewMessage}
+                onChange={(e) => setForm((f) => ({ ...f, notifyNewMessage: e.target.checked }))}
+                className="h-4 w-4 rounded border-brand-300"
+              />
+              Nhận thông báo khi có tin nhắn mới
             </label>
           </Card>
 

@@ -96,23 +96,25 @@ export class AppointmentService {
     // Hospital decides confirm/reject; the requested Vet (if any) only
     // observes — this mirrors the product decision that Vet cannot
     // confirm appointments themselves.
-    if (hospital.ownerId) {
-      await this.notificationService.create({
-        userId: hospital.ownerId,
-        type: "APPOINTMENT",
-        title: "Có lịch hẹn mới cần xác nhận",
-        content: `${pet.name} · ${service.name} · ${whenText}`,
-        refId: appointment.id,
-      });
-    }
-    if (appointment.vet) {
-      await this.notificationService.create({
-        userId: appointment.vet.userId,
-        type: "APPOINTMENT",
-        title: "Bạn có lịch hẹn mới",
-        content: `${pet.name} · ${service.name} · ${whenText}`,
-        refId: appointment.id,
-      });
+    if (hospital.notifyNewAppointment) {
+      if (hospital.ownerId) {
+        await this.notificationService.create({
+          userId: hospital.ownerId,
+          type: "APPOINTMENT",
+          title: "Có lịch hẹn mới cần xác nhận",
+          content: `${pet.name} · ${service.name} · ${whenText}`,
+          refId: appointment.id,
+        });
+      }
+      if (appointment.vet) {
+        await this.notificationService.create({
+          userId: appointment.vet.userId,
+          type: "APPOINTMENT",
+          title: "Bạn có lịch hẹn mới",
+          content: `${pet.name} · ${service.name} · ${whenText}`,
+          refId: appointment.id,
+        });
+      }
     }
 
     // See ARCHITECTURE.md "PetEvent — trục thời gian trung tâm": booking
@@ -220,23 +222,25 @@ export class AppointmentService {
       "Huỷ bởi chủ thú cưng",
     );
 
-    if (updated.hospital?.ownerId) {
-      await this.notificationService.create({
-        userId: updated.hospital.ownerId,
-        type: "APPOINTMENT",
-        title: `Lịch hẹn của ${updated.pet.name} đã bị huỷ`,
-        content: "Chủ thú cưng đã huỷ lịch hẹn này",
-        refId: updated.id,
-      });
-    }
-    if (updated.vet) {
-      await this.notificationService.create({
-        userId: updated.vet.userId,
-        type: "APPOINTMENT",
-        title: `Lịch hẹn của ${updated.pet.name} đã bị huỷ`,
-        content: "Chủ thú cưng đã huỷ lịch hẹn này",
-        refId: updated.id,
-      });
+    if (updated.hospital?.notifyNewAppointment) {
+      if (updated.hospital.ownerId) {
+        await this.notificationService.create({
+          userId: updated.hospital.ownerId,
+          type: "APPOINTMENT",
+          title: `Lịch hẹn của ${updated.pet.name} đã bị huỷ`,
+          content: "Chủ thú cưng đã huỷ lịch hẹn này",
+          refId: updated.id,
+        });
+      }
+      if (updated.vet) {
+        await this.notificationService.create({
+          userId: updated.vet.userId,
+          type: "APPOINTMENT",
+          title: `Lịch hẹn của ${updated.pet.name} đã bị huỷ`,
+          content: "Chủ thú cưng đã huỷ lịch hẹn này",
+          refId: updated.id,
+        });
+      }
     }
 
     return toAppointmentDto(updated);
