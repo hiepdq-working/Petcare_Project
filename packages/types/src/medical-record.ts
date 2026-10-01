@@ -1,3 +1,10 @@
+export const MedicalRecordStatus = {
+  IN_TREATMENT: "IN_TREATMENT",
+  FOLLOW_UP: "FOLLOW_UP",
+  COMPLETED: "COMPLETED",
+} as const;
+export type MedicalRecordStatus = (typeof MedicalRecordStatus)[keyof typeof MedicalRecordStatus];
+
 export interface MedicalRecordVersionDto {
   id: string;
   versionNo: number;
@@ -28,7 +35,7 @@ export interface MedicalRecordDto {
   vetName: string | null;
   hospitalId: string | null;
   hospitalName: string | null;
-  status: string;
+  status: MedicalRecordStatus;
   recordDate: string;
   createdAt: string;
   updatedAt: string;
@@ -57,4 +64,8 @@ export interface AddMedicalFileRequest {
   fileName: string;
   fileUrl: string;
   fileType: string;
+}
+
+export interface UpdateMedicalRecordStatusRequest {
+  status: MedicalRecordStatus;
 }

@@ -29,6 +29,7 @@ import { PetTimelinePage } from "../features/medical-records/pages/PetTimelinePa
 import { MedicalRecordDetailPage } from "../features/medical-records/pages/MedicalRecordDetailPage";
 import { VetMedicalRecordsPage } from "../features/medical-records/pages/VetMedicalRecordsPage";
 import { CreateMedicalRecordPage } from "../features/medical-records/pages/CreateMedicalRecordPage";
+import { HospitalMedicalRecordsPage } from "../features/medical-records/pages/HospitalMedicalRecordsPage";
 import { VaccinationsPage } from "../features/vaccinations/pages/VaccinationsPage";
 import { CreateVaccinationPage } from "../features/vaccinations/pages/CreateVaccinationPage";
 import { FeedPage } from "../features/social/pages/FeedPage";
@@ -95,7 +96,7 @@ export function AppRoutes() {
             <Route
               path="/medical-records/:id"
               element={
-                <RequireRole role={[UserRole.PET_OWNER, UserRole.VET]}>
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER]}>
                   <MedicalRecordDetailPage />
                 </RequireRole>
               }
@@ -105,6 +106,14 @@ export function AppRoutes() {
               element={
                 <RequireRole role={UserRole.VET}>
                   <VetMedicalRecordsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/hospital/medical-records"
+              element={
+                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                  <HospitalMedicalRecordsPage />
                 </RequireRole>
               }
             />

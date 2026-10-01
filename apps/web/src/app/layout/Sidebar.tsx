@@ -26,6 +26,7 @@ const NAV_BY_ROLE: Partial<Record<UserRole, NavItem[]>> = {
   [UserRole.HOSPITAL_OWNER]: [
     { to: "/hospital/profile", label: "Tổng quan", icon: LayoutGrid, end: true },
     { to: "/hospital/appointments", label: "Lịch khám", icon: CalendarDays },
+    { to: "/hospital/medical-records", label: "Hồ sơ bệnh án", icon: FolderHeart },
     { to: "/hospital/vets", label: "Bác sĩ", icon: Stethoscope },
     { to: "/hospital/services", label: "Dịch vụ", icon: Wrench },
     { to: "/feed", label: "Bảng tin", icon: Rss },

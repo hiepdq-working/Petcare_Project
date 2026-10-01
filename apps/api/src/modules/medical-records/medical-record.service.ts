@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import type { MedicalRecordStatus } from "@prisma/client";
 import { UserRole, type MedicalRecordDto } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
+import { HospitalRepository } from "../hospitals/hospital.repository";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { PetRepository } from "../pets/pet.repository";
 import { VetRepository, type VetWithUser } from "../vets/vet.repository";
@@ -18,6 +20,7 @@ export class MedicalRecordService {
     private readonly repository: MedicalRecordRepository,
     private readonly petRepository: PetRepository,
     private readonly vetRepository: VetRepository,
+    private readonly hospitalRepository: HospitalRepository,
     private readonly petEventService: PetEventService,
   ) {}
 
@@ -27,6 +30,14 @@ export class MedicalRecordService {
       throw new NotFoundError("Không tìm thấy hồ sơ bác sĩ");
     }
     return vet;
+  }
+
+  private async resolveHospitalId(ownerId: string): Promise<string> {
+    const hospital = await this.hospitalRepository.findByOwnerId(ownerId);
+    if (!hospital) {
+      throw new NotFoundError("Không tìm thấy phòng khám của tài khoản này");
+    }
+    return hospital.id;
   }
 
   private assertVetOwnsRecord(record: MedicalRecordWithRelations, vet: VetWithUser): void {
@@ -89,6 +100,12 @@ export class MedicalRecordService {
     return records.map(toMedicalRecordDto);
   }
 
+  async listForHospital(ownerId: string, status?: MedicalRecordStatus): Promise<MedicalRecordDto[]> {
+    const hospitalId = await this.resolveHospitalId(ownerId);
+    const records = await this.repository.findManyByHospital(hospitalId, status);
+    return records.map(toMedicalRecordDto);
+  }
+
   async getOne(id: string, requesterId: string, role: UserRole): Promise<MedicalRecordDto> {
     const record = await this.repository.findById(id);
     if (!record) {
@@ -102,11 +119,28 @@ export class MedicalRecordService {
     } else if (role === UserRole.VET) {
       const vet = await this.resolveVet(requesterId);
       this.assertVetOwnsRecord(record, vet);
+    } else if (role === UserRole.HOSPITAL_OWNER) {
+      const hospitalId = await this.resolveHospitalId(requesterId);
+      if (record.hospitalId !== hospitalId) {
+        throw new ForbiddenError("Hồ sơ bệnh án này không thuộc phòng khám của bạn");
+      }
     } else {
       throw new ForbiddenError();
     }
 
     return toMedicalRecordDto(record);
+  }
+
+  async updateStatus(id: string, userId: string, status: MedicalRecordStatus): Promise<MedicalRecordDto> {
+    const vet = await this.resolveVet(userId);
+    const record = await this.repository.findById(id);
+    if (!record) {
+      throw new NotFoundError("Không tìm thấy hồ sơ bệnh án");
+    }
+    this.assertVetOwnsRecord(record, vet);
+
+    const updated = await this.repository.updateStatus(id, status);
+    return toMedicalRecordDto(updated);
   }
 
   async addVersion(id: string, userId: string, input: AddMedicalRecordVersionInput): Promise<MedicalRecordDto> {

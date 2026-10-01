@@ -217,7 +217,7 @@ model MedicalRecord {
   vet              Veterinarian? @relation(fields: [vetId], references: [id], onDelete: SetNull)
   hospitalId       String?       @map("hospital_id") @db.Uuid
   hospital         Hospital?     @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
-  status           String        @default("NEW") @db.VarChar(20)
+  status           MedicalRecordStatus @default(IN_TREATMENT)
   recordDate       DateTime      @default(now()) @map("record_date")
   currentVersionId String?       @unique @map("current_version_id") @db.Uuid
   createdAt        DateTime      @default(now()) @map("created_at")
@@ -611,4 +611,10 @@ enum NotificationType {
   SOCIAL
   SYSTEM
   PROMOTION
+}
+
+enum MedicalRecordStatus {
+  IN_TREATMENT // Đang điều trị
+  FOLLOW_UP // Tái khám
+  COMPLETED // Hoàn tất
 }

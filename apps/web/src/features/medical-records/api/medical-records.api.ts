@@ -4,6 +4,7 @@ import type {
   AddMedicalRecordVersionRequest,
   CreateMedicalRecordRequest,
   MedicalRecordDto,
+  MedicalRecordStatus,
   UploadResponse,
 } from "@petcare/types";
 
@@ -20,12 +21,20 @@ export const medicalRecordsApi = {
     return unwrap(await apiClient.get(`/medical-records/pet/${petId}`));
   },
 
+  async listForHospital(status?: MedicalRecordStatus): Promise<MedicalRecordDto[]> {
+    return unwrap(await apiClient.get("/medical-records/hospital", { params: status ? { status } : undefined }));
+  },
+
   async getOne(id: string): Promise<MedicalRecordDto> {
     return unwrap(await apiClient.get(`/medical-records/${id}`));
   },
 
   async addVersion(id: string, input: AddMedicalRecordVersionRequest): Promise<MedicalRecordDto> {
     return unwrap(await apiClient.patch(`/medical-records/${id}`, input));
+  },
+
+  async updateStatus(id: string, status: MedicalRecordStatus): Promise<MedicalRecordDto> {
+    return unwrap(await apiClient.patch(`/medical-records/${id}/status`, { status }));
   },
 
   async addFile(id: string, input: AddMedicalFileRequest): Promise<MedicalRecordDto> {

@@ -3,6 +3,7 @@ import type {
   Hospital,
   MedicalFile,
   MedicalRecord,
+  MedicalRecordStatus,
   MedicalRecordVersion,
   Pet,
   Prisma,
@@ -75,6 +76,18 @@ export class MedicalRecordRepository {
 
   findManyByVet(vetId: string): Promise<MedicalRecordWithRelations[]> {
     return this.prisma.medicalRecord.findMany({ where: { vetId }, include, orderBy: { recordDate: "desc" } });
+  }
+
+  findManyByHospital(hospitalId: string, status?: MedicalRecordStatus): Promise<MedicalRecordWithRelations[]> {
+    return this.prisma.medicalRecord.findMany({
+      where: { hospitalId, ...(status ? { status } : {}) },
+      include,
+      orderBy: { recordDate: "desc" },
+    });
+  }
+
+  async updateStatus(recordId: string, status: MedicalRecordStatus): Promise<MedicalRecordWithRelations> {
+    return this.prisma.medicalRecord.update({ where: { id: recordId }, data: { status }, include });
   }
 
   async addVersion(recordId: string, editedById: string, content: RecordContent): Promise<MedicalRecordWithRelations> {

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import type { MedicalRecordStatus } from "@prisma/client";
 import { UserRole } from "@petcare/types";
 import { ok } from "../../common/response/api-response";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -12,9 +13,11 @@ import {
   addMedicalFileSchema,
   addMedicalRecordVersionSchema,
   createMedicalRecordSchema,
+  updateMedicalRecordStatusSchema,
   type AddMedicalFileInput,
   type AddMedicalRecordVersionInput,
   type CreateMedicalRecordInput,
+  type UpdateMedicalRecordStatusInput,
 } from "./medical-record.validator";
 
 @Controller("medical-records")
@@ -46,8 +49,15 @@ export class MedicalRecordController {
     return ok(records);
   }
 
+  @Get("hospital")
+  @Roles(UserRole.HOSPITAL_OWNER)
+  async listForHospital(@CurrentUser() auth: RequestAuth, @Query("status") status?: MedicalRecordStatus) {
+    const records = await this.service.listForHospital(auth.userId, status);
+    return ok(records);
+  }
+
   @Get(":id")
-  @Roles(UserRole.PET_OWNER, UserRole.VET)
+  @Roles(UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER)
   async getOne(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
     const record = await this.service.getOne(id, auth.userId, auth.role);
     return ok(record);
@@ -62,6 +72,17 @@ export class MedicalRecordController {
   ) {
     const record = await this.service.addVersion(id, auth.userId, body);
     return ok(record, "Cập nhật hồ sơ bệnh án thành công");
+  }
+
+  @Patch(":id/status")
+  @Roles(UserRole.VET)
+  async updateStatus(
+    @CurrentUser() auth: RequestAuth,
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(updateMedicalRecordStatusSchema)) body: UpdateMedicalRecordStatusInput,
+  ) {
+    const record = await this.service.updateStatus(id, auth.userId, body.status);
+    return ok(record, "Đã cập nhật trạng thái hồ sơ");
   }
 
   @Post(":id/files")

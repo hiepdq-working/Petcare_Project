@@ -36,3 +36,8 @@ export const addMedicalFileSchema = z.object({
   fileType: z.string().trim().min(1).max(50),
 });
 export type AddMedicalFileInput = z.infer<typeof addMedicalFileSchema>;
+
+export const updateMedicalRecordStatusSchema = z.object({
+  status: z.enum(["IN_TREATMENT", "FOLLOW_UP", "COMPLETED"]),
+});
+export type UpdateMedicalRecordStatusInput = z.infer<typeof updateMedicalRecordStatusSchema>;

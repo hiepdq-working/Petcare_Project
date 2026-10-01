@@ -1,8 +1,9 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserRole, type MedicalRecordContent } from "@petcare/types";
+import { UserRole, type MedicalRecordContent, type MedicalRecordStatus } from "@petcare/types";
 import { medicalRecordsApi } from "../api/medical-records.api";
+import { MedicalRecordStatusBadge, MEDICAL_RECORD_STATUS_LABELS } from "../components/MedicalRecordStatusBadge";
 import { useAuthStore } from "../../auth/store";
 import { extractErrorMessage } from "../../../shared/api/client";
 import { Alert } from "../../../shared/components/Alert";
@@ -51,6 +52,14 @@ export function MedicalRecordDetailPage() {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: (status: MedicalRecordStatus) => medicalRecordsApi.updateStatus(id!, status),
+    onSuccess: (record) => {
+      queryClient.setQueryData(["medical-records", id], record);
+      queryClient.invalidateQueries({ queryKey: ["medical-records", "hospital"] });
+    },
+  });
+
   function startEditing() {
     const current = query.data?.currentVersion;
     setForm({
@@ -93,19 +102,47 @@ export function MedicalRecordDetailPage() {
 
   const record = query.data;
   const isVet = role === UserRole.VET;
+  const isHospitalOwner = role === UserRole.HOSPITAL_OWNER;
+  const backHref = isVet
+    ? "/vet/medical-records"
+    : isHospitalOwner
+      ? "/hospital/medical-records"
+      : `/pets/${record.petId}/timeline`;
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <Link to={isVet ? "/vet/medical-records" : `/pets/${record.petId}/timeline`} className="text-sm text-brand-700 hover:underline">
+      <Link to={backHref} className="text-sm text-brand-700 hover:underline">
         ← Quay lại
       </Link>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-brand-900">Hồ sơ bệnh án của {record.petName}</h1>
+        {!isVet ? <MedicalRecordStatusBadge status={record.status} /> : null}
       </div>
       <p className="mt-1 text-brand-700/80">
         {record.hospitalName ?? "Phòng khám"} · {record.vetName ?? "Bác sĩ"} · {formatDateTime(record.recordDate)}
       </p>
+
+      {isVet ? (
+        <div className="mt-3 flex items-center gap-2">
+          <label htmlFor="status" className="text-sm font-medium text-brand-900">
+            Trạng thái:
+          </label>
+          <select
+            id="status"
+            value={record.status}
+            disabled={statusMutation.isPending}
+            onChange={(e) => statusMutation.mutate(e.target.value as MedicalRecordStatus)}
+            className="rounded-xl border border-brand-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-200"
+          >
+            {Object.entries(MEDICAL_RECORD_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
 
       {versionMutation.isError ? (
         <div className="mt-4">
