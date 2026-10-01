@@ -2,14 +2,15 @@ import { Navigate } from "react-router-dom";
 import { UserRole } from "@petcare/types";
 import { useAuthStore } from "../features/auth/store";
 
-// Pet Owners land on their pet list, Admin lands on the approval queue,
-// Hospital Owner lands on their own hospital profile, Vet lands on their
-// own profile. Hospital Staff gets a placeholder until its role is built.
+// Pet Owners land on the feed (matches "Sau khi đăng nhập sẽ vào trang feed"
+// in the design brief), Admin lands on the approval queue, Hospital Owner
+// lands on their own hospital profile, Vet lands on their own profile.
+// Hospital Staff gets a placeholder until its role is built.
 export function DashboardRedirect() {
   const role = useAuthStore((state) => state.user?.role);
 
   if (role === UserRole.PET_OWNER) {
-    return <Navigate to="/pets" replace />;
+    return <Navigate to="/feed" replace />;
   }
 
   if (role === UserRole.ADMIN) {

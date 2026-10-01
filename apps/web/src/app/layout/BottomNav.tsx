@@ -2,10 +2,13 @@ import { Link, NavLink } from "react-router-dom";
 import { Home, Compass, Plus, MessageCircle, User } from "lucide-react";
 
 const ITEMS = [
-  { to: "/pets", label: "Trang chủ", icon: Home, end: true },
+  { to: "/feed", label: "Trang chủ", icon: Home, end: true },
   { to: "/hospitals/nearby", label: "Khám phá", icon: Compass },
   { to: "/messages", label: "Tin nhắn", icon: MessageCircle },
-  { to: "/settings", label: "Tài khoản", icon: User },
+  // "Tài khoản" is the owner's own profile (hero + pets + moments) — see
+  // PetsListPage.tsx — distinct from the plain account-edit form reachable
+  // via the avatar dropdown's "Cài đặt" (TopBar.tsx), which stays at /settings.
+  { to: "/pets", label: "Tài khoản", icon: User },
 ];
 
 export function BottomNav() {

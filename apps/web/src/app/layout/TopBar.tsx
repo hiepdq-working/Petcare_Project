@@ -32,7 +32,7 @@ export function TopBar() {
 
         {isPetOwner ? (
           <Link
-            to="/pets"
+            to="/feed"
             aria-label="Trang chủ"
             className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full text-brand-700/70 hover:bg-brand-50 hover:text-brand-800 sm:flex"
           >
