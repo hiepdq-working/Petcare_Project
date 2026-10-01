@@ -38,7 +38,7 @@ Dừng và xoá luôn dữ liệu (Postgres volume, file upload):
 docker compose down -v
 ```
 
-Cấu hình tuỳ chọn (không bắt buộc để chạy thử) đặt trong file `.env` ở thư mục gốc — xem [.env.example](.env.example): khoá bí mật JWT riêng, `RESEND_API_KEY` để gửi email thật, `GOOGLE_CLIENT_ID` để bật đăng nhập Google.
+Cấu hình tuỳ chọn (không bắt buộc để chạy thử) đặt trong file `.env` ở thư mục gốc — xem [.env.example](.env.example): khoá bí mật JWT riêng, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` để gửi email thật (dùng được cả Gmail/Outlook cá nhân với App Password), `GOOGLE_CLIENT_ID` để bật đăng nhập Google.
 
 ## Chạy local không dùng Docker (phát triển)
 

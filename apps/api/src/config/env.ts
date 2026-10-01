@@ -24,7 +24,13 @@ export const env = {
   refreshTokenExpiresInDays: Number(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? 30),
   cookieDomain: process.env.COOKIE_DOMAIN ?? "localhost",
 
-  resendApiKey: process.env.RESEND_API_KEY ?? "",
+  // SMTP transport (e.g. Gmail: smtp.gmail.com:587 with an App Password,
+  // not your normal login password — Google requires 2FA + a generated
+  // App Password for third-party SMTP access).
+  smtpHost: process.env.SMTP_HOST ?? "",
+  smtpPort: Number(process.env.SMTP_PORT ?? 587),
+  smtpUser: process.env.SMTP_USER ?? "",
+  smtpPass: process.env.SMTP_PASS ?? "",
   emailFrom: process.env.EMAIL_FROM ?? "PetCare <no-reply@petcare.local>",
 
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",

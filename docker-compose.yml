@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     environment:
       # development (not production) so the mailer logs to this
-      # container's console instead of requiring a real RESEND_API_KEY —
+      # container's console instead of requiring real SMTP credentials —
       # see apps/api/src/lib/mailer.service.ts. Set to "production" once
       # you have real email/Google credentials and are deploying for
       # real users.
@@ -45,8 +45,14 @@ services:
       JWT_ACCESS_EXPIRES_IN: 15m
       REFRESH_TOKEN_EXPIRES_IN_DAYS: "30"
       COOKIE_DOMAIN: localhost
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      EMAIL_FROM: "PetCare <no-reply@petcare.local>"
+      # Any SMTP provider works, including a personal Gmail/Outlook inbox —
+      # see .env.example for how to generate an App Password. Leave blank
+      # (the default) to keep the dev console-log fallback.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM: "${EMAIL_FROM:-PetCare <no-reply@petcare.local>}"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     ports:
       - "4000:4000"

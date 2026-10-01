@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Resend } from "resend";
+import { createTransport, type Transporter } from "nodemailer";
 import { env, isProduction } from "../config/env";
 
 interface SendEmailInput {
@@ -10,21 +10,30 @@ interface SendEmailInput {
 
 @Injectable()
 export class MailerService {
-  private readonly resend = env.resendApiKey ? new Resend(env.resendApiKey) : null;
+  private readonly transporter: Transporter | null =
+    env.smtpHost && env.smtpUser && env.smtpPass
+      ? createTransport({
+          host: env.smtpHost,
+          port: env.smtpPort,
+          // 465 is implicit TLS; 587 (Gmail/Outlook's standard port)
+          // upgrades via STARTTLS instead, so secure must be false there.
+          secure: env.smtpPort === 465,
+          auth: { user: env.smtpUser, pass: env.smtpPass },
+        })
+      : null;
 
-  // In dev without RESEND_API_KEY configured yet, log instead of throwing —
-  // lets the auth flow be exercised locally before you've signed up for
-  // Resend and filled in the key.
+  // In dev without SMTP configured yet, log instead of throwing — lets the
+  // auth flow be exercised locally before you've set up an App Password.
   async send({ to, subject, html }: SendEmailInput): Promise<void> {
-    if (!this.resend) {
+    if (!this.transporter) {
       if (isProduction) {
-        throw new Error("RESEND_API_KEY is not configured");
+        throw new Error("SMTP is not configured (SMTP_HOST/SMTP_USER/SMTP_PASS)");
       }
       console.log(`[mailer:dev] To: ${to} | Subject: ${subject}\n${html}`);
       return;
     }
 
-    await this.resend.emails.send({ from: env.emailFrom, to, subject, html });
+    await this.transporter.sendMail({ from: env.emailFrom, to, subject, html });
   }
 
   buildVerifyEmailContent(name: string, token: string): { subject: string; html: string } {

@@ -32,7 +32,7 @@ Nếu muốn kiểm thử đúng luồng nghiệp vụ thật thay vì đi tắt
 ### Pet Owner
 Tự do đăng ký, không cần ai duyệt.
 1. Vào trang **Đăng ký**, chọn vai trò "Chủ nuôi thú cưng", nhập email/mật khẩu (hoặc đăng nhập bằng Google nếu đã cấu hình `GOOGLE_CLIENT_ID`)
-2. Xác thực email qua liên kết được gửi tới hộp thư (ở môi trường dev không cấu hình `RESEND_API_KEY`, liên kết này được in ra log của container `api` thay vì gửi email thật — xem bằng `docker compose logs api`)
+2. Xác thực email qua liên kết được gửi tới hộp thư (ở môi trường dev không cấu hình SMTP, liên kết này được in ra log của container `api` thay vì gửi email thật — xem bằng `docker compose logs api`)
 3. Đăng nhập, vào **Hồ sơ thú cưng** để thêm thú cưng
 
 ### Hospital Owner
@@ -59,7 +59,7 @@ Không có giao diện tự đăng ký cho Admin (đúng như thiết kế — t
 
 ## Xem liên kết email ở môi trường Docker (dev)
 
-`docker-compose.yml` chạy API với `NODE_ENV=development` và không cấu hình `RESEND_API_KEY`, nên mọi email (xác thực tài khoản, mời bác sĩ, mời phòng khám, quên mật khẩu) đều được in ra console thay vì gửi thật:
+`docker-compose.yml` chạy API với `NODE_ENV=development` và không cấu hình SMTP (`SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`), nên mọi email (xác thực tài khoản, mời bác sĩ, mời phòng khám, quên mật khẩu) đều được in ra console thay vì gửi thật:
 
 ```bash
 docker compose logs -f api
