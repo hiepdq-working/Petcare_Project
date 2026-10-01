@@ -22,6 +22,10 @@ export const socialApi = {
     return unwrap(await apiClient.get(`/posts/${id}`));
   },
 
+  async listByPet(petId: string): Promise<PostDto[]> {
+    return unwrap(await apiClient.get(`/posts/pet/${petId}`));
+  },
+
   async remove(id: string): Promise<void> {
     await apiClient.delete(`/posts/${id}`);
   },

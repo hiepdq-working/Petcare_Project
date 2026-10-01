@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
 import { useHospitalSearch, RADIUS_OPTIONS } from "../hooks/useHospitalSearch";
 import { HospitalResultCard } from "../components/HospitalResultCard";
 import { LocationPicker } from "../../../shared/components/LocationPicker";
@@ -13,6 +14,13 @@ import { extractErrorMessage } from "../../../shared/api/client";
 // appointment later will prompt for one). See hospitals.controller.ts.
 export function HospitalFinderPage() {
   const { center, setCenter, radiusKm, setRadiusKm, geoError, locating, useMyLocation, query } = useHospitalSearch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const nameQuery = searchParams.get("q") ?? "";
+
+  // Client-side only — the backend's geo-search has no name filter, so this
+  // narrows the already-fetched nearby results instead of calling a new
+  // endpoint.
+  const results = (query.data ?? []).filter((h) => h.name.toLowerCase().includes(nameQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-app-gradient">
@@ -34,7 +42,20 @@ export function HospitalFinderPage() {
           Dùng vị trí hiện tại hoặc chọn trên bản đồ để tìm phòng khám thú y gần nhất.
         </p>
 
-        <Card className="mt-6 p-6">
+        <div className="mt-6 flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-3 py-2">
+          <Search size={16} className="text-brand-700/60" />
+          <input
+            value={nameQuery}
+            onChange={(e) => {
+              const next = e.target.value;
+              setSearchParams(next ? { q: next } : {}, { replace: true });
+            }}
+            placeholder="Tìm theo tên phòng khám..."
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-brand-700/50"
+          />
+        </div>
+
+        <Card className="mt-4 p-6">
           <Button onClick={useMyLocation} loading={locating}>
             📍 Dùng vị trí của tôi
           </Button>
@@ -78,13 +99,17 @@ export function HospitalFinderPage() {
           ) : null}
           {query.isLoading ? <LoadingState label="Đang tìm kiếm..." /> : null}
           {query.isError ? <Alert message={extractErrorMessage(query.error)} /> : null}
-          {query.data?.length === 0 ? (
+          {!query.isLoading && center && results.length === 0 ? (
             <EmptyState
               title="Không tìm thấy phòng khám nào"
-              description={`Không có phòng khám trong bán kính ${radiusKm}km. Hãy thử tăng bán kính.`}
+              description={
+                nameQuery
+                  ? `Không có phòng khám nào khớp với "${nameQuery}" trong bán kính ${radiusKm}km.`
+                  : `Không có phòng khám trong bán kính ${radiusKm}km. Hãy thử tăng bán kính.`
+              }
             />
           ) : null}
-          {query.data?.map((hospital) => <HospitalResultCard key={hospital.id} hospital={hospital} />)}
+          {results.map((hospital) => <HospitalResultCard key={hospital.id} hospital={hospital} />)}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AppointmentStatus } from "@petcare/types";
-import { CalendarClock, Stethoscope, Clock3, CheckCircle2 } from "lucide-react";
+import { CalendarClock, Stethoscope, Clock3, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { appointmentsApi } from "../api/appointments.api";
 import { AppointmentStatusBadge } from "../components/AppointmentStatusBadge";
 import { extractErrorMessage } from "../../../shared/api/client";
@@ -43,8 +43,24 @@ function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("vi-VN");
 }
 
+// Local date components, not UTC — an appointment at 23:00 in Vietnam
+// (UTC+7) must still show on "today", not roll over to tomorrow's UTC date.
+function toDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(d: Date, days: number): Date {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
 export function HospitalAppointmentsPage() {
   const [tab, setTab] = useState<AppointmentStatus | "ALL">("ALL");
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
   const queryClient = useQueryClient();
 
   // Fetched unfiltered so the stat row and the tab filter can both work off
@@ -60,19 +76,24 @@ export function HospitalAppointmentsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["appointments", "hospital"] }),
   });
 
+  const selectedDateKey = toDateKey(selectedDate);
+  const forSelectedDate = useMemo(
+    () => (query.data ?? []).filter((a) => toDateKey(new Date(a.dateTime)) === selectedDateKey),
+    [query.data, selectedDateKey],
+  );
+
   const counts = useMemo(() => {
-    const all = query.data ?? [];
     return {
-      total: all.length,
-      inProgress: all.filter((a) => a.status === "IN_PROGRESS").length,
-      pending: all.filter((a) => a.status === "PENDING" || a.status === "CONFIRMED").length,
-      completed: all.filter((a) => a.status === "COMPLETED").length,
+      total: forSelectedDate.length,
+      inProgress: forSelectedDate.filter((a) => a.status === "IN_PROGRESS").length,
+      pending: forSelectedDate.filter((a) => a.status === "PENDING" || a.status === "CONFIRMED").length,
+      completed: forSelectedDate.filter((a) => a.status === "COMPLETED").length,
     };
-  }, [query.data]);
+  }, [forSelectedDate]);
 
   const visible = useMemo(
-    () => (query.data ?? []).filter((a) => tab === "ALL" || a.status === tab),
-    [query.data, tab],
+    () => forSelectedDate.filter((a) => tab === "ALL" || a.status === tab),
+    [forSelectedDate, tab],
   );
 
   return (
@@ -80,6 +101,31 @@ export function HospitalAppointmentsPage() {
       <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Lịch khám</p>
       <h1 className="mt-1 font-display text-2xl font-semibold text-brand-900">Lịch hẹn tại phòng khám</h1>
       <p className="mt-1 text-sm text-brand-700/70">Theo dõi các ca khám, tình trạng tiếp nhận và bác sĩ phụ trách.</p>
+
+      <Card className="mt-6 flex items-center justify-between p-3">
+        <button
+          onClick={() => setSelectedDate((d) => addDays(d, -1))}
+          aria-label="Ngày trước"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-brand-700/70 hover:bg-brand-50"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="text-center">
+          <p className="font-semibold text-brand-900">
+            {selectedDate.toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit" })}
+          </p>
+          <p className="text-xs text-brand-700/60">
+            {toDateKey(selectedDate) === toDateKey(new Date()) ? "Hôm nay" : ""} · {counts.total} lịch khám
+          </p>
+        </div>
+        <button
+          onClick={() => setSelectedDate((d) => addDays(d, 1))}
+          aria-label="Ngày sau"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-brand-700/70 hover:bg-brand-50"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </Card>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard icon={<CalendarClock size={18} />} tone="mint" value={counts.total} label="Tổng lịch khám" />

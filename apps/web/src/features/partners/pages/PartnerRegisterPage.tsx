@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+import { Stethoscope } from "lucide-react";
 import { partnersApi } from "../api/partners.api";
 import { DocumentUploader } from "../components/DocumentUploader";
 import { extractErrorMessage } from "../../../shared/api/client";
@@ -70,6 +71,23 @@ export function PartnerRegisterPage() {
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {mutation.isError ? <Alert message={extractErrorMessage(mutation.error)} /> : null}
+
+        <div>
+          <p className="mb-1.5 text-sm font-medium text-brand-900">Loại hình kinh doanh</p>
+          {/* Only Phòng khám thú y is a real feature today — Cửa hàng thú
+              cưng/Spa thú cưng aren't built yet, so there's nothing to add
+              them as a second/third selectable tile. */}
+          <div className="flex items-center gap-3 rounded-xl border-2 border-brand-600 bg-brand-50 px-4 py-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand-700">
+              <Stethoscope size={18} />
+            </span>
+            <div>
+              <p className="font-semibold text-brand-900">Phòng khám thú y</p>
+              <p className="text-xs text-brand-700/70">Khám, điều trị & chăm sóc thú y</p>
+            </div>
+          </div>
+        </div>
+
         <TextField
           label="Tên phòng khám"
           required

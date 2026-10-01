@@ -1,6 +1,6 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserRole, type PostMediaDto } from "@petcare/types";
+import { UserRole, type PetDto, type PostMediaDto } from "@petcare/types";
 import { socialApi } from "../api/social.api";
 import { petsApi } from "../../pets/api/pets.api";
 import { vetsApi } from "../../vets/api/vets.api";
@@ -19,17 +19,32 @@ const HOSPITAL_MAX_MEDIA = 5;
 export function FeedPage() {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
+  const [activePetId, setActivePetId] = useState<string | null>(null);
 
-  const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed });
+  const petsQuery = useQuery({
+    queryKey: ["pets"],
+    queryFn: petsApi.list,
+    enabled: user?.role === UserRole.PET_OWNER,
+  });
+
+  const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed, enabled: !activePetId });
+  const petFeedQuery = useQuery({
+    queryKey: ["posts", "pet", activePetId],
+    queryFn: () => socialApi.listByPet(activePetId!),
+    enabled: Boolean(activePetId),
+  });
+
+  const visiblePosts = activePetId ? petFeedQuery.data : feedQuery.data;
+  const visibleLoading = activePetId ? petFeedQuery.isLoading : feedQuery.isLoading;
 
   const likeMutation = useMutation({
     mutationFn: (id: string) => socialApi.toggleLike(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts", "feed"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => socialApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts", "feed"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
   });
 
   function handleDelete(id: string) {
@@ -38,7 +53,7 @@ export function FeedPage() {
     }
   }
 
-  const invalidateFeed = () => queryClient.invalidateQueries({ queryKey: ["posts", "feed"] });
+  const invalidateFeed = () => queryClient.invalidateQueries({ queryKey: ["posts"] });
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
@@ -50,13 +65,52 @@ export function FeedPage() {
         <PetOwnerPostComposer onPosted={invalidateFeed} />
       )}
 
+      {/* Replaces Facebook-style "stories" with a row of the owner's own
+          pets — selecting one filters the feed to just that pet's posts. */}
+      {petsQuery.data && petsQuery.data.length > 0 ? (
+        <div className="mt-6 flex gap-3 overflow-x-auto pb-1">
+          <button
+            onClick={() => setActivePetId(null)}
+            className={`flex shrink-0 flex-col items-center gap-1.5 ${!activePetId ? "" : "opacity-60"}`}
+          >
+            <span
+              className={`flex h-14 w-14 items-center justify-center rounded-full border-2 bg-brand-100 text-xs font-bold text-brand-700 ${
+                !activePetId ? "border-brand-700" : "border-transparent"
+              }`}
+            >
+              Tất cả
+            </span>
+          </button>
+          {petsQuery.data.map((pet: PetDto) => (
+            <button
+              key={pet.id}
+              onClick={() => setActivePetId(pet.id)}
+              className={`flex shrink-0 flex-col items-center gap-1.5 ${activePetId === pet.id ? "" : "opacity-60"}`}
+            >
+              <span
+                className={`h-14 w-14 overflow-hidden rounded-full border-2 bg-brand-100 ${
+                  activePetId === pet.id ? "border-brand-700" : "border-transparent"
+                }`}
+              >
+                {pet.avatar ? (
+                  <img src={pet.avatar} alt={pet.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-xl">🐾</span>
+                )}
+              </span>
+              <span className="max-w-[56px] truncate text-xs font-medium text-brand-800">{pet.name}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-6 flex flex-col gap-4">
-        {feedQuery.isLoading ? <LoadingState /> : null}
+        {visibleLoading ? <LoadingState /> : null}
         {feedQuery.isError ? <Alert message={extractErrorMessage(feedQuery.error)} /> : null}
-        {feedQuery.data?.length === 0 ? (
+        {!visibleLoading && visiblePosts?.length === 0 ? (
           <EmptyState title="Chưa có bài viết nào" description="Hãy là người đầu tiên chia sẻ khoảnh khắc!" />
         ) : null}
-        {feedQuery.data?.map((post) => (
+        {visiblePosts?.map((post) => (
           <PostCard
             key={post.id}
             post={post}
