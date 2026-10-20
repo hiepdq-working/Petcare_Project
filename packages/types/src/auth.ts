@@ -29,6 +29,9 @@ export interface LoginRequest {
 export interface AuthResponse {
   user: AuthUser;
   accessToken: string;
+  // Only returned to native clients that send `X-Client: mobile` (they have
+  // no cookie jar); web clients receive it as an httpOnly cookie instead.
+  refreshToken?: string;
 }
 
 export interface GoogleLoginRequest {

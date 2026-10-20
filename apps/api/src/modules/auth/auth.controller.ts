@@ -31,7 +31,28 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  private respondWithSession(res: Response, session: Session, message: string) {
+  // The native app has no cookie jar, so a client that sends
+  // `X-Client: mobile` gets the refresh token in the response body instead
+  // of the httpOnly cookie. Web clients are unaffected.
+  private isMobileClient(req: Request): boolean {
+    return req.header("x-client") === "mobile";
+  }
+
+  // Cookie first (web), then the request body (mobile).
+  private readRefreshToken(req: Request): string | undefined {
+    const fromCookie = req.cookies?.[REFRESH_TOKEN_COOKIE] as string | undefined;
+    if (fromCookie) return fromCookie;
+    const fromBody = (req.body as { refreshToken?: unknown } | undefined)?.refreshToken;
+    return typeof fromBody === "string" && fromBody.length > 0 ? fromBody : undefined;
+  }
+
+  private respondWithSession(req: Request, res: Response, session: Session, message: string) {
+    if (this.isMobileClient(req)) {
+      return ok(
+        { user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken },
+        message,
+      );
+    }
     setRefreshTokenCookie(res, session.refreshToken, session.refreshTokenExpiresAt);
     return ok({ user: session.user, accessToken: session.accessToken }, message);
   }
@@ -46,37 +67,39 @@ export class AuthController {
   @HttpCode(200)
   async login(
     @Body(new ZodValidationPipe(loginSchema)) body: LoginInput,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const session = await this.authService.login(body);
-    return this.respondWithSession(res, session, "Đăng nhập thành công");
+    return this.respondWithSession(req, res, session, "Đăng nhập thành công");
   }
 
   @Post("google")
   @HttpCode(200)
   async loginWithGoogle(
     @Body(new ZodValidationPipe(googleLoginSchema)) body: GoogleLoginInput,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const session = await this.authService.loginWithGoogle(body);
-    return this.respondWithSession(res, session, "Đăng nhập thành công");
+    return this.respondWithSession(req, res, session, "Đăng nhập thành công");
   }
 
   @Post("refresh")
   @HttpCode(200)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const token = req.cookies?.[REFRESH_TOKEN_COOKIE] as string | undefined;
+    const token = this.readRefreshToken(req);
     if (!token) {
       throw new UnauthorizedError("Không tìm thấy phiên đăng nhập");
     }
     const session = await this.authService.refreshSession(token);
-    return this.respondWithSession(res, session, "Làm mới phiên đăng nhập thành công");
+    return this.respondWithSession(req, res, session, "Làm mới phiên đăng nhập thành công");
   }
 
   @Post("logout")
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const token = req.cookies?.[REFRESH_TOKEN_COOKIE] as string | undefined;
+    const token = this.readRefreshToken(req);
     if (token) {
       await this.authService.logout(token);
     }
