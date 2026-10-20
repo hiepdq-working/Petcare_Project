@@ -138,16 +138,41 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
   const [vetId, setVetId] = useState("");
   const [media, setMedia] = useState<Pick<PostMediaDto, "mediaUrl" | "mediaType">[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [isPromotion, setIsPromotion] = useState(false);
+  const [promoTitle, setPromoTitle] = useState("");
+  const [discountText, setDiscountText] = useState("");
+  const [promoStartsAt, setPromoStartsAt] = useState("");
+  const [promoEndsAt, setPromoEndsAt] = useState("");
 
   const vetsQuery = useQuery({ queryKey: ["vets", "mine"], queryFn: vetsApi.list });
 
   const createMutation = useMutation({
-    mutationFn: () => socialApi.create({ content: content || undefined, vetId: vetId || undefined, media }),
+    mutationFn: () =>
+      socialApi.create({
+        content: content || undefined,
+        vetId: vetId || undefined,
+        media,
+        ...(isPromotion
+          ? {
+              kind: "PROMOTION" as const,
+              promoTitle,
+              discountText: discountText || undefined,
+              // datetime-local has no timezone — send real instants.
+              promoStartsAt: promoStartsAt ? new Date(promoStartsAt).toISOString() : undefined,
+              promoEndsAt: promoEndsAt ? new Date(promoEndsAt).toISOString() : undefined,
+            }
+          : {}),
+      }),
     onSuccess: () => {
       onPosted();
       setContent("");
       setVetId("");
       setMedia([]);
+      setIsPromotion(false);
+      setPromoTitle("");
+      setDiscountText("");
+      setPromoStartsAt("");
+      setPromoEndsAt("");
     },
   });
 
@@ -171,7 +196,9 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
     createMutation.mutate();
   }
 
-  const canPost = content.trim().length > 0 || media.length > 0;
+  const canPost = isPromotion
+    ? promoTitle.trim().length > 0 && promoEndsAt.length > 0
+    : content.trim().length > 0 || media.length > 0;
 
   return (
     <Card as="form" onSubmit={handleSubmit} className="p-5">
@@ -236,8 +263,58 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
         </select>
       </div>
 
+      <label className="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-900">
+        <input
+          type="checkbox"
+          checked={isPromotion}
+          onChange={(e) => setIsPromotion(e.target.checked)}
+          className="h-4 w-4 rounded border-brand-300"
+        />
+        🏷️ Đăng khuyến mãi
+      </label>
+
+      {isPromotion ? (
+        <div className="mt-3 flex flex-col gap-3 rounded-xl bg-brand-50 p-4">
+          <input
+            value={promoTitle}
+            onChange={(e) => setPromoTitle(e.target.value)}
+            maxLength={120}
+            placeholder="Tiêu đề khuyến mãi (vd: Tiêm phòng tháng 11)"
+            className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-600"
+          />
+          <input
+            value={discountText}
+            onChange={(e) => setDiscountText(e.target.value)}
+            maxLength={60}
+            placeholder="Mức giảm (vd: Giảm 20%)"
+            className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-600"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1 text-xs font-medium text-brand-900">
+              Bắt đầu (không bắt buộc)
+              <input
+                type="datetime-local"
+                value={promoStartsAt}
+                onChange={(e) => setPromoStartsAt(e.target.value)}
+                className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-600"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-medium text-brand-900">
+              Kết thúc
+              <input
+                type="datetime-local"
+                required
+                value={promoEndsAt}
+                onChange={(e) => setPromoEndsAt(e.target.value)}
+                className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-600"
+              />
+            </label>
+          </div>
+        </div>
+      ) : null}
+
       <Button type="submit" className="mt-4" loading={createMutation.isPending} disabled={!canPost || uploading}>
-        Đăng bài
+        {isPromotion ? "Đăng khuyến mãi" : "Đăng bài"}
       </Button>
     </Card>
   );

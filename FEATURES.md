@@ -63,6 +63,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 ## 12. Bảng tin cộng đồng (Social Feed)
 - Pet Owner đăng bài: **bắt buộc chụp ảnh trực tiếp bằng camera** (không cho chọn file có sẵn — giống cơ chế Locket), giới hạn 1 ảnh/bài, có tông màu ấm được áp trực tiếp lên ảnh chụp
 - Hospital cũng đăng được bài (tối đa 5 ảnh tải lên), có thể gắn thẻ 1 bác sĩ của phòng khám, tự động kèm nút "Xem vị trí trên bản đồ" trỏ đến toạ độ thật của phòng khám
+- Hospital có thể đăng bài **loại "Khuyến mãi"** (tiêu đề, mức giảm, ngày bắt đầu/kết thúc) — xem mục 23
 - Thích/bỏ thích, bình luận, trả lời bình luận (1 cấp), chỉ được xoá nội dung do chính mình tạo
 - Bình luận/bài viết của Hospital có nhãn "🏥 Phòng khám" để phân biệt phản hồi chính thức
 - Gắn thẻ thú cưng vào bài viết sẽ tự động xuất hiện trên Pet Timeline của thú cưng đó
@@ -108,7 +109,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Đăng nhập dạng chia đôi (banner gradient + hoạ tiết chân thú | form)
 - Header kiểu Facebook cho Pet Owner: icon trang chủ, tìm phòng khám, icon bản đồ, tin nhắn, thông báo, menu avatar
 - Điều hướng Pet Owner: Trang chủ = bảng tin, Khám phá = tìm phòng khám, Tin nhắn, Tài khoản = trang cá nhân (hero + thú cưng + "Khoảnh khắc đáng yêu" Ảnh/Video)
-- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị bài mới của các phòng khám và lối tắt tới "Phòng khám yêu thích" / "Bài viết đã lưu" (kèm số lượng). Mục chưa có tính năng (hiện còn "Nhóm") gắn nhãn "Sắp ra mắt"
+- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị khuyến mãi đang diễn ra, bài mới của các phòng khám và lối tắt tới "Phòng khám yêu thích" / "Bài viết đã lưu" (kèm số lượng). Mục chưa có tính năng (hiện còn "Nhóm") gắn nhãn "Sắp ra mắt"
 - Trang chi tiết phòng khám chia tab Dịch vụ / Đặt lịch / Đánh giá, đặt lịch ngay trong tab
 - Đăng ký đối tác hiển thị thẻ loại hình "Phòng khám thú y"
 - Lịch khám của phòng khám có thanh chọn ngày (◀ ngày ▶)
@@ -124,6 +125,11 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Trang "Phòng khám yêu thích" (`/favorites`) liệt kê các phòng khám đang hoạt động đã yêu thích
 - Nút Lưu 🔖 trên mỗi bài viết; trang "Bài viết đã lưu" (`/saved`) hiển thị theo thứ tự mới lưu nhất, bài bị xoá sẽ tự biến mất khỏi danh sách
 - Hospital Owner/Admin không có chức năng yêu thích hay lưu bài
+
+## 23. Khuyến mãi của phòng khám
+- Trong ô đăng bài, Hospital Owner tick "Đăng khuyến mãi" và nhập tiêu đề (bắt buộc), mức giảm (vd "Giảm 20%"), ngày bắt đầu (không bắt buộc) và ngày kết thúc (bắt buộc, phải ở tương lai). Khuyến mãi vẫn là một bài đăng bình thường nên có thích/bình luận/lưu và Admin kiểm duyệt/xoá như mọi bài viết; Pet Owner không đăng được khuyến mãi
+- Banner "Khuyến mãi từ phòng khám" ở trang Tài khoản và mục "Khuyến mãi" ở cột phải chỉ hiện khuyến mãi **đang còn hiệu lực** (đã bắt đầu, chưa kết thúc), ưu tiên phòng khám đã yêu thích rồi đến khuyến mãi sắp hết hạn; hết hạn tự ẩn, không có khuyến mãi thật thì không hiện gì
+- Khi phòng khám đăng khuyến mãi, những người đã yêu thích phòng khám đó nhận thông báo; bấm vào thông báo mở thẳng bài khuyến mãi
 
 ---
 

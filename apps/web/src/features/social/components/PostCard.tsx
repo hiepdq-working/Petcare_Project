@@ -74,6 +74,18 @@ export function PostCard({
         ) : null}
       </div>
 
+      {post.kind === "PROMOTION" ? (
+        <div className="mt-3 rounded-xl bg-gradient-to-br from-brand-700 to-brand-500 p-4 text-white">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-brand-100">🏷️ Khuyến mãi</span>
+          <p className="mt-1 font-display text-lg font-semibold leading-snug">{post.promoTitle}</p>
+          {post.discountText ? <p className="font-display text-2xl font-bold">{post.discountText}</p> : null}
+          <p className="mt-1 text-xs text-brand-100">
+            {post.promoStartsAt ? `Từ ${new Date(post.promoStartsAt).toLocaleDateString("vi-VN")} · ` : ""}
+            Đến hết {post.promoEndsAt ? new Date(post.promoEndsAt).toLocaleDateString("vi-VN") : ""}
+          </p>
+        </div>
+      ) : null}
+
       {post.content ? <p className="mt-3 whitespace-pre-wrap text-brand-900">{post.content}</p> : null}
 
       {post.media.length > 0 ? (

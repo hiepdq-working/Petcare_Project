@@ -1,5 +1,11 @@
 import type { UserRole } from "./enums";
 
+export const PostKind = {
+  NORMAL: "NORMAL",
+  PROMOTION: "PROMOTION",
+} as const;
+export type PostKind = (typeof PostKind)[keyof typeof PostKind];
+
 export interface PostMediaDto {
   id: string;
   mediaUrl: string;
@@ -42,6 +48,12 @@ export interface PostDto {
   commentCount: number;
   likedByMe: boolean;
   savedByMe: boolean;
+  kind: PostKind;
+  // Only set when kind === PROMOTION.
+  promoTitle: string | null;
+  discountText: string | null;
+  promoStartsAt: string | null;
+  promoEndsAt: string | null;
   createdAt: string;
 }
 
@@ -55,6 +67,12 @@ export interface CreatePostRequest {
   petId?: string;
   vetId?: string;
   media?: { mediaUrl: string; mediaType: string }[];
+  // Hospital Owner only.
+  kind?: PostKind;
+  promoTitle?: string;
+  discountText?: string;
+  promoStartsAt?: string;
+  promoEndsAt?: string;
 }
 
 export interface CreateCommentRequest {

@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { UserRole, type PostDetailDto, type PostDto } from "@petcare/types";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
+import { FavoriteRepository } from "../favorites/favorite.repository";
 import { HospitalRepository } from "../hospitals/hospital.repository";
+import { NotificationService } from "../notifications/notification.service";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { PetRepository } from "../pets/pet.repository";
 import { VetRepository } from "../vets/vet.repository";
@@ -24,11 +26,17 @@ export class PostService {
     private readonly hospitalRepository: HospitalRepository,
     private readonly vetRepository: VetRepository,
     private readonly petEventService: PetEventService,
+    private readonly favoriteRepository: FavoriteRepository,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(userId: string, role: UserRole, input: CreatePostInput): Promise<PostDto> {
     const media = input.media ?? [];
     let hospitalId: string | undefined;
+
+    if (input.kind === "PROMOTION" && role !== UserRole.HOSPITAL_OWNER) {
+      throw new ForbiddenError("Chỉ phòng khám mới có thể đăng khuyến mãi");
+    }
 
     if (role === UserRole.HOSPITAL_OWNER) {
       if (input.petId) {
@@ -65,9 +73,25 @@ export class PostService {
     }
 
     const post = await this.repository.create(
-      { userId, petId: input.petId, hospitalId, vetId: input.vetId, content: input.content, media },
+      {
+        userId,
+        petId: input.petId,
+        hospitalId,
+        vetId: input.vetId,
+        content: input.content,
+        kind: input.kind,
+        promoTitle: input.promoTitle,
+        discountText: input.discountText,
+        promoStartsAt: input.promoStartsAt,
+        promoEndsAt: input.promoEndsAt,
+        media,
+      },
       userId,
     );
+
+    if (input.kind === "PROMOTION" && hospitalId) {
+      await this.notifyPromotion(post.id, hospitalId, post.hospital?.name ?? "Phòng khám", input.promoTitle ?? "");
+    }
 
     if (input.petId) {
       await this.petEventService.publish({
@@ -82,6 +106,36 @@ export class PostService {
     }
 
     return toPostDto(post);
+  }
+
+  // Everyone who favorited the clinic gets a PROMOTION notification. A plain
+  // loop is fine at the current scale; batch it if followers ever reach the
+  // thousands.
+  private async notifyPromotion(postId: string, hospitalId: string, hospitalName: string, title: string): Promise<void> {
+    const followerIds = await this.favoriteRepository.findFollowerIds(hospitalId);
+    for (const userId of followerIds) {
+      await this.notificationService.create({
+        userId,
+        type: "PROMOTION",
+        title: `${hospitalName}: ${title}`,
+        refId: postId,
+      });
+    }
+  }
+
+  // Live promotions, clinics the requester favorited first, then soonest to
+  // expire.
+  async listPromotions(userId: string): Promise<PostDto[]> {
+    const [promotions, favorites] = await Promise.all([
+      this.repository.findActivePromotions(userId, new Date()),
+      this.favoriteRepository.findManyByUser(userId),
+    ]);
+    const favoriteIds = new Set(favorites.map((f) => f.hospitalId));
+    const rank = (hospitalId: string | null) => (hospitalId && favoriteIds.has(hospitalId) ? 0 : 1);
+    return promotions
+      .sort((a, b) => rank(a.hospitalId) - rank(b.hospitalId) || a.promoEndsAt!.getTime() - b.promoEndsAt!.getTime())
+      .slice(0, 10)
+      .map(toPostDto);
   }
 
   async listFeed(userId: string): Promise<PostDto[]> {

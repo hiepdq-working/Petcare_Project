@@ -19,9 +19,40 @@ export const createPostSchema = z
     petId: z.preprocess(emptyToUndefined, z.string().uuid("Thú cưng không hợp lệ").optional()),
     vetId: z.preprocess(emptyToUndefined, z.string().uuid("Bác sĩ không hợp lệ").optional()),
     media: z.array(postMediaSchema).max(MAX_MEDIA_PER_POST).optional(),
+    kind: z.enum(["NORMAL", "PROMOTION"]).default("NORMAL"),
+    promoTitle: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
+    discountText: z.preprocess(emptyToUndefined, z.string().trim().max(60).optional()),
+    promoStartsAt: z.preprocess(emptyToUndefined, z.coerce.date({ invalid_type_error: "Ngày bắt đầu không hợp lệ" }).optional()),
+    promoEndsAt: z.preprocess(emptyToUndefined, z.coerce.date({ invalid_type_error: "Ngày kết thúc không hợp lệ" }).optional()),
   })
-  .refine((data) => (data.content && data.content.length > 0) || (data.media && data.media.length > 0), {
-    message: "Vui lòng nhập nội dung hoặc thêm ảnh",
+  .refine(
+    (data) =>
+      (data.content && data.content.length > 0) ||
+      (data.media && data.media.length > 0) ||
+      (data.kind === "PROMOTION" && !!data.promoTitle),
+    { message: "Vui lòng nhập nội dung hoặc thêm ảnh" },
+  )
+  .superRefine((data, ctx) => {
+    const hasPromoFields = data.promoTitle || data.discountText || data.promoStartsAt || data.promoEndsAt;
+    if (data.kind === "NORMAL") {
+      if (hasPromoFields) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Thông tin khuyến mãi chỉ dùng cho bài khuyến mãi" });
+      }
+      return;
+    }
+    if (!data.promoTitle) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoTitle"], message: "Vui lòng nhập tiêu đề khuyến mãi" });
+    }
+    if (!data.promoEndsAt) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoEndsAt"], message: "Vui lòng chọn ngày kết thúc khuyến mãi" });
+      return;
+    }
+    if (data.promoEndsAt.getTime() <= Date.now()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoEndsAt"], message: "Ngày kết thúc phải ở tương lai" });
+    }
+    if (data.promoStartsAt && data.promoEndsAt.getTime() <= data.promoStartsAt.getTime()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoEndsAt"], message: "Ngày kết thúc phải sau ngày bắt đầu" });
+    }
   });
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 

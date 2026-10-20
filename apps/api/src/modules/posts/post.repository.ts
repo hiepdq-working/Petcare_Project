@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { Hospital, Pet, Post, PostComment, PostMedia, Prisma, User, Veterinarian } from "@prisma/client";
+import type { Hospital, Pet, Post, PostComment, PostKind, PostMedia, Prisma, User, Veterinarian } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 
 export type PostWithRelations = Post & {
@@ -44,6 +44,11 @@ export class PostRepository {
       hospitalId?: string;
       vetId?: string;
       content?: string;
+      kind?: PostKind;
+      promoTitle?: string;
+      discountText?: string;
+      promoStartsAt?: Date;
+      promoEndsAt?: Date;
       media: { mediaUrl: string; mediaType: string }[];
     },
     requesterId: string,
@@ -55,6 +60,11 @@ export class PostRepository {
         hospitalId: data.hospitalId,
         vetId: data.vetId,
         content: data.content,
+        kind: data.kind,
+        promoTitle: data.promoTitle,
+        discountText: data.discountText,
+        promoStartsAt: data.promoStartsAt,
+        promoEndsAt: data.promoEndsAt,
         media: { create: data.media },
       },
     });
@@ -77,6 +87,21 @@ export class PostRepository {
 
   findMany(requesterId: string, take = 30): Promise<PostWithRelations[]> {
     return this.prisma.post.findMany({ include: this.include(requesterId), orderBy: { createdAt: "desc" }, take });
+  }
+
+  // Promotions that are live right now: started (or no start date) and not
+  // yet ended.
+  findActivePromotions(requesterId: string, now: Date, take = 30): Promise<PostWithRelations[]> {
+    return this.prisma.post.findMany({
+      where: {
+        kind: "PROMOTION",
+        promoEndsAt: { gte: now },
+        OR: [{ promoStartsAt: null }, { promoStartsAt: { lte: now } }],
+      },
+      include: this.include(requesterId),
+      orderBy: { promoEndsAt: "asc" },
+      take,
+    });
   }
 
   findManyByPet(petId: string, requesterId: string): Promise<PostWithRelations[]> {

@@ -22,6 +22,11 @@ export function toPostDto(post: PostWithRelations): PostDto {
     commentCount: post._count.comments,
     likedByMe: post.likes.length > 0,
     savedByMe: post.savedBy.length > 0,
+    kind: post.kind,
+    promoTitle: post.promoTitle,
+    discountText: post.discountText,
+    promoStartsAt: post.promoStartsAt?.toISOString() ?? null,
+    promoEndsAt: post.promoEndsAt?.toISOString() ?? null,
     createdAt: post.createdAt.toISOString(),
   };
 }

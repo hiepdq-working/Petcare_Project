@@ -476,6 +476,13 @@ model Post {
   vetId      String?       @map("vet_id") @db.Uuid
   vet        Veterinarian? @relation(fields: [vetId], references: [id], onDelete: SetNull)
   content    String?       @db.Text
+  // PROMOTION is only creatable by a Hospital Owner (see PostService) and
+  // shows up as a banner for Pet Owners while it is active.
+  kind         PostKind  @default(NORMAL)
+  promoTitle   String?   @map("promo_title") @db.VarChar(120)
+  discountText String?   @map("discount_text") @db.VarChar(60)
+  promoStartsAt DateTime? @map("promo_starts_at")
+  promoEndsAt  DateTime? @map("promo_ends_at")
   createdAt  DateTime      @default(now()) @map("created_at")
 
   media    PostMedia[]
@@ -486,6 +493,7 @@ model Post {
   @@index([userId])
   @@index([petId])
   @@index([hospitalId])
+  @@index([kind, promoEndsAt])
   @@map("posts")
 }
 
@@ -675,6 +683,11 @@ enum NotificationType {
   MESSAGE
   SOCIAL
   SYSTEM
+  PROMOTION
+}
+
+enum PostKind {
+  NORMAL
   PROMOTION
 }
 

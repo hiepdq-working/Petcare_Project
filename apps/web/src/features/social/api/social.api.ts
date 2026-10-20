@@ -35,6 +35,10 @@ export const socialApi = {
     return unwrap(await apiClient.post(`/posts/${id}/like`));
   },
 
+  async listPromotions(): Promise<PostDto[]> {
+    return unwrap(await apiClient.get("/posts/promotions"));
+  },
+
   async toggleSave(id: string): Promise<ToggleSaveResponse> {
     return unwrap(await apiClient.post(`/posts/${id}/save`));
   },

@@ -42,6 +42,13 @@ export class PostController {
     return ok(posts);
   }
 
+  @Get("promotions")
+  @Roles(UserRole.PET_OWNER)
+  async listPromotions(@CurrentUser() auth: RequestAuth) {
+    const posts = await this.service.listPromotions(auth.userId);
+    return ok(posts);
+  }
+
   // Static "saved" route must stay above ":id" or Nest would read "saved"
   // as a post id.
   @Get("saved")

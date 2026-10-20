@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Heart, Bookmark, Users } from "lucide-react";
 import { socialApi } from "../../features/social/api/social.api";
+import { PromoCard } from "../../features/social/components/PromoBanner";
 import { favoritesApi } from "../../features/favorites/api/favorites.api";
 import { Card } from "../../shared/components/Card";
 import { LoadingState } from "../../shared/components/LoadingState";
@@ -14,6 +15,8 @@ export function RightRail() {
   // real content instead of a fabricated ads feature.
   const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed });
   const hospitalPosts = (feedQuery.data ?? []).filter((p) => p.hospitalId !== null).slice(0, 3);
+  const promotionsQuery = useQuery({ queryKey: ["posts", "promotions"], queryFn: socialApi.listPromotions });
+  const promotions = (promotionsQuery.data ?? []).slice(0, 2);
   const favoritesQuery = useQuery({ queryKey: ["favorites", "hospitals"], queryFn: favoritesApi.listHospitals });
   const savedQuery = useQuery({ queryKey: ["posts", "saved"], queryFn: socialApi.listSaved });
 
@@ -24,6 +27,17 @@ export function RightRail() {
 
   return (
     <aside className="hidden w-72 shrink-0 flex-col gap-4 py-6 pl-4 lg:flex">
+      {promotions.length > 0 ? (
+        <div>
+          <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-brand-500">Khuyến mãi</p>
+          <div className="flex flex-col gap-3">
+            {promotions.map((post) => (
+              <PromoCard key={post.id} post={post} compact />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div>
         <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-brand-500">Từ các phòng khám</p>
         {feedQuery.isLoading ? <LoadingState /> : null}

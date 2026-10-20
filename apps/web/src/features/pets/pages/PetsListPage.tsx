@@ -6,6 +6,7 @@ import { petsApi } from "../api/pets.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { socialApi } from "../../social/api/social.api";
 import { PetCard } from "../components/PetCard";
+import { PromoBanner } from "../../social/components/PromoBanner";
 import { useAuthStore } from "../../auth/store";
 import { Card } from "../../../shared/components/Card";
 import { EmptyState } from "../../../shared/components/EmptyState";
@@ -32,6 +33,7 @@ export function PetsListPage() {
 
   const appointmentsQuery = useQuery({ queryKey: ["appointments", "mine"], queryFn: appointmentsApi.listMine });
   const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed });
+  const promotionsQuery = useQuery({ queryKey: ["posts", "promotions"], queryFn: socialApi.listPromotions });
 
   const nextAppointment = useMemo(() => {
     const upcoming = (appointmentsQuery.data ?? [])
@@ -88,6 +90,8 @@ export function PetsListPage() {
           </>
         )}
       </Card>
+
+      <PromoBanner promotions={promotionsQuery.data ?? []} />
 
       <div className="mt-6 grid grid-cols-4 gap-3">
         {QUICK_ACTIONS.map(({ to, label, icon: Icon, tone }) => (
