@@ -42,6 +42,11 @@ export function FeedPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
   });
 
+  const saveMutation = useMutation({
+    mutationFn: (id: string) => socialApi.toggleSave(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => socialApi.remove(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
@@ -116,6 +121,7 @@ export function FeedPage() {
             post={post}
             currentUserId={user?.id}
             onToggleLike={() => likeMutation.mutate(post.id)}
+            onToggleSave={user?.role === UserRole.PET_OWNER ? () => saveMutation.mutate(post.id) : undefined}
             onDelete={() => handleDelete(post.id)}
           />
         ))}

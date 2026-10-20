@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { HospitalSearchResultDto } from "@petcare/types";
+import { FavoriteButton } from "../../favorites/components/FavoriteButton";
 
 interface HospitalResultCardProps {
   hospital: HospitalSearchResultDto;
@@ -24,9 +25,12 @@ export function HospitalResultCard({ hospital, bookingPetId }: HospitalResultCar
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <p className="font-semibold text-brand-900">{hospital.name}</p>
-          <span className="whitespace-nowrap rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-            {hospital.distanceKm} km
-          </span>
+          <div className="flex items-center gap-1">
+            <span className="whitespace-nowrap rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+              {hospital.distanceKm} km
+            </span>
+            <FavoriteButton hospitalId={hospital.id} />
+          </div>
         </div>
         {hospital.address ? <p className="mt-0.5 truncate text-sm text-brand-700/80">{hospital.address}</p> : null}
         {hospital.description ? (

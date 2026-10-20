@@ -28,6 +28,7 @@ export function PostDetailPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["posts", id] });
 
   const likeMutation = useMutation({ mutationFn: () => socialApi.toggleLike(id!), onSuccess: invalidate });
+  const saveMutation = useMutation({ mutationFn: () => socialApi.toggleSave(id!), onSuccess: invalidate });
 
   const deleteMutation = useMutation({
     mutationFn: () => socialApi.remove(id!),
@@ -96,6 +97,7 @@ export function PostDetailPage() {
           post={post}
           currentUserId={user?.id}
           onToggleLike={() => likeMutation.mutate()}
+          onToggleSave={user?.role === UserRole.PET_OWNER ? () => saveMutation.mutate() : undefined}
           onDelete={handleDeletePost}
           linkToDetail={false}
         />

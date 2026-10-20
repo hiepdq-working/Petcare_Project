@@ -53,6 +53,8 @@ model User {
   pets                 Pet[]
   posts                Post[]
   likes                PostLike[]
+  savedPosts           SavedPost[]
+  favoriteHospitals    FavoriteHospital[]
   comments             PostComment[]
   reviews              Review[]
   sentMessages         Message[]              @relation("Sender")
@@ -301,6 +303,7 @@ model Hospital {
   services       Service[]
   veterinarians  Veterinarian[]
   staff          HospitalStaff[]
+  favoritedBy    FavoriteHospital[]
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
   posts          Post[]
@@ -477,6 +480,7 @@ model Post {
 
   media    PostMedia[]
   likes    PostLike[]
+  savedBy  SavedPost[]
   comments PostComment[]
 
   @@index([userId])
@@ -493,6 +497,34 @@ model PostMedia {
   mediaType String @map("media_type") @db.VarChar(10)
 
   @@map("post_media")
+}
+
+// A Pet Owner's private bookmark of a post ("Bài viết đã lưu").
+model SavedPost {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([postId, userId])
+  @@index([userId, createdAt])
+  @@map("saved_posts")
+}
+
+// A Pet Owner's favorite clinic ("Phòng khám yêu thích").
+model FavoriteHospital {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hospitalId String   @map("hospital_id") @db.Uuid
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([hospitalId, userId])
+  @@index([userId, createdAt])
+  @@map("favorite_hospitals")
 }
 
 model PostLike {

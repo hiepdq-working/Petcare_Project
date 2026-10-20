@@ -41,6 +41,7 @@ export interface PostDto {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  savedByMe: boolean;
   createdAt: string;
 }
 
@@ -63,4 +64,8 @@ export interface CreateCommentRequest {
 
 export interface ToggleLikeResponse {
   liked: boolean;
+}
+
+export interface ToggleSaveResponse {
+  saved: boolean;
 }

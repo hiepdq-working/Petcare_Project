@@ -10,6 +10,8 @@ export type PostWithRelations = Post & {
   media: PostMedia[];
   // Filtered to just the requester's own like (if any) — see `include()`.
   likes: { id: string }[];
+  // Same idea for the requester's own bookmark — see `include()`.
+  savedBy: { id: string }[];
   _count: { likes: number; comments: number };
 };
 
@@ -30,6 +32,7 @@ export class PostRepository {
       vet: { include: { user: true } },
       media: true,
       likes: { where: { userId: requesterId }, select: { id: true } },
+      savedBy: { where: { userId: requesterId }, select: { id: true } },
       _count: { select: { likes: true, comments: true } },
     } satisfies Prisma.PostInclude;
   }
@@ -96,6 +99,26 @@ export class PostRepository {
     }
     await this.prisma.postLike.create({ data: { postId, userId } });
     return true;
+  }
+
+  async toggleSave(postId: string, userId: string): Promise<boolean> {
+    const existing = await this.prisma.savedPost.findUnique({ where: { postId_userId: { postId, userId } } });
+    if (existing) {
+      await this.prisma.savedPost.delete({ where: { id: existing.id } });
+      return false;
+    }
+    await this.prisma.savedPost.create({ data: { postId, userId } });
+    return true;
+  }
+
+  // Newest-saved first. Posts deleted since saving are gone via cascade.
+  async findSaved(userId: string): Promise<PostWithRelations[]> {
+    const rows = await this.prisma.savedPost.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: { post: { include: this.include(userId) } },
+    });
+    return rows.map((row) => row.post);
   }
 
   createComment(data: { postId: string; userId: string; content: string; parentId?: string }): Promise<CommentWithUser> {

@@ -18,6 +18,7 @@ import { AppointmentModule } from "./modules/appointments/appointment.module";
 import { MedicalRecordModule } from "./modules/medical-records/medical-record.module";
 import { VaccinationModule } from "./modules/vaccinations/vaccination.module";
 import { PostModule } from "./modules/posts/post.module";
+import { FavoriteModule } from "./modules/favorites/favorite.module";
 import { ReviewModule } from "./modules/reviews/review.module";
 import { ChatModule } from "./modules/chat/chat.module";
 
@@ -42,6 +43,7 @@ import { ChatModule } from "./modules/chat/chat.module";
     MedicalRecordModule,
     VaccinationModule,
     PostModule,
+    FavoriteModule,
     ReviewModule,
     ChatModule,
   ],

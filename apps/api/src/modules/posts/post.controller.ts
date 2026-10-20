@@ -42,6 +42,15 @@ export class PostController {
     return ok(posts);
   }
 
+  // Static "saved" route must stay above ":id" or Nest would read "saved"
+  // as a post id.
+  @Get("saved")
+  @Roles(UserRole.PET_OWNER)
+  async listSaved(@CurrentUser() auth: RequestAuth) {
+    const posts = await this.service.listSaved(auth.userId);
+    return ok(posts);
+  }
+
   // Admin moderation — method-level @Roles overrides the class-level
   // PET_OWNER/HOSPITAL_OWNER list (RolesGuard uses getAllAndOverride), so
   // this doesn't unlock authoring/liking/commenting for Admin, only these
@@ -75,6 +84,13 @@ export class PostController {
   @Post(":id/like")
   async toggleLike(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
     const result = await this.service.toggleLike(id, auth.userId);
+    return ok(result);
+  }
+
+  @Post(":id/save")
+  @Roles(UserRole.PET_OWNER)
+  async toggleSave(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
+    const result = await this.service.toggleSave(id, auth.userId);
     return ok(result);
   }
 

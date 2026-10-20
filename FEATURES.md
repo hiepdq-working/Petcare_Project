@@ -66,6 +66,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Thích/bỏ thích, bình luận, trả lời bình luận (1 cấp), chỉ được xoá nội dung do chính mình tạo
 - Bình luận/bài viết của Hospital có nhãn "🏥 Phòng khám" để phân biệt phản hồi chính thức
 - Gắn thẻ thú cưng vào bài viết sẽ tự động xuất hiện trên Pet Timeline của thú cưng đó
+- Pet Owner có thể **lưu** bài viết (nút 🔖 dưới mỗi bài) và xem lại ở trang "Bài viết đã lưu" — xem mục 22
 
 ## 13. Đánh giá phòng khám (Review)
 - Chỉ Pet Owner **đã hoàn thành** ít nhất 1 lịch khám tại phòng khám mới được đánh giá (1–5 sao + nhận xét)
@@ -107,7 +108,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Đăng nhập dạng chia đôi (banner gradient + hoạ tiết chân thú | form)
 - Header kiểu Facebook cho Pet Owner: icon trang chủ, tìm phòng khám, icon bản đồ, tin nhắn, thông báo, menu avatar
 - Điều hướng Pet Owner: Trang chủ = bảng tin, Khám phá = tìm phòng khám, Tin nhắn, Tài khoản = trang cá nhân (hero + thú cưng + "Khoảnh khắc đáng yêu" Ảnh/Video)
-- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị bài mới của các phòng khám (mục chưa có tính năng như "Phòng khám yêu thích/Bài viết đã lưu/Nhóm" gắn nhãn "Sắp ra mắt")
+- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị bài mới của các phòng khám và lối tắt tới "Phòng khám yêu thích" / "Bài viết đã lưu" (kèm số lượng). Mục chưa có tính năng (hiện còn "Nhóm") gắn nhãn "Sắp ra mắt"
 - Trang chi tiết phòng khám chia tab Dịch vụ / Đặt lịch / Đánh giá, đặt lịch ngay trong tab
 - Đăng ký đối tác hiển thị thẻ loại hình "Phòng khám thú y"
 - Lịch khám của phòng khám có thanh chọn ngày (◀ ngày ▶)
@@ -117,6 +118,12 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Hospital Owner chọn 1 màu thương hiệu trong "Chỉnh sửa hồ sơ phòng khám" (có nút khôi phục màu mặc định)
 - Thang màu `brand` của Tailwind chạy bằng CSS variables; một màu được sinh thành đủ 10 sắc độ (giữ nguyên độ sáng từng bậc để chữ vẫn dễ đọc)
 - Áp dụng cho: toàn bộ khu làm việc của Hospital Owner, khu làm việc của Vet thuộc phòng khám đó, và trang công khai của phòng khám. Các trang khác (bảng tin, Admin, đăng nhập...) giữ màu mặc định
+
+## 22. Yêu thích phòng khám & Bài viết đã lưu
+- Pet Owner bấm biểu tượng trái tim ở danh sách tìm phòng khám hoặc đầu trang chi tiết phòng khám để yêu thích/bỏ yêu thích (chỉ hiện khi đã đăng nhập là Pet Owner, các trang này vẫn xem được công khai)
+- Trang "Phòng khám yêu thích" (`/favorites`) liệt kê các phòng khám đang hoạt động đã yêu thích
+- Nút Lưu 🔖 trên mỗi bài viết; trang "Bài viết đã lưu" (`/saved`) hiển thị theo thứ tự mới lưu nhất, bài bị xoá sẽ tự biến mất khỏi danh sách
+- Hospital Owner/Admin không có chức năng yêu thích hay lưu bài
 
 ---
 

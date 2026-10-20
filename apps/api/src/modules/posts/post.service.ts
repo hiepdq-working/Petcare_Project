@@ -138,6 +138,20 @@ export class PostService {
     return { liked };
   }
 
+  async toggleSave(id: string, userId: string): Promise<{ saved: boolean }> {
+    const post = await this.repository.findByIdRaw(id);
+    if (!post) {
+      throw new NotFoundError("Không tìm thấy bài viết");
+    }
+    const saved = await this.repository.toggleSave(id, userId);
+    return { saved };
+  }
+
+  async listSaved(userId: string): Promise<PostDto[]> {
+    const posts = await this.repository.findSaved(userId);
+    return posts.map(toPostDto);
+  }
+
   async addComment(id: string, userId: string, input: CreateCommentInput) {
     const post = await this.repository.findByIdRaw(id);
     if (!post) {

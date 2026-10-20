@@ -21,6 +21,7 @@ export function toPostDto(post: PostWithRelations): PostDto {
     likeCount: post._count.likes,
     commentCount: post._count.comments,
     likedByMe: post.likes.length > 0,
+    savedByMe: post.savedBy.length > 0,
     createdAt: post.createdAt.toISOString(),
   };
 }

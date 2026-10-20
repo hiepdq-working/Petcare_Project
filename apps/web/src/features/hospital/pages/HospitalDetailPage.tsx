@@ -19,6 +19,7 @@ import { Badge } from "../../../shared/components/Badge";
 import { PillTabs } from "../../../shared/components/PillTabs";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { BrandScope } from "../../../shared/components/BrandScope";
+import { FavoriteButton } from "../../favorites/components/FavoriteButton";
 
 function formatPrice(price: number | null): string {
   if (price === null) return "Liên hệ";
@@ -110,10 +111,11 @@ export function HospitalDetailPage() {
                   <div className="flex h-full w-full items-center justify-center text-2xl">🏥</div>
                 )}
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <h1 className="font-display text-xl font-semibold text-brand-900">{hospital.name}</h1>
                 {hospital.address ? <p className="text-sm text-brand-700/80">{hospital.address}</p> : null}
               </div>
+              <FavoriteButton hospitalId={hospital.id} />
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">

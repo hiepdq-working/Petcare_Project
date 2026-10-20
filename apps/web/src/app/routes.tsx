@@ -34,6 +34,8 @@ import { VaccinationsPage } from "../features/vaccinations/pages/VaccinationsPag
 import { CreateVaccinationPage } from "../features/vaccinations/pages/CreateVaccinationPage";
 import { FeedPage } from "../features/social/pages/FeedPage";
 import { PostDetailPage } from "../features/social/pages/PostDetailPage";
+import { SavedPostsPage } from "../features/social/pages/SavedPostsPage";
+import { FavoriteHospitalsPage } from "../features/favorites/pages/FavoriteHospitalsPage";
 import { ConversationsPage } from "../features/chat/pages/ConversationsPage";
 import { ConversationPage } from "../features/chat/pages/ConversationPage";
 import { SettingsPage } from "../features/settings/pages/SettingsPage";
@@ -154,6 +156,22 @@ export function AppRoutes() {
               element={
                 <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
                   <PostDetailPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/saved"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <SavedPostsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/favorites"
+              element={
+                <RequireRole role={UserRole.PET_OWNER}>
+                  <FavoriteHospitalsPage />
                 </RequireRole>
               }
             />

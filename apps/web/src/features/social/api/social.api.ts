@@ -6,6 +6,7 @@ import type {
   PostDetailDto,
   PostDto,
   ToggleLikeResponse,
+  ToggleSaveResponse,
   UploadResponse,
 } from "@petcare/types";
 
@@ -32,6 +33,14 @@ export const socialApi = {
 
   async toggleLike(id: string): Promise<ToggleLikeResponse> {
     return unwrap(await apiClient.post(`/posts/${id}/like`));
+  },
+
+  async toggleSave(id: string): Promise<ToggleSaveResponse> {
+    return unwrap(await apiClient.post(`/posts/${id}/save`));
+  },
+
+  async listSaved(): Promise<PostDto[]> {
+    return unwrap(await apiClient.get("/posts/saved"));
   },
 
   async addComment(id: string, input: CreateCommentRequest): Promise<PostCommentDto> {

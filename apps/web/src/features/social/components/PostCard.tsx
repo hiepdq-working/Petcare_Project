@@ -13,6 +13,8 @@ interface PostCardProps {
   post: PostDto;
   currentUserId?: string;
   onToggleLike: () => void;
+  // Only passed for Pet Owner viewers — Hospital Owner/Admin can't save.
+  onToggleSave?: () => void;
   onDelete?: () => void;
   linkToDetail?: boolean;
   // Admin moderation — shows the delete button even though the viewer
@@ -24,6 +26,7 @@ export function PostCard({
   post,
   currentUserId,
   onToggleLike,
+  onToggleSave,
   onDelete,
   linkToDetail = true,
   canDelete = false,
@@ -106,6 +109,14 @@ export function PostCard({
         ) : (
           <span className="font-semibold">💬 {post.commentCount} bình luận</span>
         )}
+        {onToggleSave ? (
+          <button
+            onClick={onToggleSave}
+            className={`ml-auto font-semibold hover:underline ${post.savedByMe ? "text-brand-700" : ""}`}
+          >
+            {post.savedByMe ? "🔖 Đã lưu" : "🔖 Lưu"}
+          </button>
+        ) : null}
       </div>
     </div>
   );
