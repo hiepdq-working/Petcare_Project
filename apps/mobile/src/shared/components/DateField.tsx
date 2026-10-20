@@ -25,8 +25,7 @@ export function DateField({ label, value, onChange, withTime, placeholder = "Chá
       mode: "date",
       minimumDate,
       maximumDate,
-      onChange: (event, picked) => {
-        if (event.type !== "set" || !picked) return;
+      onValueChange: (_event, picked) => {
         if (!withTime) {
           onChange(picked);
           return;
@@ -35,8 +34,7 @@ export function DateField({ label, value, onChange, withTime, placeholder = "Chá
           value: picked,
           mode: "time",
           is24Hour: true,
-          onChange: (timeEvent, time) => {
-            if (timeEvent.type !== "set" || !time) return;
+          onValueChange: (_timeEvent, time) => {
             const merged = new Date(picked);
             merged.setHours(time.getHours(), time.getMinutes(), 0, 0);
             onChange(merged);

@@ -1,13 +1,17 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { chatApi } from "../../../features/chat/api/chat.api";
 import { fonts, DEFAULT_PALETTE } from "../../../theme";
 
-// Land on the account hub after login (the web lands on the feed, which
-// arrives in M2).
-export const unstable_settings = { anchor: "account" };
+// Same four tabs as the web's bottom nav: Trang chủ (feed), Khám phá,
+// Tin nhắn, Tài khoản. "Lịch hẹn" is opened from the account hub.
+export const unstable_settings = { anchor: "feed" };
 
-// M1 tabs. Trang chủ (bảng tin) and Tin nhắn join in M2.
 export default function TabsLayout() {
+  const conversations = useQuery({ queryKey: ["conversations"], queryFn: chatApi.listConversations });
+  const unreadChats = (conversations.data ?? []).reduce((sum, c) => sum + c.unreadCount, 0);
+
   return (
     <Tabs
       screenOptions={{
@@ -19,12 +23,20 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="feed"
+        options={{ title: "Trang chủ", tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color as string} size={size} /> }}
+      />
+      <Tabs.Screen
         name="discover"
         options={{ title: "Khám phá", tabBarIcon: ({ color, size }) => <Ionicons name="compass-outline" color={color as string} size={size} /> }}
       />
       <Tabs.Screen
-        name="appointments"
-        options={{ title: "Lịch hẹn", tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" color={color as string} size={size} /> }}
+        name="messages"
+        options={{
+          title: "Tin nhắn",
+          tabBarBadge: unreadChats > 0 ? unreadChats : undefined,
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-outline" color={color as string} size={size} />,
+        }}
       />
       <Tabs.Screen
         name="account"

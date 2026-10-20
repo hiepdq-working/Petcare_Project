@@ -33,7 +33,18 @@ export default function DiscoverScreen() {
         Alert.alert("Chưa có quyền vị trí", "Đang dùng khu vực mặc định (TP.HCM). Bạn có thể cấp quyền trong Cài đặt của máy.");
         return;
       }
-      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      // A device with no GPS fix can leave getCurrentPositionAsync pending
+      // forever, so use the last known position first and cap the wait.
+      const position =
+        (await Location.getLastKnownPositionAsync()) ??
+        (await Promise.race([
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 10_000)),
+        ]));
+      if (!position) {
+        Alert.alert("Không lấy được vị trí", "Đang dùng khu vực mặc định (TP.HCM).");
+        return;
+      }
       setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
       setLocated(true);
     } catch {

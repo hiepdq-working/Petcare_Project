@@ -4,6 +4,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ServiceDto } from "@petcare/types";
 import { appointmentsApi } from "../../../features/appointments/api/appointments.api";
+import { chatApi } from "../../../features/chat/api/chat.api";
+import { FavoriteButton } from "../../../features/favorites/FavoriteButton";
 import { hospitalApi } from "../../../features/hospital/api/hospital.api";
 import { petsApi } from "../../../features/pets/api/pets.api";
 import { extractErrorMessage } from "../../../shared/api/client";
@@ -48,6 +50,7 @@ export default function HospitalDetailScreen() {
               <AppText variant="title">{hospital.name}</AppText>
               {hospital.address ? <AppText variant="small" tone="muted">{hospital.address}</AppText> : null}
             </View>
+            <FavoriteButton hospitalId={id} />
           </View>
           <View style={{ flexDirection: "row", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             {hospital.isEmergency ? <Badge tone="red">Cấp cứu 24/7</Badge> : null}
@@ -63,6 +66,7 @@ export default function HospitalDetailScreen() {
             ) : null}
           </View>
           {hospital.description ? <AppText>{hospital.description}</AppText> : null}
+          <MessageButton hospitalId={id} />
         </Card>
 
         <PillTabs tabs={TABS} value={tab} onChange={setTab} />
@@ -71,6 +75,19 @@ export default function HospitalDetailScreen() {
         {tab === "reviews" ? <ReviewsTab hospitalId={id} /> : null}
       </Screen>
     </BrandScope>
+  );
+}
+
+function MessageButton({ hospitalId }: { hospitalId: string }) {
+  const mutation = useMutation({
+    mutationFn: () => chatApi.startWithHospital(hospitalId),
+    onSuccess: (conversation) => router.push(`/chat/${conversation.id}`),
+  });
+  return (
+    <>
+      {mutation.isError ? <ErrorBanner message={extractErrorMessage(mutation.error)} /> : null}
+      <Button title="💬 Nhắn tin" variant="secondary" loading={mutation.isPending} onPress={() => mutation.mutate()} />
+    </>
   );
 }
 

@@ -138,21 +138,25 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Bài trong nhóm **không** xuất hiện ở bảng tin chung, chỉ ở trang nhóm; trên bài có nhãn tên nhóm bấm được
 - Chủ nhóm xoá được mọi bài trong nhóm, thành viên khác chỉ xoá bài của chính mình. Chưa có duyệt thành viên, nhóm riêng tư hay xoá nhóm
 
-## 25. Ứng dụng Android (React Native + Expo) — giai đoạn M1
-- `apps/mobile`: ứng dụng cho **Pet Owner**, viết bằng TypeScript, dùng chung kiểu dữ liệu `@petcare/types` với web; giao diện theo cùng bảng màu teal và font Fraunces/Inter. Chạy bằng Expo Go (xem README)
+## 25. Ứng dụng Android (React Native + Expo)
+- `apps/mobile`: ứng dụng cho **Pet Owner**, viết bằng TypeScript, dùng chung kiểu dữ liệu `@petcare/types` với web; giao diện theo cùng bảng màu teal và font Fraunces/Inter. Chạy bằng Expo Go (xem README). Bốn tab như web: Trang chủ (bảng tin), Khám phá, Tin nhắn, Tài khoản
 - Đăng nhập, đăng ký, quên mật khẩu; phiên được giữ lại sau khi tắt app (refresh token lưu trong kho khoá của hệ điều hành, tự xoay vòng); đăng xuất
-- Tài khoản: lịch hẹn sắp tới, lối tắt, danh sách thú cưng; Cài đặt (sửa hồ sơ + ảnh đại diện, đổi mật khẩu)
-- Thú cưng: thêm/sửa/xoá (chọn ảnh hoặc chụp ảnh), Digital Life (thống kê + dòng thời gian theo tháng), sổ tiêm phòng (xem + thêm), xem hồ sơ bệnh án kèm trạng thái
-- Khám phá: tìm phòng khám theo vị trí hiện tại (không cấp quyền thì dùng TP.HCM), bán kính 5–50 km, tìm theo tên, mở bản đồ/gọi điện; chi tiết phòng khám với tab Dịch vụ / Đặt lịch / Đánh giá, áp dụng màu thương hiệu của phòng khám
+- **Bảng tin:** xem bài, lọc theo từng thú cưng, thích/lưu/bình luận (có trả lời), xoá bài của mình; đăng bài chỉ bằng camera (1 ảnh, gắn thẻ thú cưng) giống web; banner và thẻ khuyến mãi của phòng khám
+- **Tin nhắn real-time:** danh sách cuộc trò chuyện kèm số chưa đọc, chat văn bản và ảnh, nút "Nhắn tin" ở trang phòng khám; tin mới tới ngay qua Socket.IO (tự lấy token mới khi token hết hạn, tự nối lại khi mở lại app)
+- **Thông báo:** chuông kèm số chưa đọc ở đầu mỗi tab, màn hình danh sách, bấm vào để đến đúng nơi (lịch hẹn, cuộc trò chuyện, bài viết); cập nhật real-time, gồm cả nhắc lịch 24h
+- **Yêu thích phòng khám, bài viết đã lưu, nhóm:** trái tim ở trang phòng khám, trang Phòng khám yêu thích, trang Bài viết đã lưu, danh sách/tạo/tham gia/rời nhóm và đăng bài trong nhóm
+- Tài khoản: lịch hẹn sắp tới, banner khuyến mãi, lối tắt (Lịch hẹn / Yêu thích / Đã lưu / Nhóm), thú cưng, "Khoảnh khắc đáng yêu" (ảnh đã đăng); Cài đặt (sửa hồ sơ + ảnh đại diện, đổi mật khẩu)
+- Thú cưng: thêm/sửa/xoá (chọn ảnh hoặc chụp ảnh), Digital Life (thống kê, dải ảnh, dòng thời gian theo tháng), sổ tiêm phòng (xem + thêm), xem hồ sơ bệnh án kèm trạng thái
+- Khám phá: tìm phòng khám theo vị trí hiện tại (không cấp quyền hoặc không có GPS thì dùng TP.HCM), bán kính 5–50 km, tìm theo tên, mở bản đồ/gọi điện; chi tiết phòng khám với tab Dịch vụ / Đặt lịch / Đánh giá, áp dụng màu thương hiệu của phòng khám
 - Lịch hẹn: danh sách và huỷ lịch; giờ đặt lịch lưu đúng múi giờ
 - Backend: client gửi header `X-Client: mobile` thì `POST /auth/login|google|refresh` trả thêm `refreshToken` trong body (không đặt cookie), `/auth/refresh` và `/auth/logout` nhận token từ body; web vẫn chỉ dùng cookie httpOnly
-- **Chưa có trên mobile (giai đoạn M2):** bảng tin và chụp ảnh đăng bài, tin nhắn real-time, thông báo, yêu thích/đã lưu/nhóm/khuyến mãi. Hospital Owner, Vet, Admin tiếp tục dùng web
+- **Chưa có trên mobile:** thiết lập thông báo/màu thương hiệu của phòng khám, push notification khi app đóng, đăng nhập Google, bản iOS. Hospital Owner, Vet, Admin tiếp tục dùng web
 
 ---
 
 ## Chưa triển khai (nằm ngoài phạm vi các đợt vừa qua)
 - Xác thực email hoàn chỉnh: nội dung điều khoản sử dụng, mã OTP qua email cho quên mật khẩu, gửi lại email xác thực (đang tạm gác, chưa làm)
-- Mobile: giai đoạn M2 (bảng tin, tin nhắn, thông báo, yêu thích/nhóm/khuyến mãi), push notification, đăng nhập Google, bản iOS, build APK phát hành, và các vai trò Hospital/Vet/Admin trên mobile
+- Mobile: push notification khi app đóng (FCM), đăng nhập Google, bản iOS, build APK/AAB phát hành, và các vai trò Hospital/Vet/Admin trên mobile
 - Gọi thoại/video thật (cần hạ tầng TURN server)
 - Đa ngôn ngữ (toàn app đang hardcode tiếng Việt, chưa có hạ tầng i18n)
 - Đánh giá/nhắn tin cho Shop (schema đã thiết kế đa hình sẵn nhưng tính năng Shop chưa được xây)

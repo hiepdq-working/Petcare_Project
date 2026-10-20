@@ -1,15 +1,15 @@
 import { Alert, RefreshControl, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AppointmentStatus } from "@petcare/types";
-import { appointmentsApi } from "../../../features/appointments/api/appointments.api";
-import { extractErrorMessage } from "../../../shared/api/client";
-import { AppText } from "../../../shared/components/AppText";
-import { Badge, type BadgeTone } from "../../../shared/components/Badge";
-import { Button } from "../../../shared/components/Button";
-import { Card } from "../../../shared/components/Card";
-import { Screen } from "../../../shared/components/Screen";
-import { EmptyState, ErrorBanner, Loading } from "../../../shared/components/States";
-import { formatDateTime } from "../../../shared/utils/format";
+import { appointmentsApi } from "../../features/appointments/api/appointments.api";
+import { extractErrorMessage } from "../../shared/api/client";
+import { AppText } from "../../shared/components/AppText";
+import { Badge, type BadgeTone } from "../../shared/components/Badge";
+import { Button } from "../../shared/components/Button";
+import { Card } from "../../shared/components/Card";
+import { Screen } from "../../shared/components/Screen";
+import { EmptyState, ErrorBanner, Loading } from "../../shared/components/States";
+import { formatDateTime } from "../../shared/utils/format";
 
 const LABELS: Record<AppointmentStatus, string> = {
   PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", IN_PROGRESS: "Đang khám", COMPLETED: "Hoàn thành", CANCELLED: "Đã huỷ",
@@ -34,8 +34,7 @@ export default function AppointmentsScreen() {
   }
 
   return (
-    <Screen topInset refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
-      <AppText variant="display">Lịch hẹn của tôi</AppText>
+    <Screen refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
       {query.isLoading ? <Loading /> : null}
       {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
       {cancelMutation.isError ? <ErrorBanner message={extractErrorMessage(cancelMutation.error)} /> : null}

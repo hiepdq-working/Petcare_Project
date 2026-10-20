@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import type { PetEventDto, PetEventType } from "@petcare/types";
 import { petsApi } from "../../../../features/pets/api/pets.api";
+import { socialApi } from "../../../../features/social/api/social.api";
 import { extractErrorMessage } from "../../../../shared/api/client";
 import { Avatar } from "../../../../shared/components/Avatar";
 import { AppText } from "../../../../shared/components/AppText";
@@ -28,6 +29,9 @@ export default function TimelineScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const petQuery = useQuery({ queryKey: ["pets", id], queryFn: () => petsApi.get(id) });
   const timelineQuery = useQuery({ queryKey: ["pets", id, "timeline"], queryFn: () => petsApi.getTimeline(id) });
+
+  const postsQuery = useQuery({ queryKey: ["posts", "pet", id], queryFn: () => socialApi.listByPet(id) });
+  const photos = (postsQuery.data ?? []).filter((p) => p.media.length > 0);
 
   const stats = useMemo(() => {
     const events = timelineQuery.data ?? [];
@@ -57,6 +61,7 @@ export default function TimelineScreen() {
   function open(event: PetEventDto) {
     if (event.eventType === "MEDICAL" && event.referenceId) router.push(`/record/${event.referenceId}`);
     else if (event.eventType === "VACCINATION") router.push(`/pet/${id}/vaccinations`);
+    else if (event.eventType === "SOCIAL_POST" && event.referenceId) router.push(`/post/${event.referenceId}`);
   }
 
   const pet = petQuery.data;
@@ -75,6 +80,19 @@ export default function TimelineScreen() {
         <Stat label="Lần khám" value={String(stats.checkups)} />
         <Stat label="Mũi tiêm gần nhất" value={stats.lastVaccination} small />
       </View>
+
+      {photos.length > 0 ? (
+        <View style={{ gap: 8 }}>
+          <AppText variant="title">Khoảnh khắc</AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+            {photos.map((post) => (
+              <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)}>
+                <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: 96, height: 96, borderRadius: 14, backgroundColor: DEFAULT_PALETTE[100] }} resizeMode="cover" />
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       {timelineQuery.isLoading ? <Loading /> : null}
       {timelineQuery.isError ? <ErrorBanner message={extractErrorMessage(timelineQuery.error)} /> : null}

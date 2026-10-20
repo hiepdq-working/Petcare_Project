@@ -5,5 +5,5 @@ import { useAuthStore } from "../features/auth/store";
 // right after login/logout, and this hands them to the right side.
 export default function Index() {
   const status = useAuthStore((state) => state.status);
-  return <Redirect href={status === "authenticated" ? "/account" : "/login"} />;
+  return <Redirect href={status === "authenticated" ? "/feed" : "/login"} />;
 }

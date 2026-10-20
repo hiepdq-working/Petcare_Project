@@ -1,10 +1,15 @@
-import { Pressable, RefreshControl, View } from "react-native";
+import { Image, Pressable, RefreshControl, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { appointmentsApi } from "../../../features/appointments/api/appointments.api";
 import { petsApi } from "../../../features/pets/api/pets.api";
 import { useAuthStore } from "../../../features/auth/store";
+import { PromoBanner } from "../../../features/social/components/PromoBanner";
+import { socialApi } from "../../../features/social/api/social.api";
+import { TabHeader } from "../../../shared/components/TabHeader";
+import { PillTabs } from "../../../shared/components/PillTabs";
 import { Avatar } from "../../../shared/components/Avatar";
 import { AppText } from "../../../shared/components/AppText";
 import { Card } from "../../../shared/components/Card";
@@ -17,8 +22,15 @@ import { DEFAULT_PALETTE } from "../../../theme";
 
 export default function AccountScreen() {
   const user = useAuthStore((state) => state.user);
+  const { width } = useWindowDimensions();
+  const tile = Math.floor((width - 32 - 12) / 3);
   const petsQuery = useQuery({ queryKey: ["pets"], queryFn: petsApi.list });
   const appointmentsQuery = useQuery({ queryKey: ["appointments", "mine"], queryFn: appointmentsApi.listMine });
+
+  const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed });
+  const promotionsQuery = useQuery({ queryKey: ["posts", "promotions"], queryFn: socialApi.listPromotions });
+  const [momentsTab, setMomentsTab] = useState<"photo" | "video">("photo");
+  const myPhotos = (feedQuery.data ?? []).filter((p) => p.userId === user?.id && p.media.length > 0);
 
   const nextAppointment = (appointmentsQuery.data ?? [])
     .filter((a) => a.status !== "CANCELLED" && a.status !== "COMPLETED" && new Date(a.dateTime).getTime() > Date.now())
@@ -32,17 +44,15 @@ export default function AccountScreen() {
 
   return (
     <Screen topInset refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <View style={{ flex: 1 }}>
-          <AppText variant="small" tone="muted">
-            {greeting()}, {user?.name}
-          </AppText>
-          <AppText variant="display">Hôm nay bé cưng của bạn thế nào?</AppText>
-        </View>
-        <Pressable onPress={() => router.push("/settings")} hitSlop={10} accessibilityLabel="Cài đặt">
-          <Ionicons name="settings-outline" size={24} color={DEFAULT_PALETTE[700]} />
-        </Pressable>
-      </View>
+      <TabHeader
+        title="Tài khoản"
+        subtitle={`${greeting()}, ${user?.name}`}
+        right={
+          <Pressable onPress={() => router.push("/settings")} hitSlop={10} accessibilityLabel="Cài đặt">
+            <Ionicons name="settings-outline" size={24} color={DEFAULT_PALETTE[700]} />
+          </Pressable>
+        }
+      />
 
       <Pressable onPress={() => router.push("/appointments")}>
         <View style={{ backgroundColor: DEFAULT_PALETTE[700], borderRadius: 20, padding: 20, gap: 4 }}>
@@ -72,9 +82,13 @@ export default function AccountScreen() {
         </View>
       </Pressable>
 
-      <View style={{ flexDirection: "row", gap: 12 }}>
-        <QuickAction icon="medkit-outline" label="Tìm phòng khám" onPress={() => router.push("/discover")} />
+      <PromoBanner promotions={promotionsQuery.data ?? []} />
+
+      <View style={{ flexDirection: "row", gap: 10 }}>
         <QuickAction icon="calendar-outline" label="Lịch hẹn" onPress={() => router.push("/appointments")} />
+        <QuickAction icon="heart-outline" label="Yêu thích" onPress={() => router.push("/favorites")} />
+        <QuickAction icon="bookmark-outline" label="Đã lưu" onPress={() => router.push("/saved")} />
+        <QuickAction icon="people-outline" label="Nhóm" onPress={() => router.push("/groups")} />
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
@@ -110,6 +124,28 @@ export default function AccountScreen() {
           </Pressable>
         );
       })}
+
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
+        <AppText variant="title">Khoảnh khắc đáng yêu</AppText>
+      </View>
+      <PillTabs
+        tabs={[{ value: "photo", label: "Ảnh" }, { value: "video", label: "Video" }]}
+        value={momentsTab}
+        onChange={setMomentsTab}
+      />
+      {momentsTab === "video" ? <EmptyState title="Chưa hỗ trợ video" description="Hiện bạn chỉ có thể chia sẻ ảnh." /> : null}
+      {momentsTab === "photo" && myPhotos.length === 0 ? (
+        <EmptyState title="Chưa có ảnh nào" description="Ảnh bạn đăng ở Bảng tin sẽ hiện ở đây." />
+      ) : null}
+      {momentsTab === "photo" ? (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          {myPhotos.map((post) => (
+            <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)}>
+              <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: tile, height: tile, borderRadius: 12, backgroundColor: DEFAULT_PALETTE[100] }} resizeMode="cover" />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
     </Screen>
   );
 }
@@ -117,7 +153,7 @@ export default function AccountScreen() {
 function QuickAction({ icon, label, onPress }: { icon: React.ComponentProps<typeof Ionicons>["name"]; label: string; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={{ flex: 1 }}>
-      <Card style={{ alignItems: "center", gap: 8, paddingVertical: 18 }}>
+      <Card style={{ alignItems: "center", gap: 8, paddingVertical: 14, paddingHorizontal: 4 }}>
         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: DEFAULT_PALETTE[100], alignItems: "center", justifyContent: "center" }}>
           <Ionicons name={icon} size={22} color={DEFAULT_PALETTE[700]} />
         </View>

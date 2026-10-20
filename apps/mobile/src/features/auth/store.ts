@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { AuthUser } from "@petcare/types";
 import { setAccessToken, setRefreshToken } from "../../shared/api/token-store";
+import { connectSocket, disconnectSocket } from "../../shared/realtime/socket";
 
 interface AuthState {
   user: AuthUser | null;
@@ -18,11 +19,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     setAccessToken(accessToken);
     if (refreshToken) await setRefreshToken(refreshToken);
     set({ user, status: "authenticated" });
+    connectSocket();
   },
   clearSession: async () => {
     setAccessToken(null);
     await setRefreshToken(null);
     set({ user: null, status: "guest" });
+    disconnectSocket();
   },
   updateUser: (user) => set({ user }),
 }));

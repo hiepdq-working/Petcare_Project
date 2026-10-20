@@ -1,8 +1,11 @@
 import { Stack } from "expo-router";
+import { RealtimeSync } from "../../shared/realtime/RealtimeSync";
 import { fonts, DEFAULT_PALETTE } from "../../theme";
 
 export default function MainLayout() {
   return (
+    <>
+    <RealtimeSync />
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: "#fff" },
@@ -22,6 +25,16 @@ export default function MainLayout() {
       <Stack.Screen name="pet/[id]/vaccinations" options={{ title: "Sổ tiêm phòng" }} />
       <Stack.Screen name="record/[id]" options={{ title: "Hồ sơ bệnh án" }} />
       <Stack.Screen name="settings" options={{ title: "Cài đặt" }} />
+      <Stack.Screen name="appointments" options={{ title: "Lịch hẹn của tôi" }} />
+      <Stack.Screen name="post/new" options={{ title: "Bài viết mới" }} />
+      <Stack.Screen name="post/[id]" options={{ title: "Bài viết" }} />
+      <Stack.Screen name="saved" options={{ title: "Bài viết đã lưu" }} />
+      <Stack.Screen name="favorites" options={{ title: "Phòng khám yêu thích" }} />
+      <Stack.Screen name="groups/index" options={{ title: "Nhóm" }} />
+      <Stack.Screen name="groups/[id]" options={{ title: "Nhóm" }} />
+      <Stack.Screen name="notifications" options={{ title: "Thông báo" }} />
+      <Stack.Screen name="chat/[id]" options={{ title: "Tin nhắn" }} />
     </Stack>
+    </>
   );
 }
