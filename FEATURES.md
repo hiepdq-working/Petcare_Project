@@ -28,6 +28,8 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 ## 6. Quản lý bác sĩ (Vet Management)
 - Hospital Owner mời bác sĩ (email đặt mật khẩu lần đầu, giống mô hình mời phòng khám)
 - Bác sĩ có tài khoản riêng (vai trò VET), đăng nhập độc lập, phạm vi giới hạn trong phòng khám của mình
+- **Điều dưỡng / Lễ tân** (model `HospitalStaff`, vai trò `HOSPITAL_STAFF`): mời qua email theo cùng mô hình với bác sĩ, tạm ngưng/kích hoạt lại, đổi vị trí
+- Trang "Đội ngũ" của Hospital Owner gộp Bác sĩ + Điều dưỡng + Lễ tân, có tab lọc theo vai trò
 
 ## 7. Quản lý dịch vụ (Service Management)
 - Hospital Owner tạo/sửa/xoá dịch vụ (tên, mô tả, giá, thời lượng)
@@ -45,6 +47,8 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Lưu lịch sử phiên bản đầy đủ (mỗi lần sửa tạo bản ghi mới, không ghi đè) — triệu chứng, nguyên nhân, chẩn đoán, điều trị, kết luận, ghi chú
 - Đính kèm file (ảnh/PDF) — kết quả xét nghiệm, phim X-quang...
 - Pet Owner chỉ xem được hồ sơ của thú cưng mình
+- **Trạng thái hồ sơ**: Đang điều trị / Tái khám / Hoàn tất (mặc định Đang điều trị) — Vet của phòng khám đổi được ngay trên trang chi tiết
+- Hospital Owner có trang "Hồ sơ bệnh án" xem toàn bộ hồ sơ của phòng khám: thẻ thống kê theo trạng thái, tab lọc, bấm vào để xem chi tiết (chỉ xem, không sửa)
 
 ## 10. Dòng thời gian thú cưng (Pet Timeline)
 - Đọc trực tiếp từ bảng `PetEvent` — trục thời gian trung tâm được thiết kế từ đầu dự án nhưng đến bước này mới thật sự có dữ liệu
@@ -70,6 +74,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Pet Owner nhắn tin cho phòng khám từ trang chi tiết phòng khám; Hospital trả lời tự do trong cuộc trò chuyện đã có
 - Mỗi tin nhắn gửi kèm tối đa 1 ảnh
 - Gửi tin nhắn tự động tạo thông báo cho người nhận
+- Phòng khám bật/tắt thật được thông báo "lịch hẹn mới/huỷ lịch" và "tin nhắn mới" (lưu ở hồ sơ phòng khám). Chỉ chặn thông báo phía phòng khám/bác sĩ — thông báo của chủ nuôi về lịch hẹn của chính họ không bao giờ bị chặn
 
 ## 15. Real-time (WebSocket)
 - Thông báo và tin nhắn đẩy tức thời qua Socket.IO thay vì polling định kỳ — xác thực socket bằng cùng JWT access token đang dùng cho REST API
@@ -83,11 +88,39 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - `docker-compose.yml` khởi chạy đầy đủ Postgres + API (NestJS) + Web (React, build tĩnh qua Nginx) chỉ với 1 lệnh
 - Script seed dữ liệu mẫu cho cả 4 vai trò — xem `docs/LOGIN_GUIDE.md`
 
+## 18. Gửi email (SMTP)
+- Dùng SMTP thường qua nodemailer (đã bỏ Resend) — chạy được với Gmail/Outlook cá nhân bằng App Password, cấu hình `SMTP_HOST/SMTP_USER/SMTP_PASS` trong `.env` (xem `.env.example`)
+- Chưa cấu hình SMTP thì ở môi trường dev, nội dung email chỉ được log ra console của container API (không gửi thật)
+
+## 19. Quản trị hệ thống (Admin CRUD)
+- Quản lý phòng khám: xem, tạo, sửa, vô hiệu hoá/kích hoạt lại (xoá mềm bằng trạng thái `INACTIVE` để không mất lịch sử lịch hẹn/hồ sơ)
+- Quản lý người dùng: xem, tạo (mời qua email đặt mật khẩu), sửa vai trò/trạng thái, vô hiệu hoá (xoá mềm; không tự vô hiệu hoá chính mình)
+- Kiểm duyệt bảng tin: xem mọi bài viết và xoá bài vi phạm
+- Duyệt giấy phép kinh doanh của phòng khám đăng ký đối tác (xem mục 3)
+
+## 20. Giao diện PetConnect & trải nghiệm Pet Owner
+- Thiết kế lại toàn bộ app theo bộ mockup PetConnect (giữ tên thương hiệu "PetCare"): bảng màu xanh mint/teal, font Fraunces + Inter, bộ component dùng chung (`Card`, `Badge`, `StatCard`, `PillTabs`, `EmptyState`...)
+- Hai kiểu khung giao diện theo vai trò: Pet Owner dùng thanh điều hướng dưới + cột phải; Hospital Owner/Vet/Admin dùng sidebar làm việc
+- Đăng nhập dạng chia đôi (banner gradient + hoạ tiết chân thú | form)
+- Header kiểu Facebook cho Pet Owner: icon trang chủ, tìm phòng khám, icon bản đồ, tin nhắn, thông báo, menu avatar
+- Điều hướng Pet Owner: Trang chủ = bảng tin, Khám phá = tìm phòng khám, Tin nhắn, Tài khoản = trang cá nhân (hero + thú cưng + "Khoảnh khắc đáng yêu" Ảnh/Video)
+- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị bài mới của các phòng khám (mục chưa có tính năng như "Phòng khám yêu thích/Bài viết đã lưu/Nhóm" gắn nhãn "Sắp ra mắt")
+- Trang chi tiết phòng khám chia tab Dịch vụ / Đặt lịch / Đánh giá, đặt lịch ngay trong tab
+- Đăng ký đối tác hiển thị thẻ loại hình "Phòng khám thú y"
+- Lịch khám của phòng khám có thanh chọn ngày (◀ ngày ▶)
+- Dòng thời gian thú cưng "Digital Life": thẻ thống kê, dải ảnh, timeline dọc nhóm theo tháng
+
+## 21. Màu thương hiệu theo từng phòng khám
+- Hospital Owner chọn 1 màu thương hiệu trong "Chỉnh sửa hồ sơ phòng khám" (có nút khôi phục màu mặc định)
+- Thang màu `brand` của Tailwind chạy bằng CSS variables; một màu được sinh thành đủ 10 sắc độ (giữ nguyên độ sáng từng bậc để chữ vẫn dễ đọc)
+- Áp dụng cho: toàn bộ khu làm việc của Hospital Owner, khu làm việc của Vet thuộc phòng khám đó, và trang công khai của phòng khám. Các trang khác (bảng tin, Admin, đăng nhập...) giữ màu mặc định
+
 ---
 
 ## Chưa triển khai (nằm ngoài phạm vi các đợt vừa qua)
+- Xác thực email hoàn chỉnh: nội dung điều khoản sử dụng, mã OTP qua email cho quên mật khẩu, gửi lại email xác thực (đang tạm gác, chưa làm)
+- Bản mobile (`apps/mobile` hiện chỉ là thư mục trống, đang lên kế hoạch)
 - Gọi thoại/video thật (cần hạ tầng TURN server)
 - Đa ngôn ngữ (toàn app đang hardcode tiếng Việt, chưa có hạ tầng i18n)
-- Ứng dụng di động (`apps/mobile` mới chỉ là thư mục trống)
 - Đánh giá/nhắn tin cho Shop (schema đã thiết kế đa hình sẵn nhưng tính năng Shop chưa được xây)
-- Vai trò `HOSPITAL_STAFF` (có trong enum nhưng chưa có luồng nghiệp vụ riêng)
+- Đăng nhập riêng cho vai trò Điều dưỡng/Lễ tân đã có tài khoản, nhưng chưa có màn hình làm việc riêng cho họ (hiện chỉ thấy khung trống "đang được xây dựng")
