@@ -52,6 +52,20 @@ pnpm dev:api    # http://localhost:4000
 pnpm dev:web    # http://localhost:5173
 ```
 
+## Ứng dụng Android (Expo)
+
+Yêu cầu: Docker stack đang chạy (API ở `localhost:4000`), Android SDK + một emulator (hoặc điện thoại Android cài Expo Go).
+
+```bash
+pnpm install
+pnpm --filter ./packages/* build                 # types/constants cho mobile import
+adb reverse tcp:4000 tcp:4000                    # emulator gọi được API và tải được ảnh upload
+pnpm --filter @petcare/mobile start --android    # Expo tự cài Expo Go lên emulator
+```
+
+- Điện thoại thật: đặt `EXPO_PUBLIC_API_URL=http://<IP-LAN-máy-bạn>:4000/api` và `API_PUBLIC_URL` của API cùng IP đó (ảnh upload trả về URL tuyệt đối).
+- Đăng nhập thử bằng tài khoản Pet Owner mẫu trong [docs/LOGIN_GUIDE.md](docs/LOGIN_GUIDE.md).
+
 ## Tài liệu
 
 - [FEATURES.md](FEATURES.md) — danh sách chi tiết mọi tính năng, theo đúng thứ tự đã triển khai
