@@ -41,6 +41,8 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Quy trình trạng thái: Chờ xác nhận → Đã xác nhận → Đang khám → Hoàn thành (hoặc Đã huỷ ở bất kỳ bước nào trước Hoàn thành)
 - Chỉ **Hospital** được xác nhận/từ chối/đổi trạng thái; **Vet** chỉ nhận thông báo, không có quyền quyết định
 - Pet Owner có thể tự huỷ lịch khi đang ở trạng thái Chờ xác nhận/Đã xác nhận
+- **Nhắc lịch tự động**: lịch ở trạng thái Đã xác nhận sẽ được nhắc **1 lần** khi còn tối đa 24 giờ (thông báo trong app, kèm giờ theo múi giờ Việt Nam) cho chủ nuôi và bác sĩ được chỉ định. Máy chủ quét mỗi 5 phút; lịch Chờ xác nhận/đã huỷ hoặc còn xa hơn 24 giờ không được nhắc, và chạy nhiều bản API cũng không gửi trùng. Nhắc lịch không bị chặn bởi công tắc "lịch hẹn mới" của phòng khám
+- Giờ đặt lịch được lưu đúng múi giờ người dùng chọn (trước đây giờ nhập trên form bị lệch 7 tiếng; các lịch tạo trước bản sửa vẫn giữ giờ cũ)
 
 ## 9. Hồ sơ bệnh án (Medical Record)
 - Chỉ Vet thuộc phòng khám **đã từng khám** cho thú cưng đó (có lịch hẹn Đã xác nhận/Đang khám/Hoàn thành) mới được lập hồ sơ — chặn hồ sơ bệnh án giả mạo
@@ -74,6 +76,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Pet Owner nhắn tin cho phòng khám từ trang chi tiết phòng khám; Hospital trả lời tự do trong cuộc trò chuyện đã có
 - Mỗi tin nhắn gửi kèm tối đa 1 ảnh
 - Gửi tin nhắn tự động tạo thông báo cho người nhận
+- Bấm vào thông báo trên chuông sẽ đánh dấu đã đọc và chuyển tới đúng trang (lịch hẹn theo vai trò, cuộc trò chuyện, bài viết)
 - Phòng khám bật/tắt thật được thông báo "lịch hẹn mới/huỷ lịch" và "tin nhắn mới" (lưu ở hồ sơ phòng khám). Chỉ chặn thông báo phía phòng khám/bác sĩ — thông báo của chủ nuôi về lịch hẹn của chính họ không bao giờ bị chặn
 
 ## 15. Real-time (WebSocket)

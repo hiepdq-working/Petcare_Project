@@ -54,6 +54,31 @@ export class AppointmentRepository {
     });
   }
 
+  // Confirmed appointments starting within `horizonMs` that haven't had
+  // their reminder yet — see AppointmentReminderService.
+  findDueForReminder(now: Date, horizonMs: number): Promise<AppointmentWithRelations[]> {
+    return this.prisma.appointment.findMany({
+      where: {
+        status: "CONFIRMED",
+        reminderSentAt: null,
+        dateTime: { gt: now, lte: new Date(now.getTime() + horizonMs) },
+      },
+      include,
+      orderBy: { dateTime: "asc" },
+    });
+  }
+
+  // Atomic "claim": only the caller whose update actually flips
+  // reminderSentAt from null gets `true`, so concurrent sweeps (e.g. two API
+  // instances) can never both send the same reminder.
+  async claimReminder(id: string, now: Date): Promise<boolean> {
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, reminderSentAt: null },
+      data: { reminderSentAt: now },
+    });
+    return result.count === 1;
+  }
+
   async recordHistory(appointmentId: string, status: AppointmentStatus, changedBy: string, notes?: string): Promise<void> {
     await this.prisma.appointmentHistory.create({ data: { appointmentId, status, changedBy, notes } });
   }

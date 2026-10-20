@@ -425,10 +425,14 @@ model Appointment {
   dateTime   DateTime          @map("date_time")
   notes      String?           @db.Text
   status     AppointmentStatus @default(PENDING)
+  // Set once the 24h-before reminder has been sent (see
+  // AppointmentReminderService) so it is never sent twice.
+  reminderSentAt DateTime?     @map("reminder_sent_at")
   createdAt  DateTime          @default(now()) @map("created_at")
 
   history AppointmentHistory[]
 
+  @@index([status, dateTime])
   @@index([petId])
   @@index([userId])
   @@index([vetId, dateTime])

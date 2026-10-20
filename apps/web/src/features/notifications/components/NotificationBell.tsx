@@ -1,7 +1,27 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { UserRole, type NotificationDto } from "@petcare/types";
 import { notificationsApi } from "../api/notifications.api";
+import { useAuthStore } from "../../auth/store";
 import { getSocket } from "../../../shared/realtime/socket";
+
+// Where a notification leads, based on its type and who is reading it.
+function notificationHref(notification: NotificationDto, role: UserRole | undefined): string | null {
+  switch (notification.type) {
+    case "APPOINTMENT":
+      if (role === UserRole.HOSPITAL_OWNER) return "/hospital/appointments";
+      if (role === UserRole.VET) return "/vet/profile";
+      return "/appointments";
+    case "MESSAGE":
+      return notification.refId ? `/messages/${notification.refId}` : "/messages";
+    case "PROMOTION":
+    case "SOCIAL":
+      return notification.refId ? `/posts/${notification.refId}` : null;
+    default:
+      return null;
+  }
+}
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -20,6 +40,8 @@ function timeAgo(iso: string): string {
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const role = useAuthStore((state) => state.user?.role);
 
   const unreadQuery = useQuery({
     queryKey: ["notifications", "unread-count"],
@@ -77,7 +99,14 @@ export function NotificationBell() {
             {listQuery.data?.map((notification) => (
               <button
                 key={notification.id}
-                onClick={() => !notification.isRead && markReadMutation.mutate(notification.id)}
+                onClick={() => {
+                  if (!notification.isRead) markReadMutation.mutate(notification.id);
+                  const href = notificationHref(notification, role);
+                  if (href) {
+                    setOpen(false);
+                    navigate(href);
+                  }
+                }}
                 className={`block w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-brand-50 ${
                   notification.isRead ? "text-brand-700/70" : "text-brand-900"
                 }`}

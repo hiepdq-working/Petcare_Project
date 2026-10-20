@@ -252,7 +252,9 @@ function InlineBookingForm({ hospitalId, initialPetId }: { hospitalId: string; i
         hospitalId,
         serviceId,
         vetId: vetId || undefined,
-        dateTime,
+        // datetime-local has no timezone; convert to a real instant here or
+        // the server would read it as UTC and shift the time by 7 hours.
+        dateTime: new Date(dateTime).toISOString(),
         notes: notes || undefined,
       }),
     onSuccess: () => navigate("/appointments"),
