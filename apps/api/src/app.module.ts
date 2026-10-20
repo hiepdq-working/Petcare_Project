@@ -19,6 +19,7 @@ import { MedicalRecordModule } from "./modules/medical-records/medical-record.mo
 import { VaccinationModule } from "./modules/vaccinations/vaccination.module";
 import { PostModule } from "./modules/posts/post.module";
 import { FavoriteModule } from "./modules/favorites/favorite.module";
+import { GroupModule } from "./modules/groups/group.module";
 import { ReviewModule } from "./modules/reviews/review.module";
 import { ChatModule } from "./modules/chat/chat.module";
 
@@ -44,6 +45,7 @@ import { ChatModule } from "./modules/chat/chat.module";
     VaccinationModule,
     PostModule,
     FavoriteModule,
+    GroupModule,
     ReviewModule,
     ChatModule,
   ],

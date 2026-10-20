@@ -109,7 +109,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Đăng nhập dạng chia đôi (banner gradient + hoạ tiết chân thú | form)
 - Header kiểu Facebook cho Pet Owner: icon trang chủ, tìm phòng khám, icon bản đồ, tin nhắn, thông báo, menu avatar
 - Điều hướng Pet Owner: Trang chủ = bảng tin, Khám phá = tìm phòng khám, Tin nhắn, Tài khoản = trang cá nhân (hero + thú cưng + "Khoảnh khắc đáng yêu" Ảnh/Video)
-- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị khuyến mãi đang diễn ra, bài mới của các phòng khám và lối tắt tới "Phòng khám yêu thích" / "Bài viết đã lưu" (kèm số lượng). Mục chưa có tính năng (hiện còn "Nhóm") gắn nhãn "Sắp ra mắt"
+- Bảng tin có hàng thú cưng của chính mình để lọc bài theo từng bé; cột phải hiển thị khuyến mãi đang diễn ra, bài mới của các phòng khám và lối tắt tới "Phòng khám yêu thích" / "Bài viết đã lưu" / "Nhóm" (kèm số lượng)
 - Trang chi tiết phòng khám chia tab Dịch vụ / Đặt lịch / Đánh giá, đặt lịch ngay trong tab
 - Đăng ký đối tác hiển thị thẻ loại hình "Phòng khám thú y"
 - Lịch khám của phòng khám có thanh chọn ngày (◀ ngày ▶)
@@ -130,6 +130,13 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Trong ô đăng bài, Hospital Owner tick "Đăng khuyến mãi" và nhập tiêu đề (bắt buộc), mức giảm (vd "Giảm 20%"), ngày bắt đầu (không bắt buộc) và ngày kết thúc (bắt buộc, phải ở tương lai). Khuyến mãi vẫn là một bài đăng bình thường nên có thích/bình luận/lưu và Admin kiểm duyệt/xoá như mọi bài viết; Pet Owner không đăng được khuyến mãi
 - Banner "Khuyến mãi từ phòng khám" ở trang Tài khoản và mục "Khuyến mãi" ở cột phải chỉ hiện khuyến mãi **đang còn hiệu lực** (đã bắt đầu, chưa kết thúc), ưu tiên phòng khám đã yêu thích rồi đến khuyến mãi sắp hết hạn; hết hạn tự ẩn, không có khuyến mãi thật thì không hiện gì
 - Khi phòng khám đăng khuyến mãi, những người đã yêu thích phòng khám đó nhận thông báo; bấm vào thông báo mở thẳng bài khuyến mãi
+
+## 24. Nhóm cộng đồng (Groups)
+- Pet Owner tạo nhóm công khai (tên, mô tả, ảnh bìa); người tạo tự động là thành viên và là chủ nhóm
+- Trang "Nhóm" có tab "Nhóm của tôi" và "Khám phá"; ai cũng tham gia/rời nhóm được (chủ nhóm không rời được nhóm của mình)
+- Chỉ thành viên mới xem và đăng bài trong nhóm (đăng bằng ô chụp ảnh camera như bảng tin); Hospital Owner không đăng bài vào nhóm
+- Bài trong nhóm **không** xuất hiện ở bảng tin chung, chỉ ở trang nhóm; trên bài có nhãn tên nhóm bấm được
+- Chủ nhóm xoá được mọi bài trong nhóm, thành viên khác chỉ xoá bài của chính mình. Chưa có duyệt thành viên, nhóm riêng tư hay xoá nhóm
 
 ---
 

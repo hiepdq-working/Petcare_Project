@@ -18,6 +18,7 @@ export const createPostSchema = z
     content: z.preprocess(emptyToUndefined, z.string().trim().max(2000).optional()),
     petId: z.preprocess(emptyToUndefined, z.string().uuid("Thú cưng không hợp lệ").optional()),
     vetId: z.preprocess(emptyToUndefined, z.string().uuid("Bác sĩ không hợp lệ").optional()),
+    groupId: z.preprocess(emptyToUndefined, z.string().uuid("Nhóm không hợp lệ").optional()),
     media: z.array(postMediaSchema).max(MAX_MEDIA_PER_POST).optional(),
     kind: z.enum(["NORMAL", "PROMOTION"]).default("NORMAL"),
     promoTitle: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),

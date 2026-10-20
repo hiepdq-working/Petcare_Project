@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Heart, Bookmark, Users } from "lucide-react";
 import { socialApi } from "../../features/social/api/social.api";
 import { PromoCard } from "../../features/social/components/PromoBanner";
+import { groupsApi } from "../../features/groups/api/groups.api";
 import { favoritesApi } from "../../features/favorites/api/favorites.api";
 import { Card } from "../../shared/components/Card";
 import { LoadingState } from "../../shared/components/LoadingState";
 
-const COMING_SOON = [{ icon: Users, label: "Nhóm" }];
 
 export function RightRail() {
   // Reuses the same feed data FeedPage shows (shared query cache) — filtered
@@ -18,11 +18,13 @@ export function RightRail() {
   const promotionsQuery = useQuery({ queryKey: ["posts", "promotions"], queryFn: socialApi.listPromotions });
   const promotions = (promotionsQuery.data ?? []).slice(0, 2);
   const favoritesQuery = useQuery({ queryKey: ["favorites", "hospitals"], queryFn: favoritesApi.listHospitals });
+  const groupsQuery = useQuery({ queryKey: ["groups", "mine"], queryFn: () => groupsApi.list(true) });
   const savedQuery = useQuery({ queryKey: ["posts", "saved"], queryFn: socialApi.listSaved });
 
   const shortcuts = [
     { to: "/favorites", icon: Heart, label: "Phòng khám yêu thích", count: favoritesQuery.data?.length },
     { to: "/saved", icon: Bookmark, label: "Bài viết đã lưu", count: savedQuery.data?.length },
+    { to: "/groups", icon: Users, label: "Nhóm", count: groupsQuery.data?.length },
   ];
 
   return (
@@ -75,17 +77,6 @@ export function RightRail() {
               </span>
               {count ? <span className="text-xs font-semibold text-brand-500">{count}</span> : null}
             </Link>
-          ))}
-          {COMING_SOON.map(({ icon: Icon, label }) => (
-            <span
-              key={label}
-              className="flex cursor-not-allowed items-center justify-between rounded-xl px-3 py-2.5 text-sm text-brand-700/50"
-            >
-              <span className="flex items-center gap-2">
-                <Icon size={16} /> {label}
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-400">Sắp ra mắt</span>
-            </span>
           ))}
         </Card>
       </div>

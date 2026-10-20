@@ -22,6 +22,8 @@ export function toPostDto(post: PostWithRelations): PostDto {
     commentCount: post._count.comments,
     likedByMe: post.likes.length > 0,
     savedByMe: post.savedBy.length > 0,
+    groupId: post.groupId,
+    groupName: post.group?.name ?? null,
     kind: post.kind,
     promoTitle: post.promoTitle,
     discountText: post.discountText,

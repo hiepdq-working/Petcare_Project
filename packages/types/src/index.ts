@@ -7,6 +7,7 @@ export * from "./hospital";
 export * from "./vet";
 export * from "./hospital-staff";
 export * from "./favorite";
+export * from "./group";
 export * from "./service";
 export * from "./appointment";
 export * from "./notification";

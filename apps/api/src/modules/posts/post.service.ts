@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { UserRole, type PostDetailDto, type PostDto } from "@petcare/types";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { FavoriteRepository } from "../favorites/favorite.repository";
+import { GroupRepository } from "../groups/group.repository";
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { NotificationService } from "../notifications/notification.service";
 import { PetEventService } from "../pet-events/pet-event.service";
@@ -28,11 +29,25 @@ export class PostService {
     private readonly petEventService: PetEventService,
     private readonly favoriteRepository: FavoriteRepository,
     private readonly notificationService: NotificationService,
+    private readonly groupRepository: GroupRepository,
   ) {}
 
   async create(userId: string, role: UserRole, input: CreatePostInput): Promise<PostDto> {
     const media = input.media ?? [];
     let hospitalId: string | undefined;
+
+    if (input.groupId) {
+      if (role !== UserRole.PET_OWNER) {
+        throw new ForbiddenError("Chỉ chủ nuôi mới có thể đăng bài trong nhóm");
+      }
+      const group = await this.groupRepository.findByIdRaw(input.groupId);
+      if (!group) {
+        throw new NotFoundError("Không tìm thấy nhóm");
+      }
+      if (!(await this.groupRepository.isMember(input.groupId, userId))) {
+        throw new ForbiddenError("Bạn cần tham gia nhóm trước khi đăng bài");
+      }
+    }
 
     if (input.kind === "PROMOTION" && role !== UserRole.HOSPITAL_OWNER) {
       throw new ForbiddenError("Chỉ phòng khám mới có thể đăng khuyến mãi");
@@ -78,6 +93,7 @@ export class PostService {
         petId: input.petId,
         hospitalId,
         vetId: input.vetId,
+        groupId: input.groupId,
         content: input.content,
         kind: input.kind,
         promoTitle: input.promoTitle,
@@ -143,6 +159,17 @@ export class PostService {
     return posts.map(toPostDto);
   }
 
+  async listByGroup(groupId: string, userId: string): Promise<PostDto[]> {
+    if (!(await this.groupRepository.findByIdRaw(groupId))) {
+      throw new NotFoundError("Không tìm thấy nhóm");
+    }
+    if (!(await this.groupRepository.isMember(groupId, userId))) {
+      throw new ForbiddenError("Bạn cần tham gia nhóm để xem bài viết");
+    }
+    const posts = await this.repository.findManyByGroup(groupId, userId);
+    return posts.map(toPostDto);
+  }
+
   async listByPet(petId: string, userId: string): Promise<PostDto[]> {
     const posts = await this.repository.findManyByPet(petId, userId);
     return posts.map(toPostDto);
@@ -162,7 +189,14 @@ export class PostService {
     if (!post) {
       throw new NotFoundError("Không tìm thấy bài viết");
     }
-    if (post.userId !== userId) {
+    // The author may delete their own post; a group's owner may also remove
+    // any post inside that group.
+    let canDelete = post.userId === userId;
+    if (!canDelete && post.groupId) {
+      const group = await this.groupRepository.findByIdRaw(post.groupId);
+      canDelete = group?.ownerId === userId;
+    }
+    if (!canDelete) {
       throw new ForbiddenError("Bạn không có quyền xoá bài viết này");
     }
     await this.repository.delete(id);

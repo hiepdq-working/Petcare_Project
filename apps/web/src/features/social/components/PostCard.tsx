@@ -65,6 +65,14 @@ export function PostCard({
                 <span className="text-brand-700/80">🩺 {post.vetName}</span>
               </>
             ) : null}
+            {post.groupName ? (
+              <>
+                {" · "}
+                <Link to={`/groups/${post.groupId}`} className="text-brand-700/80 hover:underline">
+                  👥 {post.groupName}
+                </Link>
+              </>
+            ) : null}
           </p>
         </div>
         {isOwn && onDelete ? (

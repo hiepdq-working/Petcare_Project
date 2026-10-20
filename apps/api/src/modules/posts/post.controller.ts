@@ -36,6 +36,13 @@ export class PostController {
     return ok(posts);
   }
 
+  @Get("group/:groupId")
+  @Roles(UserRole.PET_OWNER)
+  async listByGroup(@CurrentUser() auth: RequestAuth, @Param("groupId") groupId: string) {
+    const posts = await this.service.listByGroup(groupId, auth.userId);
+    return ok(posts);
+  }
+
   @Get("pet/:petId")
   async listByPet(@CurrentUser() auth: RequestAuth, @Param("petId") petId: string) {
     const posts = await this.service.listByPet(petId, auth.userId);

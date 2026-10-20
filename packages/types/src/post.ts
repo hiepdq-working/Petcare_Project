@@ -48,6 +48,8 @@ export interface PostDto {
   commentCount: number;
   likedByMe: boolean;
   savedByMe: boolean;
+  groupId: string | null;
+  groupName: string | null;
   kind: PostKind;
   // Only set when kind === PROMOTION.
   promoTitle: string | null;
@@ -66,6 +68,7 @@ export interface CreatePostRequest {
   content?: string;
   petId?: string;
   vetId?: string;
+  groupId?: string;
   media?: { mediaUrl: string; mediaType: string }[];
   // Hospital Owner only.
   kind?: PostKind;

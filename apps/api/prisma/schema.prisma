@@ -55,6 +55,8 @@ model User {
   likes                PostLike[]
   savedPosts           SavedPost[]
   favoriteHospitals    FavoriteHospital[]
+  ownedGroups          Group[]                @relation("GroupOwner")
+  groupMemberships     GroupMember[]
   comments             PostComment[]
   reviews              Review[]
   sentMessages         Message[]              @relation("Sender")
@@ -478,6 +480,10 @@ model Post {
   content    String?       @db.Text
   // PROMOTION is only creatable by a Hospital Owner (see PostService) and
   // shows up as a banner for Pet Owners while it is active.
+  // Set when the post belongs to a group; such posts stay out of the global
+  // feed (see PostRepository.findMany).
+  groupId    String?       @map("group_id") @db.Uuid
+  group      Group?        @relation(fields: [groupId], references: [id], onDelete: Cascade)
   kind         PostKind  @default(NORMAL)
   promoTitle   String?   @map("promo_title") @db.VarChar(120)
   discountText String?   @map("discount_text") @db.VarChar(60)
@@ -494,6 +500,7 @@ model Post {
   @@index([petId])
   @@index([hospitalId])
   @@index([kind, promoEndsAt])
+  @@index([groupId, createdAt])
   @@map("posts")
 }
 
@@ -505,6 +512,36 @@ model PostMedia {
   mediaType String @map("media_type") @db.VarChar(10)
 
   @@map("post_media")
+}
+
+// Public community group ("Nhóm"): anyone can join, members can post.
+model Group {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  cover       String?  @db.VarChar(500)
+  ownerId     String   @map("owner_id") @db.Uuid
+  owner       User     @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  members GroupMember[]
+  posts   Post[]
+
+  @@index([createdAt])
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupId  String   @map("group_id") @db.Uuid
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String   @map("user_id") @db.Uuid
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("group_members")
 }
 
 // A Pet Owner's private bookmark of a post ("Bài viết đã lưu").

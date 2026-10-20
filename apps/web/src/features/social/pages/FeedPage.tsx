@@ -323,7 +323,7 @@ function HospitalPostComposer({ onPosted }: { onPosted: () => void }) {
 // Locket-style: the only way a Pet Owner gets a photo into a post is a
 // live camera capture, never a file picker — see CameraCapture. Exactly 1
 // photo per post (enforced server-side too, see PostService).
-function PetOwnerPostComposer({ onPosted }: { onPosted: () => void }) {
+export function PetOwnerPostComposer({ onPosted, groupId }: { onPosted: () => void; groupId?: string }) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [captured, setCaptured] = useState<{ blob: Blob; previewUrl: string } | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
@@ -339,6 +339,7 @@ function PetOwnerPostComposer({ onPosted }: { onPosted: () => void }) {
       socialApi.create({
         content: content || undefined,
         petId: petId || undefined,
+        groupId,
         media: uploadedUrl ? [{ mediaUrl: uploadedUrl, mediaType: "image" }] : [],
       }),
     onSuccess: () => {

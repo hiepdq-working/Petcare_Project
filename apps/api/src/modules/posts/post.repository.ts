@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import type { Hospital, Pet, Post, PostComment, PostKind, PostMedia, Prisma, User, Veterinarian } from "@prisma/client";
+import type { Group, Hospital, Pet, Post, PostComment, PostKind, PostMedia, Prisma, User, Veterinarian } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 
 export type PostWithRelations = Post & {
   user: User;
   pet: Pet | null;
   hospital: Hospital | null;
+  group: Group | null;
   vet: (Veterinarian & { user: User }) | null;
   media: PostMedia[];
   // Filtered to just the requester's own like (if any) — see `include()`.
@@ -29,6 +30,7 @@ export class PostRepository {
       user: true,
       pet: true,
       hospital: true,
+      group: true,
       vet: { include: { user: true } },
       media: true,
       likes: { where: { userId: requesterId }, select: { id: true } },
@@ -44,6 +46,7 @@ export class PostRepository {
       hospitalId?: string;
       vetId?: string;
       content?: string;
+      groupId?: string;
       kind?: PostKind;
       promoTitle?: string;
       discountText?: string;
@@ -59,6 +62,7 @@ export class PostRepository {
         petId: data.petId,
         hospitalId: data.hospitalId,
         vetId: data.vetId,
+        groupId: data.groupId,
         content: data.content,
         kind: data.kind,
         promoTitle: data.promoTitle,
@@ -86,7 +90,21 @@ export class PostRepository {
   }
 
   findMany(requesterId: string, take = 30): Promise<PostWithRelations[]> {
-    return this.prisma.post.findMany({ include: this.include(requesterId), orderBy: { createdAt: "desc" }, take });
+    // Group posts stay inside their group — never in the global feed.
+    return this.prisma.post.findMany({
+      where: { groupId: null },
+      include: this.include(requesterId),
+      orderBy: { createdAt: "desc" },
+      take,
+    });
+  }
+
+  findManyByGroup(groupId: string, requesterId: string): Promise<PostWithRelations[]> {
+    return this.prisma.post.findMany({
+      where: { groupId },
+      include: this.include(requesterId),
+      orderBy: { createdAt: "desc" },
+    });
   }
 
   // Promotions that are live right now: started (or no start date) and not
