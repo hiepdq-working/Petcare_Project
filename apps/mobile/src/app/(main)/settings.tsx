@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, View } from "react-native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../../features/auth/api/auth.api";
 import { useAuthStore } from "../../features/auth/store";
 import { extractErrorMessage } from "../../shared/api/client";
@@ -11,10 +11,10 @@ import { ImagePickerField } from "../../shared/components/ImagePickerField";
 import { Screen } from "../../shared/components/Screen";
 import { ErrorBanner } from "../../shared/components/States";
 import { TextField } from "../../shared/components/TextField";
+import { clearQueryCache } from "../../shared/query/client";
 
 export default function SettingsScreen() {
   const user = useAuthStore((state) => state.user)!;
-  const queryClient = useQueryClient();
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [avatar, setAvatar] = useState<string | null>(user.avatar);
@@ -41,7 +41,7 @@ export default function SettingsScreen() {
   const logoutMutation = useMutation({
     mutationFn: () => authApi.logout().catch(() => undefined),
     onSettled: async () => {
-      queryClient.clear();
+      await clearQueryCache();
       await useAuthStore.getState().clearSession();
     },
   });

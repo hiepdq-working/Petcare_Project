@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Linking, Pressable, View } from "react-native";
+import { Alert, Linking, Pressable, RefreshControl, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,16 +36,32 @@ const TABS: { value: Tab; label: string }[] = [
 export default function HospitalDetailScreen() {
   const { id, petId, tab: initialTab } = useLocalSearchParams<{ id: string; petId?: string; tab?: Tab }>();
   const [tab, setTab] = useState<Tab>(initialTab && TABS.some((t) => t.value === initialTab) ? initialTab : "services");
+  const queryClient = useQueryClient();
   const hospitalQuery = useQuery({ queryKey: ["hospitals", id], queryFn: () => hospitalApi.getPublicById(id) });
 
   if (hospitalQuery.isLoading) return <Screen><Loading /></Screen>;
-  if (hospitalQuery.isError || !hospitalQuery.data) return <Screen><ErrorBanner message={extractErrorMessage(hospitalQuery.error)} /></Screen>;
+  if (hospitalQuery.isError || !hospitalQuery.data) {
+    return <Screen><ErrorBanner message={extractErrorMessage(hospitalQuery.error)} onRetry={() => void hospitalQuery.refetch()} /></Screen>;
+  }
   const hospital = hospitalQuery.data;
 
   return (
     // The clinic's own brand color re-themes this whole screen, like the web.
     <BrandScope color={hospital.brandColor}>
-      <Screen>
+      <Screen
+        refreshControl={
+          <RefreshControl
+            refreshing={hospitalQuery.isRefetching}
+            onRefresh={() => {
+              void hospitalQuery.refetch();
+              // The active tab's data (services / vets / reviews) refreshes too.
+              void queryClient.invalidateQueries({ queryKey: ["services", "hospital", id] });
+              void queryClient.invalidateQueries({ queryKey: ["vets", "hospital", id] });
+              void queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+            }}
+          />
+        }
+      >
         <Card style={{ gap: 10, overflow: "hidden" }}>
           {hospital.cover ? (
             <Image

@@ -89,10 +89,10 @@ export class PostRepository {
     return this.prisma.post.findUnique({ where: { id } });
   }
 
-  findMany(requesterId: string, take = 30): Promise<PostWithRelations[]> {
+  findMany(requesterId: string, take = 30, before?: Date): Promise<PostWithRelations[]> {
     // Group posts stay inside their group — never in the global feed.
     return this.prisma.post.findMany({
-      where: { groupId: null },
+      where: { groupId: null, ...(before ? { createdAt: { lt: before } } : {}) },
       include: this.include(requesterId),
       orderBy: { createdAt: "desc" },
       take,

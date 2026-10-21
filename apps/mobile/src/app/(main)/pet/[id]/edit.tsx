@@ -21,7 +21,7 @@ export default function EditPetScreen() {
   return (
     <Screen>
       {petQuery.isLoading ? <Loading /> : null}
-      {petQuery.isError ? <ErrorBanner message={extractErrorMessage(petQuery.error)} /> : null}
+      {petQuery.isError ? <ErrorBanner message={extractErrorMessage(petQuery.error)} onRetry={() => void petQuery.refetch()} /> : null}
       {petQuery.data ? (
         <PetForm pet={petQuery.data} submitting={mutation.isPending} error={mutation.isError ? extractErrorMessage(mutation.error) : null} onSubmit={(input) => mutation.mutate(input)} />
       ) : null}

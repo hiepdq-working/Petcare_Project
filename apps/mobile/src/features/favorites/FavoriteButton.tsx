@@ -13,7 +13,7 @@ export function FavoriteButton({ hospitalId }: { hospitalId: string }) {
   });
   const favorited = (listQuery.data ?? []).some((h) => h.id === hospitalId);
   return (
-    <Pressable onPress={() => mutation.mutate()} disabled={mutation.isPending || listQuery.isLoading} hitSlop={10} accessibilityLabel={favorited ? "Bỏ yêu thích" : "Yêu thích"}>
+    <Pressable onPress={() => mutation.mutate()} disabled={mutation.isPending || listQuery.isLoading} hitSlop={10} accessibilityRole="button" accessibilityLabel={favorited ? "Bỏ yêu thích" : "Yêu thích"}>
       <Ionicons name={favorited ? "heart" : "heart-outline"} size={26} color={favorited ? "#ef4444" : DEFAULT_PALETTE[500]} />
     </Pressable>
   );

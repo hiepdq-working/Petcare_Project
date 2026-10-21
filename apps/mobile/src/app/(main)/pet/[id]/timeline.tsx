@@ -14,6 +14,7 @@ import { Screen } from "../../../../shared/components/Screen";
 import { EmptyState, ErrorBanner, Loading } from "../../../../shared/components/States";
 import { formatDateTime } from "../../../../shared/utils/format";
 import { DEFAULT_PALETTE } from "../../../../theme";
+import { queryRefreshControl } from "../../../../shared/components/queryRefresh";
 
 const EVENT_ICON: Record<PetEventType, string> = {
   MEDICAL: "🏥", VACCINATION: "💉", WEIGHT: "⚖️", APPOINTMENT: "📅", SOCIAL_POST: "📷", SHOP_ORDER: "🛒",
@@ -67,7 +68,7 @@ export default function TimelineScreen() {
 
   const pet = petQuery.data;
   return (
-    <Screen>
+    <Screen refreshControl={queryRefreshControl(timelineQuery, postsQuery)}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
         <Avatar uri={pet?.avatar} size={64} />
         <View>
@@ -96,7 +97,7 @@ export default function TimelineScreen() {
       ) : null}
 
       {timelineQuery.isLoading ? <Loading /> : null}
-      {timelineQuery.isError ? <ErrorBanner message={extractErrorMessage(timelineQuery.error)} /> : null}
+      {timelineQuery.isError ? <ErrorBanner message={extractErrorMessage(timelineQuery.error)} onRetry={() => void timelineQuery.refetch()} /> : null}
       {!timelineQuery.isLoading && (timelineQuery.data?.length ?? 0) === 0 ? <EmptyState title="Chưa có sự kiện nào trong dòng thời gian" /> : null}
 
       {groups.map((group) => (

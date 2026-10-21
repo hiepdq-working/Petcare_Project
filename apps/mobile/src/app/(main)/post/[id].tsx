@@ -16,6 +16,7 @@ import { Screen } from "../../../shared/components/Screen";
 import { ErrorBanner, Loading } from "../../../shared/components/States";
 import { TextField } from "../../../shared/components/TextField";
 import { timeAgo } from "../../../shared/utils/format";
+import { queryRefreshControl } from "../../../shared/components/queryRefresh";
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -46,7 +47,9 @@ export default function PostDetailScreen() {
   }
 
   if (query.isLoading) return <Screen><Loading /></Screen>;
-  if (query.isError || !query.data) return <Screen><ErrorBanner message={extractErrorMessage(query.error)} /></Screen>;
+  if (query.isError || !query.data) {
+    return <Screen><ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Screen>;
+  }
   const { post, comments } = query.data;
   const roots = comments.filter((c) => !c.parentId);
   const repliesOf = (parentId: string) => comments.filter((c) => c.parentId === parentId);
@@ -80,13 +83,13 @@ export default function PostDetailScreen() {
   }
 
   return (
-    <Screen>
+    <Screen refreshControl={queryRefreshControl(query)}>
       <PostCard
         post={post}
         inDetail
         onToggleLike={() => actions.toggleLike(post.id)}
         onToggleSave={() => actions.toggleSave(post.id)}
-        onDelete={post.userId === user?.id ? () => { actions.confirmDelete(post.id); router.back(); } : undefined}
+        onDelete={post.userId === user?.id ? () => actions.confirmDelete(post.id, () => router.back()) : undefined}
       />
 
       <AppText variant="title">Bình luận</AppText>

@@ -23,7 +23,7 @@ export function TabHeader({ title, subtitle, right }: { title: string; subtitle?
         ) : null}
       </View>
       {right}
-      <Pressable onPress={() => router.push("/notifications")} hitSlop={10} accessibilityLabel="Thông báo">
+      <Pressable onPress={() => router.push("/notifications")} hitSlop={10} accessibilityRole="button" accessibilityLabel={count > 0 ? `Thông báo, ${count} chưa đọc` : "Thông báo"}>
         <Ionicons name="notifications-outline" size={26} color={DEFAULT_PALETTE[700]} />
         {count > 0 ? (
           <View style={{ position: "absolute", top: -4, right: -6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: "#ef4444", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>

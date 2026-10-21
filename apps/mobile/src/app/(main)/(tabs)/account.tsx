@@ -28,7 +28,9 @@ export default function AccountScreen() {
   const petsQuery = useQuery({ queryKey: ["pets"], queryFn: petsApi.list });
   const appointmentsQuery = useQuery({ queryKey: ["appointments", "mine"], queryFn: appointmentsApi.listMine });
 
-  const feedQuery = useQuery({ queryKey: ["posts", "feed"], queryFn: socialApi.listFeed });
+  // Own moments are picked out of the latest posts (no per-user endpoint). A
+  // separate key from the feed screen's infinite query, which has another shape.
+  const feedQuery = useQuery({ queryKey: ["posts", "moments"], queryFn: () => socialApi.listFeed({ limit: 50 }) });
   const promotionsQuery = useQuery({ queryKey: ["posts", "promotions"], queryFn: socialApi.listPromotions });
   const [momentsTab, setMomentsTab] = useState<"photo" | "video">("photo");
   const myPhotos = (feedQuery.data ?? []).filter((p) => p.userId === user?.id && p.media.length > 0);
@@ -49,13 +51,13 @@ export default function AccountScreen() {
         title="Tài khoản"
         subtitle={`${greeting()}, ${user?.name}`}
         right={
-          <Pressable onPress={() => router.push("/settings")} hitSlop={10} accessibilityLabel="Cài đặt">
+          <Pressable onPress={() => router.push("/settings")} hitSlop={10} accessibilityRole="button" accessibilityLabel="Cài đặt">
             <Ionicons name="settings-outline" size={24} color={DEFAULT_PALETTE[700]} />
           </Pressable>
         }
       />
 
-      <Pressable onPress={() => router.push("/appointments")}>
+      <Pressable onPress={() => router.push("/appointments")} accessibilityRole="button" accessibilityLabel="Xem lịch hẹn">
         <View style={{ backgroundColor: DEFAULT_PALETTE[700], borderRadius: 20, padding: 20, gap: 4 }}>
           {nextAppointment ? (
             <>
@@ -94,7 +96,7 @@ export default function AccountScreen() {
 
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
         <AppText variant="title">Thú cưng của tôi</AppText>
-        <Pressable onPress={() => router.push("/pet/new")} hitSlop={8}>
+        <Pressable onPress={() => router.push("/pet/new")} hitSlop={8} accessibilityRole="button" accessibilityLabel="Thêm thú cưng">
           <AppText variant="semi" tone="brand">
             + Thêm thú cưng
           </AppText>
@@ -102,14 +104,14 @@ export default function AccountScreen() {
       </View>
 
       {petsQuery.isLoading ? <Loading /> : null}
-      {petsQuery.isError ? <ErrorBanner message={extractErrorMessage(petsQuery.error)} /> : null}
+      {petsQuery.isError ? <ErrorBanner message={extractErrorMessage(petsQuery.error)} onRetry={() => void petsQuery.refetch()} /> : null}
       {!petsQuery.isLoading && petsQuery.data?.length === 0 ? (
         <EmptyState title="Bạn chưa có thú cưng nào" description="Thêm hồ sơ để đặt lịch khám và theo dõi sức khoẻ." />
       ) : null}
       {petsQuery.data?.map((pet) => {
         const age = formatAge(pet.birthDate);
         return (
-          <Pressable key={pet.id} onPress={() => router.push(`/pet/${pet.id}`)}>
+          <Pressable key={pet.id} onPress={() => router.push(`/pet/${pet.id}`)} accessibilityRole="button" accessibilityLabel={`Hồ sơ của ${pet.name}`}>
             <Card style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
               <Avatar uri={pet.avatar} size={60} radius={16} />
               <View style={{ flex: 1 }}>
@@ -141,7 +143,7 @@ export default function AccountScreen() {
       {momentsTab === "photo" ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {myPhotos.map((post) => (
-            <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)}>
+            <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)} accessibilityRole="imagebutton" accessibilityLabel="Mở bài viết">
               <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: tile, height: tile, borderRadius: 12, backgroundColor: DEFAULT_PALETTE[100] }} contentFit="cover" />
             </Pressable>
           ))}
@@ -153,7 +155,7 @@ export default function AccountScreen() {
 
 function QuickAction({ icon, label, onPress }: { icon: React.ComponentProps<typeof Ionicons>["name"]; label: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={{ flex: 1 }}>
+    <Pressable onPress={onPress} style={{ flex: 1 }} accessibilityRole="button" accessibilityLabel={label}>
       <Card style={{ alignItems: "center", gap: 8, paddingVertical: 14, paddingHorizontal: 4 }}>
         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: DEFAULT_PALETTE[100], alignItems: "center", justifyContent: "center" }}>
           <Ionicons name={icon} size={22} color={DEFAULT_PALETTE[700]} />

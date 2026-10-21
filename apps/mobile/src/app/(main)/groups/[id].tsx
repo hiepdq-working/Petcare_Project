@@ -14,6 +14,7 @@ import { Card } from "../../../shared/components/Card";
 import { Screen } from "../../../shared/components/Screen";
 import { EmptyState, ErrorBanner, Loading } from "../../../shared/components/States";
 import { DEFAULT_PALETTE } from "../../../theme";
+import { queryRefreshControl } from "../../../shared/components/queryRefresh";
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,10 +35,12 @@ export default function GroupDetailScreen() {
   const leaveMutation = useMutation({ mutationFn: () => groupsApi.leave(id), onSuccess: refresh });
 
   if (groupQuery.isLoading) return <Screen><Loading /></Screen>;
-  if (groupQuery.isError || !group) return <Screen><ErrorBanner message={extractErrorMessage(groupQuery.error)} /></Screen>;
+  if (groupQuery.isError || !group) {
+    return <Screen><ErrorBanner message={extractErrorMessage(groupQuery.error)} onRetry={() => void groupQuery.refetch()} /></Screen>;
+  }
 
   return (
-    <Screen>
+    <Screen refreshControl={queryRefreshControl(groupQuery, postsQuery)}>
       <Stack.Screen options={{ title: group.name }} />
       <Card style={{ padding: 0, overflow: "hidden" }}>
         <View style={{ height: 130, backgroundColor: DEFAULT_PALETTE[100], alignItems: "center", justifyContent: "center" }}>
@@ -64,7 +67,7 @@ export default function GroupDetailScreen() {
         <>
           <Button title="📷 Đăng bài trong nhóm" variant="secondary" onPress={() => router.push({ pathname: "/post/new", params: { groupId: id } })} />
           {postsQuery.isLoading ? <Loading /> : null}
-          {postsQuery.isError ? <ErrorBanner message={extractErrorMessage(postsQuery.error)} /> : null}
+          {postsQuery.isError ? <ErrorBanner message={extractErrorMessage(postsQuery.error)} onRetry={() => void postsQuery.refetch()} /> : null}
           {!postsQuery.isLoading && postsQuery.data?.length === 0 ? <EmptyState title="Chưa có bài viết nào trong nhóm" description="Hãy chia sẻ khoảnh khắc đầu tiên." /> : null}
           {postsQuery.data?.map((post) => (
             <PostCard

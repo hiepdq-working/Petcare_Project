@@ -257,6 +257,28 @@ describe("PostService.create — Hospital", () => {
   });
 });
 
+describe("PostService.listFeed", () => {
+  it("passes paging options to the repository", async () => {
+    const { service, repository } = setup();
+    repository.findMany.mockResolvedValue([makePost()]);
+    const before = new Date("2026-10-01T00:00:00Z");
+
+    const posts = await service.listFeed("owner-1", { limit: 10, before });
+
+    expect(repository.findMany).toHaveBeenCalledWith("owner-1", 10, before);
+    expect(posts).toHaveLength(1);
+  });
+
+  it("defaults to the repository's own page size when no options are given", async () => {
+    const { service, repository } = setup();
+    repository.findMany.mockResolvedValue([]);
+
+    await service.listFeed("owner-1");
+
+    expect(repository.findMany).toHaveBeenCalledWith("owner-1", undefined, undefined);
+  });
+});
+
 describe("PostService.create — groups", () => {
   it("lets a member post inside a group", async () => {
     const { service, repository, groupRepository } = setup();

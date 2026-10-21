@@ -12,6 +12,7 @@ import { Screen } from "../../../../shared/components/Screen";
 import { EmptyState, ErrorBanner, Loading } from "../../../../shared/components/States";
 import { TextField } from "../../../../shared/components/TextField";
 import { formatDate, toDateKey } from "../../../../shared/utils/format";
+import { queryRefreshControl } from "../../../../shared/components/queryRefresh";
 
 export default function VaccinationsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,7 +44,7 @@ export default function VaccinationsScreen() {
   });
 
   return (
-    <Screen>
+    <Screen refreshControl={queryRefreshControl(query)}>
       <Button title={showForm ? "Đóng" : "+ Ghi nhận mũi tiêm"} variant={showForm ? "secondary" : "primary"} onPress={() => setShowForm((v) => !v)} />
 
       {showForm ? (
@@ -58,7 +59,7 @@ export default function VaccinationsScreen() {
       ) : null}
 
       {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
+      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
       {!query.isLoading && query.data?.length === 0 ? <EmptyState title="Chưa có mũi tiêm nào được ghi nhận" /> : null}
 
       {query.data?.map((v) => (

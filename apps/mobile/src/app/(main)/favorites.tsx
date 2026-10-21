@@ -8,20 +8,31 @@ import { Avatar } from "../../shared/components/Avatar";
 import { AppText } from "../../shared/components/AppText";
 import { Badge } from "../../shared/components/Badge";
 import { Card } from "../../shared/components/Card";
-import { Screen } from "../../shared/components/Screen";
+import { ListScreen } from "../../shared/components/ListScreen";
 import { EmptyState, ErrorBanner, Loading } from "../../shared/components/States";
 
 export default function FavoritesScreen() {
   const query = useQuery({ queryKey: ["favorites", "hospitals"], queryFn: favoritesApi.listHospitals });
   return (
-    <Screen refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
-      {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
-      {!query.isLoading && query.data?.length === 0 ? (
-        <EmptyState title="Bạn chưa yêu thích phòng khám nào" description="Bấm biểu tượng trái tim ở trang phòng khám để lưu lại đây." />
-      ) : null}
-      {query.data?.map((h) => (
-        <Pressable key={h.id} onPress={() => router.push(`/hospital/${h.id}`)}>
+    <ListScreen
+      data={query.data ?? []}
+      keyExtractor={(h) => h.id}
+      refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}
+      ListHeaderComponent={
+        query.isLoading || query.isError ? (
+          <View style={{ gap: 14 }}>
+            {query.isLoading ? <Loading /> : null}
+            {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+          </View>
+        ) : undefined
+      }
+      ListEmptyComponent={
+        query.isLoading || query.isError ? undefined : (
+          <EmptyState title="Bạn chưa yêu thích phòng khám nào" description="Bấm biểu tượng trái tim ở trang phòng khám để lưu lại đây." />
+        )
+      }
+      renderItem={({ item: h }) => (
+        <Pressable onPress={() => router.push(`/hospital/${h.id}`)} accessibilityRole="button" accessibilityLabel={`Mở ${h.name}`}>
           <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <Avatar uri={h.logo} size={56} radius={14} fallback="🏥" />
             <View style={{ flex: 1, gap: 2 }}>
@@ -32,7 +43,7 @@ export default function FavoritesScreen() {
             <FavoriteButton hospitalId={h.id} />
           </Card>
         </Pressable>
-      ))}
-    </Screen>
+      )}
+    />
   );
 }

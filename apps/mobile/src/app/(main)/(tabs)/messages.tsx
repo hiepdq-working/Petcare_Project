@@ -6,7 +6,7 @@ import { extractErrorMessage } from "../../../shared/api/client";
 import { Avatar } from "../../../shared/components/Avatar";
 import { AppText } from "../../../shared/components/AppText";
 import { Card } from "../../../shared/components/Card";
-import { Screen } from "../../../shared/components/Screen";
+import { ListScreen } from "../../../shared/components/ListScreen";
 import { TabHeader } from "../../../shared/components/TabHeader";
 import { EmptyState, ErrorBanner, Loading } from "../../../shared/components/States";
 import { timeAgo } from "../../../shared/utils/format";
@@ -15,15 +15,25 @@ import { DEFAULT_PALETTE } from "../../../theme";
 export default function MessagesScreen() {
   const query = useQuery({ queryKey: ["conversations"], queryFn: chatApi.listConversations });
   return (
-    <Screen topInset refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
-      <TabHeader title="Tin nhắn" />
-      {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
-      {!query.isLoading && query.data?.length === 0 ? (
-        <EmptyState title="Chưa có cuộc trò chuyện nào" description="Vào trang phòng khám và bấm “Nhắn tin” để bắt đầu." />
-      ) : null}
-      {query.data?.map((c) => (
-        <Pressable key={c.id} onPress={() => router.push(`/chat/${c.id}`)}>
+    <ListScreen
+      topInset
+      data={query.data ?? []}
+      keyExtractor={(c) => c.id}
+      refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}
+      ListHeaderComponent={
+        <View style={{ gap: 14 }}>
+          <TabHeader title="Tin nhắn" />
+          {query.isLoading ? <Loading /> : null}
+          {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+        </View>
+      }
+      ListEmptyComponent={
+        query.isLoading || query.isError ? undefined : (
+          <EmptyState title="Chưa có cuộc trò chuyện nào" description="Vào trang phòng khám và bấm “Nhắn tin” để bắt đầu." />
+        )
+      }
+      renderItem={({ item: c }) => (
+        <Pressable onPress={() => router.push(`/chat/${c.id}`)} accessibilityRole="button" accessibilityLabel={`Cuộc trò chuyện với ${c.otherUserName}${c.unreadCount > 0 ? `, ${c.unreadCount} tin chưa đọc` : ""}`}>
           <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <Avatar uri={c.otherUserAvatar} size={48} fallback="🏥" />
             <View style={{ flex: 1 }}>
@@ -42,7 +52,7 @@ export default function MessagesScreen() {
             </View>
           </Card>
         </Pressable>
-      ))}
-    </Screen>
+      )}
+    />
   );
 }

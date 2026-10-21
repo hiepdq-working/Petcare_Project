@@ -45,7 +45,7 @@ export function PostCard({ post, onToggleLike, onToggleSave, onDelete, inDetail 
           ) : null}
         </View>
         {onDelete ? (
-          <Pressable onPress={onDelete} hitSlop={8}>
+          <Pressable onPress={onDelete} hitSlop={8} accessibilityRole="button" accessibilityLabel="Xoá bài viết">
             <AppText variant="small" tone="danger">Xoá</AppText>
           </Pressable>
         ) : null}
@@ -90,15 +90,33 @@ export function PostCard({ post, onToggleLike, onToggleSave, onDelete, inDetail 
       ) : null}
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 18, marginTop: 2 }}>
-        <Pressable onPress={onToggleLike} hitSlop={8}>
+        <Pressable
+          onPress={onToggleLike}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${post.likedByMe ? "Bỏ thích" : "Thích"} bài viết, ${post.likeCount} lượt thích`}
+          accessibilityState={{ selected: post.likedByMe }}
+        >
           <AppText variant="small" style={{ fontFamily: "Inter_600SemiBold", color: post.likedByMe ? "#dc2626" : DEFAULT_PALETTE[800] }}>
             {post.likedByMe ? "❤️" : "🤍"} {post.likeCount}
           </AppText>
         </Pressable>
-        <Pressable onPress={() => !inDetail && router.push(`/post/${post.id}`)} hitSlop={8}>
+        <Pressable
+          onPress={() => !inDetail && router.push(`/post/${post.id}`)}
+          hitSlop={8}
+          accessibilityRole={inDetail ? "text" : "button"}
+          accessibilityLabel={`${post.commentCount} bình luận`}
+        >
           <AppText variant="small" style={{ fontFamily: "Inter_600SemiBold" }}>💬 {post.commentCount} bình luận</AppText>
         </Pressable>
-        <Pressable onPress={onToggleSave} hitSlop={8} style={{ marginLeft: "auto" }}>
+        <Pressable
+          onPress={onToggleSave}
+          hitSlop={8}
+          style={{ marginLeft: "auto" }}
+          accessibilityRole="button"
+          accessibilityLabel={post.savedByMe ? "Bỏ lưu bài viết" : "Lưu bài viết"}
+          accessibilityState={{ selected: post.savedByMe }}
+        >
           <AppText variant="small" style={{ fontFamily: "Inter_600SemiBold", color: post.savedByMe ? DEFAULT_PALETTE[700] : DEFAULT_PALETTE[800] }}>
             {post.savedByMe ? "🔖 Đã lưu" : "🔖 Lưu"}
           </AppText>

@@ -44,6 +44,33 @@ export async function refreshSession(): Promise<AuthResponse | null> {
   }
 }
 
+export type RestoreResult =
+  | { status: "ok"; session: AuthResponse }
+  | { status: "offline" }
+  | { status: "invalid" };
+
+// Launch-time variant of refreshSession that tells "the server said no" apart
+// from "couldn't reach the server": only the former should sign the user out.
+export async function restoreSession(): Promise<RestoreResult> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return { status: "invalid" };
+  try {
+    const response = await axios.post<ApiResponse<AuthResponse>>(
+      `${API_URL}/auth/refresh`,
+      { refreshToken },
+      { headers: MOBILE_HEADERS, timeout: 10_000 },
+    );
+    if (!response.data.success) return { status: "invalid" };
+    const session = response.data.data;
+    setAccessToken(session.accessToken);
+    if (session.refreshToken) await setRefreshToken(session.refreshToken);
+    return { status: "ok", session };
+  } catch (error) {
+    // No response at all (offline, DNS, timeout) → keep the session.
+    return axios.isAxiosError(error) && !error.response ? { status: "offline" } : { status: "invalid" };
+  }
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {

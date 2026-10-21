@@ -61,7 +61,7 @@ export default function GroupsScreen() {
       <PillTabs tabs={TABS} value={tab} onChange={setTab} />
 
       {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
+      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
       {!query.isLoading && query.data?.length === 0 ? (
         <EmptyState
           title={tab === "mine" ? "Bạn chưa tham gia nhóm nào" : "Chưa có nhóm nào"}

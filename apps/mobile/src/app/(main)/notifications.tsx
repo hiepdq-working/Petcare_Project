@@ -6,7 +6,7 @@ import { notificationsApi } from "../../features/notifications/api/notifications
 import { extractErrorMessage } from "../../shared/api/client";
 import { AppText } from "../../shared/components/AppText";
 import { Card } from "../../shared/components/Card";
-import { Screen } from "../../shared/components/Screen";
+import { ListScreen } from "../../shared/components/ListScreen";
 import { EmptyState, ErrorBanner, Loading } from "../../shared/components/States";
 import { timeAgo } from "../../shared/utils/format";
 import { DEFAULT_PALETTE } from "../../theme";
@@ -35,13 +35,23 @@ export default function NotificationsScreen() {
   });
 
   return (
-    <Screen refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
-      {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
-      {!query.isLoading && query.data?.length === 0 ? <EmptyState title="Không có thông báo nào" /> : null}
-      {query.data?.map((n) => (
+    <ListScreen
+      data={query.data ?? []}
+      keyExtractor={(n) => n.id}
+      refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}
+      ListHeaderComponent={
+        query.isLoading || query.isError ? (
+          <View style={{ gap: 14 }}>
+            {query.isLoading ? <Loading /> : null}
+            {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+          </View>
+        ) : undefined
+      }
+      ListEmptyComponent={query.isLoading || query.isError ? undefined : <EmptyState title="Không có thông báo nào" />}
+      renderItem={({ item: n }) => (
         <Pressable
-          key={n.id}
+          accessibilityRole="button"
+          accessibilityLabel={`${n.isRead ? "" : "Chưa đọc. "}${n.title}`}
           onPress={() => {
             if (!n.isRead) markRead.mutate(n.id);
             const href = hrefFor(n);
@@ -57,7 +67,7 @@ export default function NotificationsScreen() {
             <AppText variant="caption" tone="muted">{timeAgo(n.createdAt)}</AppText>
           </Card>
         </Pressable>
-      ))}
-    </Screen>
+      )}
+    />
   );
 }

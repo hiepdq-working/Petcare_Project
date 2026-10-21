@@ -13,8 +13,9 @@ export const socialApi = {
   async create(input: CreatePostRequest): Promise<PostDto> {
     return unwrap(await apiClient.post("/posts", input));
   },
-  async listFeed(): Promise<PostDto[]> {
-    return unwrap(await apiClient.get("/posts"));
+  // `before` is the createdAt of the last post already loaded (newest first).
+  async listFeed(params: { limit?: number; before?: string } = {}): Promise<PostDto[]> {
+    return unwrap(await apiClient.get("/posts", { params }));
   },
   async listByPet(petId: string): Promise<PostDto[]> {
     return unwrap(await apiClient.get(`/posts/pet/${petId}`));

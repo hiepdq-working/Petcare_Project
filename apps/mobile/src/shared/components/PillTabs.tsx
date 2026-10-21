@@ -18,6 +18,9 @@ export function PillTabs<T extends string>({ tabs, value, onChange }: PillTabsPr
           <Pressable
             key={tab.value}
             onPress={() => onChange(tab.value)}
+            accessibilityRole="tab"
+            accessibilityLabel={tab.label}
+            accessibilityState={{ selected: active }}
             style={{ backgroundColor: active ? brand[700] : "#fff", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999 }}
           >
             <AppText variant="semi" style={{ fontSize: 14, color: active ? "#fff" : brand[700] }}>

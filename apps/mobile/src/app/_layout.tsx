@@ -2,19 +2,18 @@ import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces";
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
-import { refreshSession } from "../shared/api/client";
-import { registerAuthFailureHandler } from "../shared/api/token-store";
+import { restoreSession } from "../shared/api/client";
+import { getCachedUser, registerAuthFailureHandler } from "../shared/api/token-store";
+import { clearQueryCache, queryClient, queryPersister, QUERY_CACHE_MAX_AGE, shouldPersistQuery } from "../shared/query/client";
+import { OfflineBanner } from "../shared/components/OfflineBanner";
 import { useAuthStore } from "../features/auth/store";
+import { ToastHost } from "../shared/components/Toast";
 import { colors, DEFAULT_PALETTE } from "../theme";
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 15_000 } },
-});
 
 export default function RootLayout() {
   const status = useAuthStore((state) => state.status);
@@ -29,16 +28,26 @@ export default function RootLayout() {
   // On launch, trade the stored refresh token for a fresh session.
   useEffect(() => {
     registerAuthFailureHandler(() => {
-      queryClient.clear();
+      void clearQueryCache();
       void useAuthStore.getState().clearSession();
     });
     void (async () => {
-      const session = await refreshSession();
-      if (session) {
-        await useAuthStore.getState().setSession(session.user, session.accessToken);
-      } else {
-        await useAuthStore.getState().clearSession();
+      const result = await restoreSession();
+      if (result.status === "ok") {
+        await useAuthStore.getState().setSession(result.session.user, result.session.accessToken);
+        return;
       }
+      // Couldn't reach the server: stay signed in on the cached profile so the
+      // app opens with cached data instead of bouncing to the login screen.
+      if (result.status === "offline") {
+        const cached = await getCachedUser();
+        if (cached) {
+          useAuthStore.getState().resumeOffline(JSON.parse(cached));
+          return;
+        }
+      }
+      await clearQueryCache();
+      await useAuthStore.getState().clearSession();
     })();
   }, []);
 
@@ -52,7 +61,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: queryPersister,
+          maxAge: QUERY_CACHE_MAX_AGE,
+          buster: "v1",
+          dehydrateOptions: { shouldDehydrateQuery: (query) => shouldPersistQuery(query.queryKey, query.state.status) },
+        }}
+      >
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={status === "guest"}>
@@ -62,7 +79,9 @@ export default function RootLayout() {
             <Stack.Screen name="(main)" />
           </Stack.Protected>
         </Stack>
-      </QueryClientProvider>
+        <ToastHost />
+        <OfflineBanner />
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }

@@ -63,7 +63,7 @@ export default function ChatScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior="padding" keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}>
       <Stack.Screen options={{ title }} />
       {messagesQuery.isLoading ? <Loading /> : null}
-      {messagesQuery.isError ? <View style={{ padding: 16 }}><ErrorBanner message={extractErrorMessage(messagesQuery.error)} /></View> : null}
+      {messagesQuery.isError ? <View style={{ padding: 16 }}><ErrorBanner message={extractErrorMessage(messagesQuery.error)} onRetry={() => void messagesQuery.refetch()} /></View> : null}
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={{ padding: 14, gap: 8 }}

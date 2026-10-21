@@ -154,8 +154,8 @@ export class PostService {
       .map(toPostDto);
   }
 
-  async listFeed(userId: string): Promise<PostDto[]> {
-    const posts = await this.repository.findMany(userId);
+  async listFeed(userId: string, query: { limit?: number; before?: Date } = {}): Promise<PostDto[]> {
+    const posts = await this.repository.findMany(userId, query.limit, query.before);
     return posts.map(toPostDto);
   }
 

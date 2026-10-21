@@ -36,7 +36,7 @@ export default function AppointmentsScreen() {
   return (
     <Screen refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
       {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
+      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
       {cancelMutation.isError ? <ErrorBanner message={extractErrorMessage(cancelMutation.error)} /> : null}
       {!query.isLoading && query.data?.length === 0 ? (
         <EmptyState title="Bạn chưa có lịch hẹn nào" description="Vào tab Khám phá để chọn phòng khám và đặt lịch." />

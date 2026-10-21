@@ -19,6 +19,9 @@ export function Chips<T extends string>({ label, options, value, onChange }: { l
             <Pressable
               key={option.value}
               onPress={() => onChange(option.value)}
+              accessibilityRole="radio"
+              accessibilityLabel={option.label}
+              accessibilityState={{ selected: active }}
               style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, borderWidth: 1, borderColor: active ? brand[700] : brand[200], backgroundColor: active ? brand[700] : "#fff" }}
             >
               <AppText variant="small" style={{ color: active ? "#fff" : brand[800], fontFamily: "Inter_500Medium" }}>

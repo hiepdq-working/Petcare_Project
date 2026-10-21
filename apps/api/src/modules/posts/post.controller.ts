@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { UserRole } from "@petcare/types";
 import { ok } from "../../common/response/api-response";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -11,8 +11,10 @@ import { PostService } from "./post.service";
 import {
   createCommentSchema,
   createPostSchema,
+  listFeedQuerySchema,
   type CreateCommentInput,
   type CreatePostInput,
+  type ListFeedQuery,
 } from "./post.validator";
 
 @Controller("posts")
@@ -31,8 +33,11 @@ export class PostController {
   }
 
   @Get()
-  async listFeed(@CurrentUser() auth: RequestAuth) {
-    const posts = await this.service.listFeed(auth.userId);
+  async listFeed(
+    @CurrentUser() auth: RequestAuth,
+    @Query(new ZodValidationPipe(listFeedQuerySchema)) query: ListFeedQuery,
+  ) {
+    const posts = await this.service.listFeed(auth.userId, query);
     return ok(posts);
   }
 

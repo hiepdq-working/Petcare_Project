@@ -57,6 +57,15 @@ export const createPostSchema = z
   });
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 
+// Optional paging for the global feed: newest first, `before` is the
+// createdAt of the last post already loaded. Omitting both keeps the old
+// behavior (latest 30), so the web client is unaffected.
+export const listFeedQuerySchema = z.object({
+  limit: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(50).optional()),
+  before: z.preprocess(emptyToUndefined, z.coerce.date({ invalid_type_error: "Mốc thời gian không hợp lệ" }).optional()),
+});
+export type ListFeedQuery = z.infer<typeof listFeedQuerySchema>;
+
 export const createCommentSchema = z.object({
   content: z.string().trim().min(1, "Vui lòng nhập nội dung bình luận").max(1000),
   parentId: z.preprocess(emptyToUndefined, z.string().uuid("Bình luận không hợp lệ").optional()),
