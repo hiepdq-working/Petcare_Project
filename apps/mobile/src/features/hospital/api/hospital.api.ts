@@ -6,6 +6,7 @@ import type {
   ReviewDto,
   SearchHospitalsQuery,
   ServiceDto,
+  UpdateReviewRequest,
   VetSummaryDto,
 } from "@petcare/types";
 import { apiClient, unwrap } from "../../../shared/api/client";
@@ -28,5 +29,11 @@ export const hospitalApi = {
   },
   async createReview(input: CreateReviewRequest): Promise<ReviewDto> {
     return unwrap(await apiClient.post("/reviews", input));
+  },
+  async updateReview(id: string, input: UpdateReviewRequest): Promise<ReviewDto> {
+    return unwrap(await apiClient.patch(`/reviews/${id}`, input));
+  },
+  async removeReview(id: string): Promise<void> {
+    await apiClient.delete(`/reviews/${id}`);
   },
 };

@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { AppText } from "./AppText";
 import { colors, useBrand } from "../../theme";
 
@@ -26,12 +26,19 @@ export function EmptyState({ title, description }: { title: string; description?
   );
 }
 
-export function ErrorBanner({ message }: { message: string }) {
+export function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <View style={{ backgroundColor: colors.dangerBg, borderRadius: 12, padding: 12 }}>
+    <View style={{ backgroundColor: colors.dangerBg, borderRadius: 12, padding: 12, gap: 8 }} accessibilityRole="alert">
       <AppText variant="small" tone="danger">
         {message}
       </AppText>
+      {onRetry ? (
+        <Pressable onPress={onRetry} accessibilityRole="button" accessibilityLabel="Thử lại" hitSlop={8}>
+          <AppText variant="small" tone="danger" style={{ fontFamily: "Inter_700Bold" }}>
+            Thử lại
+          </AppText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

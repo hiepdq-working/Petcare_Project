@@ -150,6 +150,7 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 - Khám phá: tìm phòng khám theo vị trí hiện tại (không cấp quyền hoặc không có GPS thì dùng TP.HCM), bán kính 5–50 km, tìm theo tên, mở bản đồ/gọi điện; chi tiết phòng khám với tab Dịch vụ / Đặt lịch / Đánh giá, áp dụng màu thương hiệu của phòng khám
 - Lịch hẹn: danh sách và huỷ lịch; giờ đặt lịch lưu đúng múi giờ
 - Backend: client gửi header `X-Client: mobile` thì `POST /auth/login|google|refresh` trả thêm `refreshToken` trong body (không đặt cookie), `/auth/refresh` và `/auth/logout` nhận token từ body; web vẫn chỉ dùng cookie httpOnly
+- **Bổ sung (M3):** đánh giá phòng khám có thể **sửa / xoá** đánh giá của mình (form điền sẵn, sao có nhãn trợ năng, avatar người đánh giá); hồ sơ bệnh án có **lịch sử chỉnh sửa** các phiên bản và danh sách hồ sơ theo từng thú cưng; tệp đính kèm hồ sơ xem ảnh ngay trong app, tệp khác (PDF…) tải về rồi mở qua bảng chia sẻ của hệ điều hành; **đặt lịch từ trang thú cưng** tự chọn sẵn thú cưng và mở thẳng tab Đặt lịch; ảnh bìa phòng khám; ảnh dùng `expo-image` (có cache); bán kính tìm kiếm đồng bộ với web (5/10/20/50 km); nút "Thử lại" khi lỗi tải
 - **Chưa có trên mobile:** thiết lập thông báo/màu thương hiệu của phòng khám, push notification khi app đóng, đăng nhập Google, bản iOS. Hospital Owner, Vet, Admin tiếp tục dùng web
 
 ---

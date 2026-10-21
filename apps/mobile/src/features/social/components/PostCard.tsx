@@ -1,4 +1,5 @@
-import { Image, Linking, Pressable, View, useWindowDimensions } from "react-native";
+import { Linking, Pressable, View, useWindowDimensions } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import type { PostDto } from "@petcare/types";
 import { Avatar } from "../../../shared/components/Avatar";
@@ -71,7 +72,7 @@ export function PostCard({ post, onToggleLike, onToggleSave, onDelete, inDetail 
               key={m.id}
               source={{ uri: m.mediaUrl }}
               style={{ width: imageSize, height: imageSize, borderRadius: 12, backgroundColor: DEFAULT_PALETTE[100] }}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ))}
         </View>

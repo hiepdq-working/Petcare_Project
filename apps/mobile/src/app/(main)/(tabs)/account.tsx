@@ -1,4 +1,5 @@
-import { Image, Pressable, RefreshControl, View, useWindowDimensions } from "react-native";
+import { Pressable, RefreshControl, View, useWindowDimensions } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -141,7 +142,7 @@ export default function AccountScreen() {
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {myPhotos.map((post) => (
             <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)}>
-              <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: tile, height: tile, borderRadius: 12, backgroundColor: DEFAULT_PALETTE[100] }} resizeMode="cover" />
+              <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: tile, height: tile, borderRadius: 12, backgroundColor: DEFAULT_PALETTE[100] }} contentFit="cover" />
             </Pressable>
           ))}
         </View>

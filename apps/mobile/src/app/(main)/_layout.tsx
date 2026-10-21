@@ -23,7 +23,8 @@ export default function MainLayout() {
       <Stack.Screen name="pet/[id]/edit" options={{ title: "Sửa hồ sơ" }} />
       <Stack.Screen name="pet/[id]/timeline" options={{ title: "Digital Life" }} />
       <Stack.Screen name="pet/[id]/vaccinations" options={{ title: "Sổ tiêm phòng" }} />
-      <Stack.Screen name="record/[id]" options={{ title: "Hồ sơ bệnh án" }} />
+      <Stack.Screen name="pet/[id]/records" options={{ title: "Hồ sơ bệnh án" }} />
+      <Stack.Screen name="record/[id]" options={{ title: "Chi tiết hồ sơ" }} />
       <Stack.Screen name="settings" options={{ title: "Cài đặt" }} />
       <Stack.Screen name="appointments" options={{ title: "Lịch hẹn của tôi" }} />
       <Stack.Screen name="post/new" options={{ title: "Bài viết mới" }} />

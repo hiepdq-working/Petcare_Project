@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Alert, Image, View } from "react-native";
+import { Alert, View } from "react-native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -72,7 +73,7 @@ export default function NewPostScreen() {
       {photo ? (
         <View style={{ alignItems: "center", gap: 10 }}>
           <View style={{ width: 260, height: 260, borderRadius: 18, overflow: "hidden", backgroundColor: DEFAULT_PALETTE[100] }}>
-            <Image source={{ uri: photo.localUri }} style={{ width: 260, height: 260 }} resizeMode="cover" />
+            <Image source={{ uri: photo.localUri }} style={{ width: 260, height: 260 }} contentFit="cover" />
             {uploading ? (
               <View style={{ ...absoluteFill, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" }}>
                 <AppText tone="white" variant="small">Đang tải ảnh lên...</AppText>

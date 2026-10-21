@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import type { PetEventDto, PetEventType } from "@petcare/types";
@@ -87,7 +88,7 @@ export default function TimelineScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
             {photos.map((post) => (
               <Pressable key={post.id} onPress={() => router.push(`/post/${post.id}`)}>
-                <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: 96, height: 96, borderRadius: 14, backgroundColor: DEFAULT_PALETTE[100] }} resizeMode="cover" />
+                <Image source={{ uri: post.media[0]!.mediaUrl }} style={{ width: 96, height: 96, borderRadius: 14, backgroundColor: DEFAULT_PALETTE[100] }} contentFit="cover" />
               </Pressable>
             ))}
           </ScrollView>

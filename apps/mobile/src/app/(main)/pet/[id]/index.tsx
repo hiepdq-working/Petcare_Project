@@ -1,4 +1,4 @@
-import { Alert, View } from "react-native";
+import { Alert, RefreshControl, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,12 +35,14 @@ export default function PetDetailScreen() {
   }
 
   if (query.isLoading) return <Screen><Loading /></Screen>;
-  if (query.isError || !query.data) return <Screen><ErrorBanner message={extractErrorMessage(query.error)} /></Screen>;
+  if (query.isError || !query.data) {
+    return <Screen><ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Screen>;
+  }
   const pet = query.data;
   const age = formatAge(pet.birthDate);
 
   return (
-    <Screen>
+    <Screen refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
       <Card style={{ alignItems: "center", gap: 8 }}>
         <Avatar uri={pet.avatar} size={96} radius={26} />
         <AppText variant="display">{pet.name}</AppText>
@@ -58,7 +60,8 @@ export default function PetDetailScreen() {
 
       <NavRow icon="pulse-outline" label="Digital Life — dòng thời gian" onPress={() => router.push(`/pet/${id}/timeline`)} />
       <NavRow icon="shield-checkmark-outline" label="Sổ tiêm phòng" onPress={() => router.push(`/pet/${id}/vaccinations`)} />
-      <NavRow icon="medkit-outline" label="Đặt lịch khám" onPress={() => router.push("/discover")} />
+      <NavRow icon="document-text-outline" label="Hồ sơ bệnh án" onPress={() => router.push(`/pet/${id}/records`)} />
+      <NavRow icon="medkit-outline" label="Đặt lịch khám" onPress={() => router.push({ pathname: "/discover", params: { petId: id } })} />
 
       {removeMutation.isError ? <ErrorBanner message={extractErrorMessage(removeMutation.error)} /> : null}
       <View style={{ flexDirection: "row", gap: 10 }}>
@@ -80,7 +83,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function NavRow({ icon, label, onPress }: { icon: React.ComponentProps<typeof Ionicons>["name"]; label: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
       <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Ionicons name={icon} size={22} color={DEFAULT_PALETTE[700]} />
         <AppText variant="semi" style={{ flex: 1 }}>{label}</AppText>

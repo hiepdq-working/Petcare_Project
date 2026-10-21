@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Linking, Pressable, RefreshControl, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 import { useQuery } from "@tanstack/react-query";
 import { hospitalApi } from "../../../features/hospital/api/hospital.api";
@@ -16,9 +16,13 @@ import { TextField } from "../../../shared/components/TextField";
 
 // Same default center as the seed clinic (TP.HCM) when location is denied.
 const DEFAULT_CENTER = { lat: 10.7769, lng: 106.7009 };
-const RADII = [5, 10, 25, 50];
+// Same radius steps as the web finder.
+const RADII = [5, 10, 20, 50];
 
 export default function DiscoverScreen() {
+  // Set when the user starts from a pet ("Đặt lịch khám"): the chosen pet
+  // is carried to the booking form so they don't have to pick it again.
+  const { petId } = useLocalSearchParams<{ petId?: string }>();
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [located, setLocated] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -86,7 +90,7 @@ export default function DiscoverScreen() {
       </Pressable>
 
       {query.isLoading ? <Loading /> : null}
-      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} /> : null}
+      {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
       {!query.isLoading && !query.isError && results.length === 0 ? (
         <EmptyState
           title={term ? `Không có phòng khám nào khớp "${nameQuery}"` : `Không có phòng khám trong bán kính ${radiusKm}km`}
@@ -95,7 +99,18 @@ export default function DiscoverScreen() {
       ) : null}
 
       {results.map((h) => (
-        <Pressable key={h.id} onPress={() => router.push(`/hospital/${h.id}`)}>
+        <Pressable
+          key={h.id}
+          onPress={() =>
+            router.push(
+              petId
+                ? { pathname: "/hospital/[id]", params: { id: h.id, petId, tab: "booking" } }
+                : { pathname: "/hospital/[id]", params: { id: h.id } },
+            )
+          }
+          accessibilityRole="button"
+          accessibilityLabel={`${h.name}, cách ${h.distanceKm} km`}
+        >
           <Card style={{ flexDirection: "row", gap: 14 }}>
             <Avatar uri={h.logo} size={64} radius={16} fallback="🏥" />
             <View style={{ flex: 1, gap: 3 }}>

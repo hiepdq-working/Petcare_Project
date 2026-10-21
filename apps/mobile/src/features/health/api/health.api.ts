@@ -8,6 +8,9 @@ export const healthApi = {
   async createVaccination(input: CreateVaccinationRequest): Promise<VaccinationDto> {
     return unwrap(await apiClient.post("/vaccinations", input));
   },
+  async listMedicalRecordsByPet(petId: string): Promise<MedicalRecordDto[]> {
+    return unwrap(await apiClient.get(`/medical-records/pet/${petId}`));
+  },
   async getMedicalRecord(id: string): Promise<MedicalRecordDto> {
     return unwrap(await apiClient.get(`/medical-records/${id}`));
   },

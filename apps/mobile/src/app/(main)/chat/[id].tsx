@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View, type ScrollViewInstance } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View, type ScrollViewInstance } from "react-native";
+import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -74,7 +75,7 @@ export default function ChatScreen() {
           return (
             <View key={m.id} style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "78%" }}>
               <View style={{ backgroundColor: mine ? DEFAULT_PALETTE[700] : "#fff", borderRadius: 16, padding: m.mediaUrl ? 4 : 11, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4 }}>
-                {m.mediaUrl ? <Image source={{ uri: m.mediaUrl }} style={{ width: 200, height: 200, borderRadius: 12 }} resizeMode="cover" /> : null}
+                {m.mediaUrl ? <Image source={{ uri: m.mediaUrl }} style={{ width: 200, height: 200, borderRadius: 12 }} contentFit="cover" /> : null}
                 {m.message ? <AppText tone={mine ? "white" : "default"}>{m.message}</AppText> : null}
               </View>
               <AppText variant="caption" tone="muted" style={{ alignSelf: mine ? "flex-end" : "flex-start", marginTop: 2 }}>

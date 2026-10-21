@@ -1,4 +1,5 @@
-import { Image, View } from "react-native";
+import { View } from "react-native";
+import { Image } from "expo-image";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { groupsApi } from "../../../features/groups/api/groups.api";
@@ -40,7 +41,7 @@ export default function GroupDetailScreen() {
       <Stack.Screen options={{ title: group.name }} />
       <Card style={{ padding: 0, overflow: "hidden" }}>
         <View style={{ height: 130, backgroundColor: DEFAULT_PALETTE[100], alignItems: "center", justifyContent: "center" }}>
-          {group.cover ? <Image source={{ uri: group.cover }} style={{ width: "100%", height: 130 }} resizeMode="cover" /> : <AppText style={{ fontSize: 40 }}>👥</AppText>}
+          {group.cover ? <Image source={{ uri: group.cover }} style={{ width: "100%", height: 130 }} contentFit="cover" /> : <AppText style={{ fontSize: 40 }}>👥</AppText>}
         </View>
         <View style={{ padding: 16, gap: 6 }}>
           <AppText variant="title">{group.name}</AppText>
