@@ -68,5 +68,6 @@ pnpm --filter @petcare/mobile start --android    # Expo tự cài Expo Go lên e
 
 ## Tài liệu
 
+- [docs/HUONG_DAN_SU_DUNG.md](docs/HUONG_DAN_SU_DUNG.md) — hướng dẫn chạy thử trên MacBook (web + mobile Android) và giải thích ứng dụng của từng tính năng theo từng vai trò
 - [FEATURES.md](FEATURES.md) — danh sách chi tiết mọi tính năng, theo đúng thứ tự đã triển khai
 - [docs/LOGIN_GUIDE.md](docs/LOGIN_GUIDE.md) — cách đăng nhập thử từng vai trò (Admin, Hospital, Vet, Pet Owner), cả bằng tài khoản mẫu lẫn luồng đăng ký/duyệt thật
