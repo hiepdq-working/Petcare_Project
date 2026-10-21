@@ -294,6 +294,59 @@ Khác biệt nhỏ trên iPhone: bộ chọn ngày/giờ khi đặt lịch hiệ
 
 > Máy ảo Android đã được kiểm thử đầy đủ. **Điện thoại thật và iPhone chưa được kiểm thử** trong dự án này; nếu gặp lỗi, hãy ghi lại màn hình và thông báo lỗi để sửa.
 
+### Chạy và dùng trên iPhone (chi tiết)
+
+Bản iOS dùng **cùng mã nguồn** với bản Android, nên mọi tính năng ở [mục 8](#8-hướng-dẫn-dùng-bản-mobile-chủ-nuôi) đều có. Phần này nói riêng những gì **khác trên iPhone**.
+
+**Cách chạy nhanh nhất (không cần Xcode):**
+
+1. iPhone cùng Wi‑Fi với Mac → cài **Expo Go** từ **App Store**.
+2. Làm các bước 2–4 ở phần "Chạy trên điện thoại thật" ngay phía trên (lấy IP, đặt `API_PUBLIC_URL`, chạy `pnpm --filter @petcare/mobile start` kèm `EXPO_PUBLIC_API_URL`).
+3. Mở ứng dụng **Camera** của iPhone, hướng vào mã QR trong Terminal → bấm thông báo **"Mở trong Expo Go"**. Lần đầu app tải mã mất vài chục giây.
+4. Khi iPhone hỏi **"Expo Go muốn tìm và kết nối với các thiết bị trên mạng cục bộ"** → chọn **Cho phép** (nếu lỡ từ chối: Cài đặt → Expo Go → bật **Mạng cục bộ**).
+5. Đăng nhập `owner@petcare.local` / `ChangeMe123!` rồi dùng như mục 8.
+
+**Dùng trên iPhone khác Android ở đâu:**
+
+| Việc | Trên iPhone |
+|---|---|
+| **Quay lại** | Vuốt từ mép trái màn hình sang phải (hoặc bấm mũi tên ở góc trên). |
+| **Chọn ngày/giờ** (đặt lịch, ngày sinh thú cưng, ngày tiêm) | Hiện một **bảng trượt từ dưới lên** có lịch; chọn xong bấm **Xong** (hoặc **Huỷ**). Android thì hiện hộp thoại riêng cho ngày rồi đến giờ. |
+| **Xin quyền** (camera, ảnh, vị trí, mạng cục bộ) | iPhone hỏi bằng hộp thoại của hệ thống. Khi chạy qua Expo Go, hộp thoại ghi tên *Expo Go*; chỉ khi cài bản phát hành riêng (mục 7) mới hiện câu tiếng Việt của PetCare. Nếu từ chối: Cài đặt → Expo Go (hoặc PetCare) → bật lại quyền. |
+| **Mở tệp đính kèm hồ sơ (PDF)** | App tải tệp rồi mở **bảng Chia sẻ** của iPhone: chọn *Lưu vào Tệp*, mở bằng ứng dụng khác, hoặc AirDrop. Ảnh thì xem ngay trong app. |
+| **Mở menu nhà phát triển / tải lại app** | **Lắc** iPhone (hoặc nhấn `r` trong Terminal đang chạy Metro). |
+| **Tai thỏ / thanh Home** | App tự chừa vùng an toàn; bàn phím đẩy khung nhập tin nhắn lên. |
+| **Thông báo đẩy khi tắt app** | Chưa có (cả hai nền tảng) — thông báo chỉ hiện trong app, tức thời khi đang mở. |
+
+**Danh sách nên thử trên iPhone** (vì tôi chưa có iPhone để kiểm thử, hãy báo lại nếu mục nào lỗi):
+
+1. Đăng nhập, tắt hẳn app rồi mở lại: vẫn còn đăng nhập.
+2. **Khám phá**: cho phép vị trí → thấy phòng khám; tab **Bản đồ** hiện ghim, chạm điểm khác để tìm quanh đó. (iPhone ở Việt Nam sẽ ra vị trí thật; ở nơi khác sẽ không có phòng khám nào gần — chọn **Không cho phép** để dùng TP.HCM mặc định.)
+3. **Đặt lịch** từ trang phòng khám: bảng chọn ngày giờ hiện đúng, đặt xong thấy ở **Lịch hẹn**.
+4. **Đăng bài** bằng camera: chụp, chú thích, đăng; bài xuất hiện ở Trang chủ.
+5. **Nhắn tin**: gửi chữ và ảnh; trên web (đăng nhập `hospital@petcare.local`) trả lời, tin tới ngay trên iPhone.
+6. **Hồ sơ bệnh án**: mở ảnh/PDF đính kèm (cần bác sĩ đã lập hồ sơ và đính kèm tệp).
+7. Tắt Wi‑Fi của iPhone: banner "Không có mạng" hiện, bảng tin đã tải vẫn xem được.
+
+**Muốn chạy trên iPhone ảo (iOS Simulator) ngay trên Mac:**
+
+- Cần cài **Xcode** từ App Store (rất nặng: cần **≥ 25 GB trống**, máy bạn hiện chưa đủ) rồi mở Xcode một lần để chấp nhận điều khoản và cài thành phần iOS Simulator.
+- Chạy: `pnpm --filter @petcare/mobile ios` — Expo tự mở Simulator và cài Expo Go.
+- Trên Simulator **không cần** lấy IP hay đặt `API_PUBLIC_URL`: Simulator dùng chung mạng với Mac nên `localhost:4000` chạy thẳng (không cần `adb reverse`).
+- Simulator không có camera thật nên chức năng chụp ảnh (đăng bài, ảnh thú cưng) có thể báo lỗi hoặc không mở được; chọn ảnh từ thư viện của Simulator thì được. Muốn thử camera hãy dùng iPhone thật.
+
+**Cài PetCare lên iPhone như một ứng dụng thật (không cần Expo Go):** cần tài khoản Apple Developer — xem [mục 7](#7-tạo-file-cài-đặt-phát-hành-apk--aab--ios).
+
+**Lỗi hay gặp riêng trên iPhone:**
+
+| Hiện tượng | Cách xử lý |
+|---|---|
+| Quét QR nhưng báo *"Project is incompatible with this version of Expo Go"* | Cập nhật Expo Go trong App Store lên bản mới nhất. |
+| Màn hình đỏ *"Could not connect to the development server"* | iPhone không thấy Mac: kiểm tra cùng Wi‑Fi, đã cho phép **Mạng cục bộ** cho Expo Go, Tường lửa macOS không chặn `node`, và không dùng Wi‑Fi "khách" cách ly thiết bị. Thử mở `http://<IP>:8081` bằng Safari trên iPhone. |
+| Vào được app nhưng báo *"Không kết nối được máy chủ"* | Quên `EXPO_PUBLIC_API_URL=http://<IP>:4000/api` khi chạy `start`, hoặc API chưa chạy (`docker compose ps`). |
+| Ảnh đã upload không hiện | `API_PUBLIC_URL` trong `.env` vẫn là `localhost` — đổi thành `http://<IP>:4000` rồi `docker compose up -d api`. |
+| Mạng đổi (đổi Wi‑Fi) thì app mất kết nối | IP của Mac đã đổi: chạy lại `lan-url`, cập nhật `.env`, `docker compose up -d api` và khởi động lại `start` với IP mới. |
+
 ---
 
 ## 7. Tạo file cài đặt phát hành (APK / AAB / iOS)
@@ -372,6 +425,8 @@ File APK nằm ở `apps/mobile/android/app/build/outputs/apk/release/app-releas
 ---
 
 ## 8. Hướng dẫn dùng bản mobile (chủ nuôi)
+
+Áp dụng cho cả Android và iPhone (những điểm khác nhau trên iPhone nằm ở [mục 6](#chạy-và-dùng-trên-iphone-chi-tiết)).
 
 Dưới thanh điều hướng có 4 tab: **Trang chủ · Khám phá · Tin nhắn · Tài khoản**. Biểu tượng chuông (thông báo, có số chưa đọc) nằm ở đầu mỗi tab.
 
