@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Linking, Pressable, RefreshControl, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
@@ -10,6 +10,9 @@ import { AppText } from "../../../shared/components/AppText";
 import { Badge } from "../../../shared/components/Badge";
 import { Card } from "../../../shared/components/Card";
 import { Chips } from "../../../shared/components/Chips";
+import { LeafletMap } from "../../../shared/components/LeafletMap";
+import { PillTabs } from "../../../shared/components/PillTabs";
+import { Button } from "../../../shared/components/Button";
 import { Screen } from "../../../shared/components/Screen";
 import { EmptyState, ErrorBanner, Loading } from "../../../shared/components/States";
 import { TextField } from "../../../shared/components/TextField";
@@ -24,7 +27,12 @@ export default function DiscoverScreen() {
   // is carried to the booking form so they don't have to pick it again.
   const { petId } = useLocalSearchParams<{ petId?: string }>();
   const [center, setCenter] = useState(DEFAULT_CENTER);
-  const [located, setLocated] = useState(false);
+  // Where the search point came from: device GPS, a point tapped on the map,
+  // or the TP.HCM default.
+  const [source, setSource] = useState<"default" | "gps" | "picked">("default");
+  const [mode, setMode] = useState<"list" | "map">("list");
+  const [recenterKey, setRecenterKey] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [radiusKm, setRadiusKm] = useState(10);
   const [nameQuery, setNameQuery] = useState("");
@@ -50,7 +58,8 @@ export default function DiscoverScreen() {
         return;
       }
       setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
-      setLocated(true);
+      setSource("gps");
+      setRecenterKey((key) => key + 1);
     } catch {
       Alert.alert("Không lấy được vị trí", "Đang dùng khu vực mặc định (TP.HCM).");
     } finally {
@@ -69,13 +78,32 @@ export default function DiscoverScreen() {
 
   const term = nameQuery.trim().toLowerCase();
   const results = (query.data ?? []).filter((h) => !term || h.name.toLowerCase().includes(term));
+  const markers = useMemo(() => results.map((h) => ({ id: h.id, lat: h.lat, lng: h.lng, name: h.name })), [query.data, term]);
+  const selected = results.find((h) => h.id === selectedId) ?? null;
+
+  function openHospital(id: string) {
+    router.push(
+      petId
+        ? { pathname: "/hospital/[id]", params: { id, petId, tab: "booking" } }
+        : { pathname: "/hospital/[id]", params: { id } },
+    );
+  }
 
   return (
     <Screen topInset refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}>
       <AppText variant="display">Khám phá</AppText>
       <AppText variant="small" tone="muted">
-        {located ? "Phòng khám gần vị trí của bạn" : "Phòng khám gần khu vực mặc định (TP.HCM)"}
+        {source === "gps" ? "Phòng khám gần vị trí của bạn" : source === "picked" ? "Phòng khám gần điểm bạn chọn trên bản đồ" : "Phòng khám gần khu vực mặc định (TP.HCM)"}
       </AppText>
+
+      <PillTabs
+        tabs={[
+          { value: "list", label: "Danh sách" },
+          { value: "map", label: "Bản đồ" },
+        ]}
+        value={mode}
+        onChange={setMode}
+      />
 
       <TextField value={nameQuery} onChangeText={setNameQuery} placeholder="Tìm phòng khám theo tên..." />
       <Chips
@@ -89,6 +117,34 @@ export default function DiscoverScreen() {
         </AppText>
       </Pressable>
 
+      {mode === "map" ? (
+        <>
+          <LeafletMap
+            center={center}
+            radiusKm={radiusKm}
+            markers={markers}
+            recenterKey={recenterKey}
+            onPick={(point) => {
+              setCenter(point);
+              setSource("picked");
+              setSelectedId(null);
+            }}
+            onSelectMarker={setSelectedId}
+          />
+          <AppText variant="caption" tone="muted">Chạm vào bản đồ để chọn điểm tìm kiếm, chạm ghim để xem phòng khám.</AppText>
+          {selected ? (
+            <Card style={{ gap: 8 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+                <AppText variant="semi" style={{ flex: 1 }}>{selected.name}</AppText>
+                <Badge tone="brand">{`${selected.distanceKm} km`}</Badge>
+              </View>
+              {selected.address ? <AppText variant="small" tone="muted">{selected.address}</AppText> : null}
+              <Button title="Xem phòng khám" onPress={() => openHospital(selected.id)} />
+            </Card>
+          ) : null}
+        </>
+      ) : null}
+
       {query.isLoading ? <Loading /> : null}
       {query.isError ? <ErrorBanner message={extractErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
       {!query.isLoading && !query.isError && results.length === 0 ? (
@@ -101,13 +157,7 @@ export default function DiscoverScreen() {
       {results.map((h) => (
         <Pressable
           key={h.id}
-          onPress={() =>
-            router.push(
-              petId
-                ? { pathname: "/hospital/[id]", params: { id: h.id, petId, tab: "booking" } }
-                : { pathname: "/hospital/[id]", params: { id: h.id } },
-            )
-          }
+          onPress={() => openHospital(h.id)}
           accessibilityRole="button"
           accessibilityLabel={`${h.name}, cách ${h.distanceKm} km`}
         >
