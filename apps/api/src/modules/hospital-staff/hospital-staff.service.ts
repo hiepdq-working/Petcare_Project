@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { HospitalStaffDto } from "@petcare/types";
+import type { HospitalStaffDto, HospitalStaffMeDto, StaffPosition } from "@petcare/types";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { MailerService } from "../../lib/mailer.service";
 import { generateOpaqueToken } from "../../lib/tokens";
@@ -25,6 +25,18 @@ export class HospitalStaffService {
       throw new NotFoundError("Không tìm thấy phòng khám của tài khoản này");
     }
     return { id: hospital.id, name: hospital.name };
+  }
+
+  async getMe(userId: string): Promise<HospitalStaffMeDto> {
+    const staff = await this.hospitalRepository.findStaffByUserId(userId);
+    const hospital = staff && staff.status === "ACTIVE" ? await this.hospitalRepository.findById(staff.hospitalId) : null;
+    if (!staff || !hospital) {
+      throw new NotFoundError("Tài khoản nhân viên không còn hoạt động");
+    }
+    return {
+      position: staff.position as StaffPosition,
+      hospital: { id: hospital.id, name: hospital.name, brandColor: hospital.brandColor },
+    };
   }
 
   private async findOwnedOrThrow(staffId: string, hospitalId: string): Promise<HospitalStaffWithUser> {

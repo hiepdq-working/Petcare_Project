@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import type { AppointmentStatus } from "@prisma/client";
-import type { AppointmentDto } from "@petcare/types";
+import { STAFF_APPOINTMENT_TRANSITIONS, UserRole, type AppointmentDto, type StaffPosition } from "@petcare/types";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { NotificationService } from "../notifications/notification.service";
 import { PetEventService } from "../pet-events/pet-event.service";
@@ -8,6 +8,7 @@ import { PetRepository } from "../pets/pet.repository";
 import { ServiceRepository } from "../services/service.repository";
 import { VetRepository } from "../vets/vet.repository";
 import { HospitalRepository } from "../hospitals/hospital.repository";
+import { findHospitalForActor } from "../hospitals/hospital-access";
 import { AppointmentRepository } from "./appointment.repository";
 import { toAppointmentDto } from "./appointment.types";
 import type { CreateAppointmentInput } from "./appointment.validator";
@@ -34,14 +35,6 @@ export class AppointmentService {
     private readonly notificationService: NotificationService,
     private readonly petEventService: PetEventService,
   ) {}
-
-  private async resolveHospitalId(ownerId: string): Promise<string> {
-    const hospital = await this.hospitalRepository.findByOwnerId(ownerId);
-    if (!hospital) {
-      throw new NotFoundError("Không tìm thấy phòng khám của tài khoản này");
-    }
-    return hospital.id;
-  }
 
   async create(petOwnerId: string, input: CreateAppointmentInput): Promise<AppointmentDto> {
     const pet = await this.petRepository.findById(input.petId);
@@ -97,9 +90,9 @@ export class AppointmentService {
     // observes — this mirrors the product decision that Vet cannot
     // confirm appointments themselves.
     if (hospital.notifyNewAppointment) {
-      if (hospital.ownerId) {
+      for (const recipientId of await this.clinicRecipientIds(hospital)) {
         await this.notificationService.create({
-          userId: hospital.ownerId,
+          userId: recipientId,
           type: "APPOINTMENT",
           title: "Có lịch hẹn mới cần xác nhận",
           content: `${pet.name} · ${service.name} · ${whenText}`,
@@ -139,9 +132,9 @@ export class AppointmentService {
     return appointments.map(toAppointmentDto);
   }
 
-  async listForHospital(ownerId: string, status?: AppointmentStatus): Promise<AppointmentDto[]> {
-    const hospitalId = await this.resolveHospitalId(ownerId);
-    const appointments = await this.repository.findManyByHospital(hospitalId, status);
+  async listForHospital(userId: string, role: UserRole, status?: AppointmentStatus): Promise<AppointmentDto[]> {
+    const hospital = await findHospitalForActor(this.hospitalRepository, userId, role);
+    const appointments = await this.repository.findManyByHospital(hospital.id, status);
     return appointments.map(toAppointmentDto);
   }
 
@@ -155,17 +148,18 @@ export class AppointmentService {
   }
 
   async updateStatus(
-    ownerId: string,
+    actorId: string,
+    role: UserRole,
     appointmentId: string,
     status: AppointmentStatus,
     notes?: string,
   ): Promise<AppointmentDto> {
-    const hospitalId = await this.resolveHospitalId(ownerId);
+    const hospital = await findHospitalForActor(this.hospitalRepository, actorId, role);
     const appointment = await this.repository.findById(appointmentId);
     if (!appointment) {
       throw new NotFoundError("Không tìm thấy lịch hẹn");
     }
-    if (appointment.hospitalId !== hospitalId) {
+    if (appointment.hospitalId !== hospital.id) {
       throw new ForbiddenError("Lịch hẹn này không thuộc phòng khám của bạn");
     }
 
@@ -173,8 +167,11 @@ export class AppointmentService {
     if (!allowed.includes(status)) {
       throw new ConflictError(`Không thể chuyển trạng thái từ ${appointment.status} sang ${status}`);
     }
+    if (role === UserRole.HOSPITAL_STAFF) {
+      await this.assertStaffMayTransition(actorId, appointment.status, status);
+    }
 
-    const updated = await this.repository.updateStatus(appointmentId, status, ownerId, notes);
+    const updated = await this.repository.updateStatus(appointmentId, status, actorId, notes);
 
     const statusText: Record<string, string> = {
       CONFIRMED: "đã được xác nhận",
@@ -203,6 +200,27 @@ export class AppointmentService {
     return toAppointmentDto(updated);
   }
 
+  // Receptionists handle intake (confirm / cancel), nurses handle the visit
+  // itself (start / finish) — see STAFF_APPOINTMENT_TRANSITIONS.
+  private async assertStaffMayTransition(
+    staffUserId: string,
+    from: AppointmentStatus,
+    to: AppointmentStatus,
+  ): Promise<void> {
+    const staff = await this.hospitalRepository.findStaffByUserId(staffUserId);
+    const allowed = staff ? STAFF_APPOINTMENT_TRANSITIONS[staff.position as StaffPosition]?.[from] ?? [] : [];
+    if (!allowed.includes(to)) {
+      throw new ForbiddenError("Vị trí của bạn không được phép thực hiện thay đổi trạng thái này");
+    }
+  }
+
+  // Everyone on the clinic side who should hear about booking activity:
+  // the owner plus active staff (the requested vet is notified separately).
+  private async clinicRecipientIds(hospital: { id: string; ownerId: string | null }): Promise<string[]> {
+    const staffIds = await this.hospitalRepository.findActiveStaffUserIds(hospital.id);
+    return [...(hospital.ownerId ? [hospital.ownerId] : []), ...staffIds];
+  }
+
   async cancelMine(petOwnerId: string, appointmentId: string): Promise<AppointmentDto> {
     const appointment = await this.repository.findById(appointmentId);
     if (!appointment) {
@@ -223,9 +241,9 @@ export class AppointmentService {
     );
 
     if (updated.hospital?.notifyNewAppointment) {
-      if (updated.hospital.ownerId) {
+      for (const recipientId of await this.clinicRecipientIds(updated.hospital)) {
         await this.notificationService.create({
-          userId: updated.hospital.ownerId,
+          userId: recipientId,
           type: "APPOINTMENT",
           title: `Lịch hẹn của ${updated.pet.name} đã bị huỷ`,
           content: "Chủ thú cưng đã huỷ lịch hẹn này",

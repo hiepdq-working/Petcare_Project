@@ -1,5 +1,8 @@
 export interface ConversationDto {
   id: string;
+  // The identity the viewer acts as in this inbox: their own id, or the
+  // clinic owner's id for staff sharing the clinic inbox.
+  viewerId: string;
   otherUserId: string;
   otherUserName: string;
   otherUserAvatar: string | null;

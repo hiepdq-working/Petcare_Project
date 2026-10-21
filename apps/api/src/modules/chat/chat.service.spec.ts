@@ -4,6 +4,7 @@ import { ChatRepository, type ConversationWithUsers, type MessageWithSender } fr
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { NotificationService } from "../notifications/notification.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
+import { UserRole } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 
 function makeUser(overrides: Partial<User> = {}): User {
@@ -54,7 +55,13 @@ function setup() {
     markConversationRead: jest.fn(),
   } as unknown as jest.Mocked<ChatRepository>;
 
-  const hospitalRepository = { findById: jest.fn() } as unknown as jest.Mocked<HospitalRepository>;
+  const hospitalRepository = {
+    findById: jest.fn(),
+    findByOwnerId: jest.fn().mockResolvedValue(null),
+    findByStaffUserId: jest.fn(),
+    findStaffByUserId: jest.fn(),
+    findActiveStaffUserIds: jest.fn().mockResolvedValue([]),
+  } as unknown as jest.Mocked<HospitalRepository>;
   const notificationService = { create: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<NotificationService>;
   const realtime = { emitToUser: jest.fn() } as unknown as jest.Mocked<RealtimeGateway>;
 
@@ -91,7 +98,7 @@ describe("ChatService.sendMessage", () => {
     repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
     repository.createMessage.mockResolvedValue(makeMessage());
 
-    await service.sendMessage("conv-1", "owner-1", { message: "Xin chào" });
+    await service.sendMessage("conv-1", "owner-1", UserRole.PET_OWNER, { message: "Xin chào" });
 
     expect(repository.createMessage).toHaveBeenCalledWith(
       expect.objectContaining({ conversationId: "conv-1", senderId: "owner-1", messageType: "text" }),
@@ -106,7 +113,7 @@ describe("ChatService.sendMessage", () => {
     repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
     repository.createMessage.mockResolvedValue(makeMessage({ messageType: "image", mediaUrl: "https://x.test/a.png" }));
 
-    await service.sendMessage("conv-1", "owner-1", { mediaUrl: "https://x.test/a.png" });
+    await service.sendMessage("conv-1", "owner-1", UserRole.PET_OWNER, { mediaUrl: "https://x.test/a.png" });
 
     expect(repository.createMessage).toHaveBeenCalledWith(
       expect.objectContaining({ messageType: "image", mediaUrl: "https://x.test/a.png" }),
@@ -117,7 +124,7 @@ describe("ChatService.sendMessage", () => {
     const { service, repository } = setup();
     repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
 
-    await expect(service.sendMessage("conv-1", "someone-else", { message: "hi" })).rejects.toBeInstanceOf(
+    await expect(service.sendMessage("conv-1", "someone-else", UserRole.PET_OWNER, { message: "hi" })).rejects.toBeInstanceOf(
       ForbiddenError,
     );
     expect(repository.createMessage).not.toHaveBeenCalled();
@@ -127,7 +134,7 @@ describe("ChatService.sendMessage", () => {
     const { service, repository } = setup();
     repository.findConversationById.mockResolvedValue(null);
 
-    await expect(service.sendMessage("missing", "owner-1", { message: "hi" })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(service.sendMessage("missing", "owner-1", UserRole.PET_OWNER, { message: "hi" })).rejects.toBeInstanceOf(NotFoundError);
   });
 });
 
@@ -137,7 +144,7 @@ describe("ChatService.getMessages", () => {
     repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
     repository.findMessages.mockResolvedValue([makeMessage()]);
 
-    const messages = await service.getMessages("conv-1", "owner-1");
+    const messages = await service.getMessages("conv-1", "owner-1", UserRole.PET_OWNER);
 
     expect(repository.markConversationRead).toHaveBeenCalledWith("conv-1", "owner-1");
     expect(messages).toHaveLength(1);
@@ -147,6 +154,69 @@ describe("ChatService.getMessages", () => {
     const { service, repository } = setup();
     repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
 
-    await expect(service.getMessages("conv-1", "someone-else")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.getMessages("conv-1", "someone-else", UserRole.PET_OWNER)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+});
+
+describe("ChatService shared clinic inbox (staff)", () => {
+  function staffSetup(position: "RECEPTIONIST" | "NURSE") {
+    const ctx = setup();
+    ctx.hospitalRepository.findStaffByUserId.mockResolvedValue({ userId: "staff-1", position, status: "ACTIVE" } as never);
+    ctx.hospitalRepository.findByStaffUserId.mockResolvedValue(makeHospital());
+    return ctx;
+  }
+
+  it("lets a receptionist read the clinic owner's conversations", async () => {
+    const { service, repository } = staffSetup("RECEPTIONIST");
+    repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
+    repository.findMessages.mockResolvedValue([makeMessage()]);
+
+    await service.getMessages("conv-1", "staff-1", UserRole.HOSPITAL_STAFF);
+
+    expect(repository.markConversationRead).toHaveBeenCalledWith("conv-1", "hospital-owner-1");
+  });
+
+  it("stores a receptionist's reply under the owner's id and notifies the customer", async () => {
+    const { service, repository, notificationService } = staffSetup("RECEPTIONIST");
+    repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
+    repository.createMessage.mockResolvedValue(makeMessage({ senderId: "hospital-owner-1" }));
+
+    await service.sendMessage("conv-1", "staff-1", UserRole.HOSPITAL_STAFF, { message: "Chào bạn" });
+
+    expect(repository.createMessage).toHaveBeenCalledWith(expect.objectContaining({ senderId: "hospital-owner-1" }));
+    expect(notificationService.create).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner-1" }));
+  });
+
+  it("also notifies active receptionists when a customer messages the clinic", async () => {
+    const { service, repository, hospitalRepository, notificationService } = setup();
+    repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
+    repository.createMessage.mockResolvedValue(makeMessage());
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital({ notifyNewMessage: true } as never));
+    hospitalRepository.findActiveStaffUserIds.mockResolvedValue(["staff-1"]);
+
+    await service.sendMessage("conv-1", "owner-1", UserRole.PET_OWNER, { message: "Xin chào" });
+
+    const notified = notificationService.create.mock.calls.map(([arg]) => arg.userId);
+    expect(notified).toEqual(expect.arrayContaining(["hospital-owner-1", "staff-1"]));
+  });
+
+  it("rejects a nurse from the clinic inbox", async () => {
+    const { service, repository } = staffSetup("NURSE");
+    repository.findConversationById.mockResolvedValue(makeConversation() as unknown as Conversation);
+
+    await expect(service.getMessages("conv-1", "staff-1", UserRole.HOSPITAL_STAFF)).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+  });
+
+  it("rejects a staff member from a conversation belonging to another clinic", async () => {
+    const { service, repository } = staffSetup("RECEPTIONIST");
+    repository.findConversationById.mockResolvedValue(
+      makeConversation({ user2Id: "other-clinic-owner" }) as unknown as Conversation,
+    );
+
+    await expect(service.getMessages("conv-1", "staff-1", UserRole.HOSPITAL_STAFF)).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
   });
 });

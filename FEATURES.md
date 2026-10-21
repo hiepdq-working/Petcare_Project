@@ -154,10 +154,18 @@ Liệt kê theo đúng thứ tự đã triển khai (vertical slice — mỗi t�
 
 ---
 
+## 26. Không gian làm việc của nhân viên phòng khám (Lễ tân / Điều dưỡng)
+- Nhân viên đăng nhập vào sidebar riêng, áp màu thương hiệu của phòng khám; endpoint `GET /hospital-staff/me` trả vị trí + phòng khám. Quyền **phân theo vị trí**, cùng một bảng (`STAFF_APPOINTMENT_TRANSITIONS` trong `@petcare/types`) được API kiểm tra và web dùng để ẩn/hiện nút
+- **Lễ tân:** hàng đợi lịch hẹn (xác nhận / huỷ) và **hộp thư dùng chung** của phòng khám: xem và trả lời tin của khách; tin trả lời lưu dưới tên chủ phòng khám (khách thấy một giọng "phòng khám"), cập nhật real-time cho chủ và các lễ tân khác
+- **Điều dưỡng:** hàng đợi lịch hẹn (bắt đầu khám / hoàn tất) và xem hồ sơ bệnh án của phòng khám ở chế độ chỉ đọc; không có hộp thư. Lễ tân không xem được hồ sơ bệnh án
+- Không ai trong nhân viên sửa được hồ sơ phòng khám, dịch vụ hay đội ngũ (chỉ chủ phòng khám)
+- Thông báo lịch hẹn mới / khách huỷ và tin nhắn mới gửi thêm cho nhân viên đang hoạt động (tin nhắn chỉ tới lễ tân), vẫn theo công tắc thông báo của phòng khám
+- Sửa lỗ hổng: nhân viên bị chủ "tạm ngưng" giờ bị chặn đăng nhập (trước đây chỉ đổi trạng thái hiển thị) và mất quyền truy cập ngay cả khi đang đăng nhập
+- Mobile chưa hỗ trợ vai trò này (chỉ Pet Owner)
+
 ## Chưa triển khai (nằm ngoài phạm vi các đợt vừa qua)
 - Xác thực email hoàn chỉnh: nội dung điều khoản sử dụng, mã OTP qua email cho quên mật khẩu, gửi lại email xác thực (đang tạm gác, chưa làm)
 - Mobile: push notification khi app đóng (FCM), đăng nhập Google, bản iOS, build APK/AAB phát hành, và các vai trò Hospital/Vet/Admin trên mobile
 - Gọi thoại/video thật (cần hạ tầng TURN server)
 - Đa ngôn ngữ (toàn app đang hardcode tiếng Việt, chưa có hạ tầng i18n)
 - Đánh giá/nhắn tin cho Shop (schema đã thiết kế đa hình sẵn nhưng tính năng Shop chưa được xây)
-- Đăng nhập riêng cho vai trò Điều dưỡng/Lễ tân đã có tài khoản, nhưng chưa có màn hình làm việc riêng cho họ (hiện chỉ thấy khung trống "đang được xây dựng")

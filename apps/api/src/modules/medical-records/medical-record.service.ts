@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import type { MedicalRecordStatus } from "@prisma/client";
-import { UserRole, type MedicalRecordDto } from "@petcare/types";
+import { STAFF_POSITIONS_WITH_RECORD_ACCESS, UserRole, type MedicalRecordDto } from "@petcare/types";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 import { HospitalRepository } from "../hospitals/hospital.repository";
+import { assertStaffPosition, findHospitalForActor } from "../hospitals/hospital-access";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { PetRepository } from "../pets/pet.repository";
 import { VetRepository, type VetWithUser } from "../vets/vet.repository";
@@ -30,14 +31,6 @@ export class MedicalRecordService {
       throw new NotFoundError("Không tìm thấy hồ sơ bác sĩ");
     }
     return vet;
-  }
-
-  private async resolveHospitalId(ownerId: string): Promise<string> {
-    const hospital = await this.hospitalRepository.findByOwnerId(ownerId);
-    if (!hospital) {
-      throw new NotFoundError("Không tìm thấy phòng khám của tài khoản này");
-    }
-    return hospital.id;
   }
 
   private assertVetOwnsRecord(record: MedicalRecordWithRelations, vet: VetWithUser): void {
@@ -100,9 +93,23 @@ export class MedicalRecordService {
     return records.map(toMedicalRecordDto);
   }
 
-  async listForHospital(ownerId: string, status?: MedicalRecordStatus): Promise<MedicalRecordDto[]> {
-    const hospitalId = await this.resolveHospitalId(ownerId);
-    const records = await this.repository.findManyByHospital(hospitalId, status);
+  // Clinical detail is limited to nurses among staff; receptionists work
+  // the front desk and don't see records.
+  private assertStaffMayReadRecords(userId: string): Promise<void> {
+    return assertStaffPosition(
+      this.hospitalRepository,
+      userId,
+      STAFF_POSITIONS_WITH_RECORD_ACCESS,
+      "Vị trí của bạn không được xem hồ sơ bệnh án",
+    );
+  }
+
+  async listForHospital(userId: string, role: UserRole, status?: MedicalRecordStatus): Promise<MedicalRecordDto[]> {
+    if (role === UserRole.HOSPITAL_STAFF) {
+      await this.assertStaffMayReadRecords(userId);
+    }
+    const hospital = await findHospitalForActor(this.hospitalRepository, userId, role);
+    const records = await this.repository.findManyByHospital(hospital.id, status);
     return records.map(toMedicalRecordDto);
   }
 
@@ -119,9 +126,12 @@ export class MedicalRecordService {
     } else if (role === UserRole.VET) {
       const vet = await this.resolveVet(requesterId);
       this.assertVetOwnsRecord(record, vet);
-    } else if (role === UserRole.HOSPITAL_OWNER) {
-      const hospitalId = await this.resolveHospitalId(requesterId);
-      if (record.hospitalId !== hospitalId) {
+    } else if (role === UserRole.HOSPITAL_OWNER || role === UserRole.HOSPITAL_STAFF) {
+      if (role === UserRole.HOSPITAL_STAFF) {
+        await this.assertStaffMayReadRecords(requesterId);
+      }
+      const hospital = await findHospitalForActor(this.hospitalRepository, requesterId, role);
+      if (record.hospitalId !== hospital.id) {
         throw new ForbiddenError("Hồ sơ bệnh án này không thuộc phòng khám của bạn");
       }
     } else {

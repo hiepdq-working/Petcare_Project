@@ -17,11 +17,20 @@ import {
 
 @Controller("hospital-staff")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.HOSPITAL_OWNER)
 export class HospitalStaffController {
   constructor(private readonly service: HospitalStaffService) {}
 
+  // Declared before the owner-only routes: it is the staff member's own
+  // workspace context (position + clinic), not part of owner management.
+  @Get("me")
+  @Roles(UserRole.HOSPITAL_STAFF)
+  async me(@CurrentUser() auth: RequestAuth) {
+    const me = await this.service.getMe(auth.userId);
+    return ok(me);
+  }
+
   @Post()
+  @Roles(UserRole.HOSPITAL_OWNER)
   async create(
     @CurrentUser() auth: RequestAuth,
     @Body(new ZodValidationPipe(createHospitalStaffSchema)) body: CreateHospitalStaffInput,
@@ -31,12 +40,14 @@ export class HospitalStaffController {
   }
 
   @Get()
+  @Roles(UserRole.HOSPITAL_OWNER)
   async list(@CurrentUser() auth: RequestAuth) {
     const staff = await this.service.listMine(auth.userId);
     return ok(staff);
   }
 
   @Patch(":id")
+  @Roles(UserRole.HOSPITAL_OWNER)
   async update(
     @CurrentUser() auth: RequestAuth,
     @Param("id") id: string,

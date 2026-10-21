@@ -11,6 +11,7 @@ export function toConversationDto(
   const otherUser = conversation.user1Id === requesterId ? conversation.user2 : conversation.user1;
   return {
     id: conversation.id,
+    viewerId: requesterId,
     otherUserId: otherUser.id,
     otherUserName: otherUser.name,
     otherUserAvatar: otherUser.avatar,

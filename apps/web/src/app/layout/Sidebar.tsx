@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { UserRole } from "@petcare/types";
+import { UserRole, type StaffPosition } from "@petcare/types";
+import { useStaffMe } from "../../features/hospital-staff/useStaffMe";
 import {
   LayoutGrid,
   CalendarDays,
@@ -47,8 +48,30 @@ const NAV_BY_ROLE: Partial<Record<UserRole, NavItem[]>> = {
   ],
 };
 
+// Staff see only what their position works with: the front desk handles the
+// appointment queue and the shared inbox, nurses handle the visit and read
+// medical records.
+const STAFF_NAV: Record<StaffPosition, NavItem[]> = {
+  RECEPTIONIST: [
+    { to: "/hospital/appointments", label: "Lịch khám", icon: CalendarDays },
+    { to: "/messages", label: "Tin nhắn", icon: MessageCircle },
+    { to: "/settings", label: "Cài đặt", icon: Settings },
+  ],
+  NURSE: [
+    { to: "/hospital/appointments", label: "Lịch khám", icon: CalendarDays },
+    { to: "/hospital/medical-records", label: "Hồ sơ bệnh án", icon: FolderHeart },
+    { to: "/settings", label: "Cài đặt", icon: Settings },
+  ],
+};
+
 export function Sidebar({ role }: { role: UserRole }) {
-  const items = NAV_BY_ROLE[role] ?? [];
+  const staffMe = useStaffMe();
+  const items =
+    role === UserRole.HOSPITAL_STAFF
+      ? staffMe.data
+        ? STAFF_NAV[staffMe.data.position]
+        : []
+      : (NAV_BY_ROLE[role] ?? []);
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-brand-100 bg-white/70 px-3 py-6 md:flex">
@@ -72,5 +95,5 @@ export function Sidebar({ role }: { role: UserRole }) {
 }
 
 export function hasSidebar(role: UserRole | undefined): boolean {
-  return !!role && role in NAV_BY_ROLE;
+  return !!role && (role in NAV_BY_ROLE || role === UserRole.HOSPITAL_STAFF);
 }

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { UserRole } from "@petcare/types";
+import { StaffPosition, UserRole } from "@petcare/types";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { VerifyEmailPage } from "../features/auth/pages/VerifyEmailPage";
@@ -7,6 +7,7 @@ import { ForgotPasswordPage } from "../features/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../features/auth/pages/ResetPasswordPage";
 import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
 import { RequireRole } from "../features/auth/components/RequireRole";
+import { RequireStaffPosition } from "../features/auth/components/RequireStaffPosition";
 import { PetsListPage } from "../features/pets/pages/PetsListPage";
 import { PetFormPage } from "../features/pets/pages/PetFormPage";
 import { PetDetailPage } from "../features/pets/pages/PetDetailPage";
@@ -100,8 +101,12 @@ export function AppRoutes() {
             <Route
               path="/medical-records/:id"
               element={
-                <RequireRole role={[UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER]}>
-                  <MedicalRecordDetailPage />
+                <RequireRole
+                  role={[UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF]}
+                >
+                  <RequireStaffPosition position={[StaffPosition.NURSE]}>
+                    <MedicalRecordDetailPage />
+                  </RequireStaffPosition>
                 </RequireRole>
               }
             />
@@ -116,8 +121,10 @@ export function AppRoutes() {
             <Route
               path="/hospital/medical-records"
               element={
-                <RequireRole role={UserRole.HOSPITAL_OWNER}>
-                  <HospitalMedicalRecordsPage />
+                <RequireRole role={[UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF]}>
+                  <RequireStaffPosition position={[StaffPosition.NURSE]}>
+                    <HospitalMedicalRecordsPage />
+                  </RequireStaffPosition>
                 </RequireRole>
               }
             />
@@ -196,16 +203,20 @@ export function AppRoutes() {
             <Route
               path="/messages"
               element={
-                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
-                  <ConversationsPage />
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF]}>
+                  <RequireStaffPosition position={[StaffPosition.RECEPTIONIST]}>
+                    <ConversationsPage />
+                  </RequireStaffPosition>
                 </RequireRole>
               }
             />
             <Route
               path="/messages/:id"
               element={
-                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER]}>
-                  <ConversationPage />
+                <RequireRole role={[UserRole.PET_OWNER, UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF]}>
+                  <RequireStaffPosition position={[StaffPosition.RECEPTIONIST]}>
+                    <ConversationPage />
+                  </RequireStaffPosition>
                 </RequireRole>
               }
             />
@@ -268,7 +279,7 @@ export function AppRoutes() {
             <Route
               path="/hospital/appointments"
               element={
-                <RequireRole role={UserRole.HOSPITAL_OWNER}>
+                <RequireRole role={[UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF]}>
                   <HospitalAppointmentsPage />
                 </RequireRole>
               }

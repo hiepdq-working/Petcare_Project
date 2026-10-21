@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { Hospital, Prisma } from "@prisma/client";
+import type { Hospital, HospitalStaff, Prisma, StaffPosition } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 
 export interface NearbyHospitalRow {
@@ -24,6 +24,26 @@ export class HospitalRepository {
   // PartnerRegistrationRepository.createHospitalOwnerWithHospital).
   findByOwnerId(ownerId: string): Promise<Hospital | null> {
     return this.prisma.hospital.findFirst({ where: { ownerId } });
+  }
+
+  // Staff only count while their HospitalStaff row is ACTIVE, so deactivating
+  // a staff member cuts off access to the clinic immediately.
+  findByStaffUserId(userId: string): Promise<Hospital | null> {
+    return this.prisma.hospital.findFirst({
+      where: { staff: { some: { userId, status: "ACTIVE" } } },
+    });
+  }
+
+  findStaffByUserId(userId: string): Promise<HospitalStaff | null> {
+    return this.prisma.hospitalStaff.findUnique({ where: { userId } });
+  }
+
+  async findActiveStaffUserIds(hospitalId: string, position?: StaffPosition): Promise<string[]> {
+    const rows = await this.prisma.hospitalStaff.findMany({
+      where: { hospitalId, status: "ACTIVE", ...(position ? { position } : {}) },
+      select: { userId: true },
+    });
+    return rows.map((row) => row.userId);
   }
 
   findById(id: string): Promise<Hospital | null> {

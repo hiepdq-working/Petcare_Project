@@ -102,7 +102,9 @@ export function ConversationPage() {
 
         <div className="flex flex-col gap-2">
           {messagesQuery.data?.map((message) => {
-            const isMine = message.senderId === user?.id;
+            // Staff share the clinic inbox, so "mine" is the inbox identity the
+            // server reports (the owner's id), not the staff member's own.
+            const isMine = message.senderId === (conversation?.viewerId ?? user?.id);
             return (
               <div key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                 <div

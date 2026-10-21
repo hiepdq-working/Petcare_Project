@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AppointmentStatus } from "@petcare/types";
+import { STAFF_APPOINTMENT_TRANSITIONS, UserRole, type AppointmentStatus } from "@petcare/types";
+import { useAuthStore } from "../../auth/store";
+import { useStaffMe } from "../../hospital-staff/useStaffMe";
 import { CalendarClock, Stethoscope, Clock3, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { appointmentsApi } from "../api/appointments.api";
 import { AppointmentStatusBadge } from "../components/AppointmentStatusBadge";
@@ -62,6 +64,17 @@ export function HospitalAppointmentsPage() {
   const [tab, setTab] = useState<AppointmentStatus | "ALL">("ALL");
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const queryClient = useQueryClient();
+  const role = useAuthStore((state) => state.user?.role);
+  const staffMe = useStaffMe();
+
+  // Owners get every action; staff only the ones their position may take
+  // (same table the API enforces — STAFF_APPOINTMENT_TRANSITIONS).
+  const actionsFor = (status: AppointmentStatus) => {
+    const actions = NEXT_ACTIONS[status] ?? [];
+    if (role !== UserRole.HOSPITAL_STAFF) return actions;
+    const allowed = staffMe.data ? (STAFF_APPOINTMENT_TRANSITIONS[staffMe.data.position][status] ?? []) : [];
+    return actions.filter((action) => allowed.includes(action.status));
+  };
 
   // Fetched unfiltered so the stat row and the tab filter can both work off
   // one list instead of issuing a request per tab.
@@ -166,9 +179,9 @@ export function HospitalAppointmentsPage() {
               <AppointmentStatusBadge status={appointment.status} />
             </div>
 
-            {NEXT_ACTIONS[appointment.status]?.length ? (
+            {actionsFor(appointment.status).length ? (
               <div className="mt-4 flex gap-3">
-                {NEXT_ACTIONS[appointment.status]!.map((action) => (
+                {actionsFor(appointment.status).map((action) => (
                   <button
                     key={action.status}
                     onClick={() => mutation.mutate({ id: appointment.id, status: action.status })}

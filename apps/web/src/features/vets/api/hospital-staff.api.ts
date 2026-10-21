@@ -1,7 +1,16 @@
 import { apiClient, unwrap } from "../../../shared/api/client";
-import type { CreateHospitalStaffRequest, HospitalStaffDto, UpdateHospitalStaffRequest } from "@petcare/types";
+import type {
+  CreateHospitalStaffRequest,
+  HospitalStaffDto,
+  HospitalStaffMeDto,
+  UpdateHospitalStaffRequest,
+} from "@petcare/types";
 
 export const hospitalStaffApi = {
+  async getMe(): Promise<HospitalStaffMeDto> {
+    return unwrap(await apiClient.get("/hospital-staff/me"));
+  },
+
   async create(input: CreateHospitalStaffRequest): Promise<HospitalStaffDto> {
     return unwrap(await apiClient.post("/hospital-staff", input));
   },

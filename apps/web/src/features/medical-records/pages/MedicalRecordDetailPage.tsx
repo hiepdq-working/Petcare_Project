@@ -102,7 +102,7 @@ export function MedicalRecordDetailPage() {
 
   const record = query.data;
   const isVet = role === UserRole.VET;
-  const isHospitalOwner = role === UserRole.HOSPITAL_OWNER;
+  const isHospitalOwner = role === UserRole.HOSPITAL_OWNER || role === UserRole.HOSPITAL_STAFF;
   const backHref = isVet
     ? "/vet/medical-records"
     : isHospitalOwner

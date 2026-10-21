@@ -26,13 +26,13 @@ export class ChatController {
 
   @Get()
   async listMine(@CurrentUser() auth: RequestAuth) {
-    const conversations = await this.service.listMine(auth.userId);
+    const conversations = await this.service.listMine(auth.userId, auth.role);
     return ok(conversations);
   }
 
   @Get(":id/messages")
   async getMessages(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
-    const messages = await this.service.getMessages(id, auth.userId);
+    const messages = await this.service.getMessages(id, auth.userId, auth.role);
     return ok(messages);
   }
 
@@ -42,7 +42,7 @@ export class ChatController {
     @Param("id") id: string,
     @Body(new ZodValidationPipe(sendMessageSchema)) body: SendMessageInput,
   ) {
-    const message = await this.service.sendMessage(id, auth.userId, body);
+    const message = await this.service.sendMessage(id, auth.userId, auth.role, body);
     return ok(message);
   }
 }

@@ -39,9 +39,9 @@ export class AppointmentController {
   }
 
   @Get("hospital")
-  @Roles(UserRole.HOSPITAL_OWNER)
+  @Roles(UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF)
   async listForHospital(@CurrentUser() auth: RequestAuth, @Query("status") status?: AppointmentStatus) {
-    const appointments = await this.service.listForHospital(auth.userId, status);
+    const appointments = await this.service.listForHospital(auth.userId, auth.role, status);
     return ok(appointments);
   }
 
@@ -53,13 +53,13 @@ export class AppointmentController {
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.HOSPITAL_OWNER)
+  @Roles(UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF)
   async updateStatus(
     @CurrentUser() auth: RequestAuth,
     @Param("id") id: string,
     @Body(new ZodValidationPipe(updateAppointmentStatusSchema)) body: UpdateAppointmentStatusInput,
   ) {
-    const appointment = await this.service.updateStatus(auth.userId, id, body.status, body.notes);
+    const appointment = await this.service.updateStatus(auth.userId, auth.role, id, body.status, body.notes);
     return ok(appointment, "Cập nhật trạng thái lịch hẹn thành công");
   }
 

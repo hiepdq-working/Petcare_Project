@@ -4,6 +4,7 @@ import { MedicalRecordService } from "./medical-record.service";
 import { MedicalRecordRepository, type MedicalRecordWithRelations } from "./medical-record.repository";
 import { PetRepository } from "../pets/pet.repository";
 import { VetRepository, type VetWithUser } from "../vets/vet.repository";
+import { HospitalRepository } from "../hospitals/hospital.repository";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 
@@ -93,11 +94,16 @@ function setup() {
 
   const petRepository = { findById: jest.fn() } as unknown as jest.Mocked<PetRepository>;
   const vetRepository = { findByUserId: jest.fn() } as unknown as jest.Mocked<VetRepository>;
+  const hospitalRepository = {
+    findByOwnerId: jest.fn(),
+    findByStaffUserId: jest.fn(),
+    findStaffByUserId: jest.fn(),
+  } as unknown as jest.Mocked<HospitalRepository>;
   const petEventService = { publish: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<PetEventService>;
 
-  const service = new MedicalRecordService(repository, petRepository, vetRepository, petEventService);
+  const service = new MedicalRecordService(repository, petRepository, vetRepository, hospitalRepository, petEventService);
 
-  return { service, repository, petRepository, vetRepository, petEventService };
+  return { service, repository, petRepository, vetRepository, hospitalRepository, petEventService };
 }
 
 const validInput = { petId: "pet-1", diagnosis: "Viêm da" } as const;
@@ -210,5 +216,42 @@ describe("MedicalRecordService.addVersion", () => {
       ForbiddenError,
     );
     expect(repository.addVersion).not.toHaveBeenCalled();
+  });
+});
+
+describe("MedicalRecordService.getOne (staff)", () => {
+  function staffSetup(position: "RECEPTIONIST" | "NURSE") {
+    const ctx = setup();
+    ctx.hospitalRepository.findStaffByUserId.mockResolvedValue({ userId: "staff-1", position, status: "ACTIVE" } as never);
+    ctx.hospitalRepository.findByStaffUserId.mockResolvedValue({ id: "hospital-1" } as never);
+    return ctx;
+  }
+
+  it("lets a nurse read a record from their own clinic", async () => {
+    const { service, repository } = staffSetup("NURSE");
+    repository.findById.mockResolvedValue(makeRecord());
+
+    const dto = await service.getOne("record-1", "staff-1", UserRole.HOSPITAL_STAFF);
+
+    expect(dto.id).toBe("record-1");
+  });
+
+  it("stops a receptionist from reading records", async () => {
+    const { service, repository } = staffSetup("RECEPTIONIST");
+    repository.findById.mockResolvedValue(makeRecord());
+
+    await expect(service.getOne("record-1", "staff-1", UserRole.HOSPITAL_STAFF)).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+  });
+
+  it("stops a nurse from reading another clinic's record", async () => {
+    const { service, repository, hospitalRepository } = staffSetup("NURSE");
+    hospitalRepository.findByStaffUserId.mockResolvedValue({ id: "other-hospital" } as never);
+    repository.findById.mockResolvedValue(makeRecord());
+
+    await expect(service.getOne("record-1", "staff-1", UserRole.HOSPITAL_STAFF)).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
   });
 });

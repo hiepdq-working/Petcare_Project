@@ -4,6 +4,7 @@ import { UserRole } from "@petcare/types";
 import { useAuthStore } from "../../features/auth/store";
 import { hospitalApi } from "../../features/hospital/api/hospital.api";
 import { vetsApi } from "../../features/vets/api/vets.api";
+import { useStaffMe } from "../../features/hospital-staff/useStaffMe";
 import { BrandScope } from "../../shared/components/BrandScope";
 import { TopBar } from "./TopBar";
 import { Sidebar, hasSidebar } from "./Sidebar";
@@ -11,7 +12,7 @@ import { BottomNav } from "./BottomNav";
 import { RightRail } from "./RightRail";
 
 // Re-colors the whole workspace shell (Sidebar, TopBar, every brand-* class
-// on the page) to a Hospital Owner's or Vet's own clinic brand color — see
+// on the page) to a Hospital Owner's, Vet's or staff member's own clinic brand color — see
 // shared/components/BrandScope.tsx. Query keys match the ones those roles'
 // own profile pages already use, so this never issues a duplicate request.
 function useOwnHospitalBrandColor(role: UserRole | undefined): string | null | undefined {
@@ -26,7 +27,10 @@ function useOwnHospitalBrandColor(role: UserRole | undefined): string | null | u
     enabled: role === UserRole.VET,
   });
 
+  const staffQuery = useStaffMe();
+
   if (role === UserRole.HOSPITAL_OWNER) return hospitalQuery.data?.brandColor;
+  if (role === UserRole.HOSPITAL_STAFF) return staffQuery.data?.hospital.brandColor;
   if (role === UserRole.VET) return vetQuery.data?.hospitalBrandColor;
   return undefined;
 }

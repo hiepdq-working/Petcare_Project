@@ -50,14 +50,14 @@ export class MedicalRecordController {
   }
 
   @Get("hospital")
-  @Roles(UserRole.HOSPITAL_OWNER)
+  @Roles(UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF)
   async listForHospital(@CurrentUser() auth: RequestAuth, @Query("status") status?: MedicalRecordStatus) {
-    const records = await this.service.listForHospital(auth.userId, status);
+    const records = await this.service.listForHospital(auth.userId, auth.role, status);
     return ok(records);
   }
 
   @Get(":id")
-  @Roles(UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER)
+  @Roles(UserRole.PET_OWNER, UserRole.VET, UserRole.HOSPITAL_OWNER, UserRole.HOSPITAL_STAFF)
   async getOne(@CurrentUser() auth: RequestAuth, @Param("id") id: string) {
     const record = await this.service.getOne(id, auth.userId, auth.role);
     return ok(record);

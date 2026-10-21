@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import type { User } from "@prisma/client";
-import { UserStatus } from "@petcare/types";
+import { UserRole, UserStatus } from "@petcare/types";
 import type { AuthUser } from "@petcare/types";
 import {
   BadRequestError,
@@ -50,12 +50,20 @@ export class AuthService {
     private readonly googleAuth: GoogleAuthService,
   ) {}
 
-  private assertLoginable(user: User): void {
+  private async assertLoginable(user: User): Promise<void> {
     if (user.status === UserStatus.BANNED) {
       throw new ForbiddenError("Tài khoản của bạn đã bị khoá");
     }
     if (user.status === UserStatus.INACTIVE) {
       throw new ForbiddenError("Tài khoản của bạn đang tạm ngưng hoạt động");
+    }
+    // The clinic owner deactivates staff on the HospitalStaff row, not on
+    // the User, so that status has to be checked separately.
+    if (user.role === UserRole.HOSPITAL_STAFF) {
+      const staffStatus = await this.repository.findStaffStatusByUserId(user.id);
+      if (staffStatus !== "ACTIVE") {
+        throw new ForbiddenError("Tài khoản nhân viên của bạn đã bị phòng khám tạm ngưng");
+      }
     }
   }
 
@@ -105,7 +113,7 @@ export class AuthService {
       throw new UnauthorizedError("Email hoặc mật khẩu không đúng");
     }
 
-    this.assertLoginable(user);
+    await this.assertLoginable(user);
 
     if (!user.emailVerifiedAt) {
       throw new ForbiddenError("Vui lòng xác thực email trước khi đăng nhập");
@@ -135,7 +143,7 @@ export class AuthService {
       }
     }
 
-    this.assertLoginable(user);
+    await this.assertLoginable(user);
     return this.issueSession(user);
   }
 
@@ -154,7 +162,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedError();
     }
-    this.assertLoginable(user);
+    await this.assertLoginable(user);
 
     return this.issueSession(user);
   }

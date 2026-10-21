@@ -16,6 +16,11 @@ export class AuthRepository {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async findStaffStatusByUserId(userId: string): Promise<string | null> {
+    const staff = await this.prisma.hospitalStaff.findUnique({ where: { userId }, select: { status: true } });
+    return staff?.status ?? null;
+  }
+
   findByGoogleId(googleId: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { googleId } });
   }

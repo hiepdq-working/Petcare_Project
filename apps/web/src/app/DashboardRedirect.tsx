@@ -5,7 +5,7 @@ import { useAuthStore } from "../features/auth/store";
 // Pet Owners land on the feed (matches "Sau khi đăng nhập sẽ vào trang feed"
 // in the design brief), Admin lands on the approval queue, Hospital Owner
 // lands on their own hospital profile, Vet lands on their own profile.
-// Hospital Staff gets a placeholder until its role is built.
+// Hospital Staff lands on the appointment queue (their shared workspace).
 export function DashboardRedirect() {
   const role = useAuthStore((state) => state.user?.role);
 
@@ -23,6 +23,10 @@ export function DashboardRedirect() {
 
   if (role === UserRole.VET) {
     return <Navigate to="/vet/profile" replace />;
+  }
+
+  if (role === UserRole.HOSPITAL_STAFF) {
+    return <Navigate to="/hospital/appointments" replace />;
   }
 
   return (

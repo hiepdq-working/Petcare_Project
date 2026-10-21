@@ -7,7 +7,7 @@ import { HospitalRepository } from "../hospitals/hospital.repository";
 import { NotificationService } from "../notifications/notification.service";
 import { PetEventService } from "../pet-events/pet-event.service";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
-import { ShopStatus } from "@petcare/types";
+import { ShopStatus, UserRole } from "@petcare/types";
 import type { Hospital, Pet, Service } from "@prisma/client";
 
 function makePet(overrides: Partial<Pet> = {}): Pet {
@@ -43,6 +43,8 @@ function makeHospital(overrides: Partial<Hospital> = {}): Hospital {
     email: null,
     status: ShopStatus.ACTIVE,
     isEmergency: false,
+    notifyNewAppointment: true,
+    notifyNewMessage: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -121,6 +123,9 @@ function setup() {
   const hospitalRepository = {
     findById: jest.fn(),
     findByOwnerId: jest.fn(),
+    findByStaffUserId: jest.fn(),
+    findStaffByUserId: jest.fn(),
+    findActiveStaffUserIds: jest.fn().mockResolvedValue([]),
   } as unknown as jest.Mocked<HospitalRepository>;
   const notificationService = { create: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<NotificationService>;
   const petEventService = { publish: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<PetEventService>;
@@ -221,7 +226,7 @@ describe("AppointmentService.updateStatus", () => {
     repository.findById.mockResolvedValue(makeAppointment({ status: "PENDING" }));
     repository.updateStatus.mockResolvedValue(makeAppointment({ status: "CONFIRMED" }));
 
-    await service.updateStatus("hospital-owner-1", "appt-1", "CONFIRMED");
+    await service.updateStatus("hospital-owner-1", UserRole.HOSPITAL_OWNER, "appt-1", "CONFIRMED");
 
     expect(repository.updateStatus).toHaveBeenCalledWith("appt-1", "CONFIRMED", "hospital-owner-1", undefined);
     expect(notificationService.create).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner-1" }));
@@ -232,7 +237,7 @@ describe("AppointmentService.updateStatus", () => {
     hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
     repository.findById.mockResolvedValue(makeAppointment({ status: "COMPLETED" }));
 
-    await expect(service.updateStatus("hospital-owner-1", "appt-1", "CONFIRMED")).rejects.toBeInstanceOf(
+    await expect(service.updateStatus("hospital-owner-1", UserRole.HOSPITAL_OWNER, "appt-1", "CONFIRMED")).rejects.toBeInstanceOf(
       ConflictError,
     );
     expect(repository.updateStatus).not.toHaveBeenCalled();
@@ -243,9 +248,51 @@ describe("AppointmentService.updateStatus", () => {
     hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital({ id: "another-hospital" }));
     repository.findById.mockResolvedValue(makeAppointment());
 
-    await expect(service.updateStatus("hospital-owner-1", "appt-1", "CONFIRMED")).rejects.toBeInstanceOf(
+    await expect(service.updateStatus("hospital-owner-1", UserRole.HOSPITAL_OWNER, "appt-1", "CONFIRMED")).rejects.toBeInstanceOf(
       ForbiddenError,
     );
+  });
+});
+
+describe("AppointmentService.updateStatus (staff)", () => {
+  function staffSetup(position: "RECEPTIONIST" | "NURSE") {
+    const ctx = setup();
+    ctx.hospitalRepository.findByStaffUserId.mockResolvedValue(makeHospital());
+    ctx.hospitalRepository.findStaffByUserId.mockResolvedValue({ userId: "staff-1", position, status: "ACTIVE" } as never);
+    return ctx;
+  }
+
+  it("lets a receptionist confirm a pending appointment", async () => {
+    const { service, repository } = staffSetup("RECEPTIONIST");
+    repository.findById.mockResolvedValue(makeAppointment({ status: "PENDING" }));
+    repository.updateStatus.mockResolvedValue(makeAppointment({ status: "CONFIRMED" }));
+
+    await service.updateStatus("staff-1", UserRole.HOSPITAL_STAFF, "appt-1", "CONFIRMED");
+
+    expect(repository.updateStatus).toHaveBeenCalledWith("appt-1", "CONFIRMED", "staff-1", undefined);
+  });
+
+  it("stops a receptionist from starting the visit", async () => {
+    const { service, repository } = staffSetup("RECEPTIONIST");
+    repository.findById.mockResolvedValue(makeAppointment({ status: "CONFIRMED" }));
+
+    await expect(
+      service.updateStatus("staff-1", UserRole.HOSPITAL_STAFF, "appt-1", "IN_PROGRESS"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(repository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("lets a nurse start a confirmed appointment but not confirm a pending one", async () => {
+    const { service, repository } = staffSetup("NURSE");
+    repository.findById.mockResolvedValue(makeAppointment({ status: "CONFIRMED" }));
+    repository.updateStatus.mockResolvedValue(makeAppointment({ status: "IN_PROGRESS" }));
+    await service.updateStatus("staff-1", UserRole.HOSPITAL_STAFF, "appt-1", "IN_PROGRESS");
+    expect(repository.updateStatus).toHaveBeenCalledTimes(1);
+
+    repository.findById.mockResolvedValue(makeAppointment({ status: "PENDING" }));
+    await expect(
+      service.updateStatus("staff-1", UserRole.HOSPITAL_STAFF, "appt-1", "CONFIRMED"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
 
