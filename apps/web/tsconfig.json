@@ -6,7 +6,15 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true
+    "noEmit": true,
+    // Force every dependency's types onto the web's own React 18 typings. The
+    // Expo app in this workspace uses @types/react 19, and pnpm otherwise
+    // hoists that one to third-party packages (react-router, lucide), which
+    // breaks JSX type-checking here (TS2786).
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"]
+    }
   },
   "include": ["src"]
 }

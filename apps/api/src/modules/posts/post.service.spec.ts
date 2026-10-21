@@ -6,6 +6,9 @@ import { PetRepository } from "../pets/pet.repository";
 import { HospitalRepository } from "../hospitals/hospital.repository";
 import { VetRepository, type VetWithUser } from "../vets/vet.repository";
 import { PetEventService } from "../pet-events/pet-event.service";
+import { FavoriteRepository } from "../favorites/favorite.repository";
+import { NotificationService } from "../notifications/notification.service";
+import { GroupRepository } from "../groups/group.repository";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../common/errors/app-error";
 
 function makePet(overrides: Partial<Pet> = {}): Pet {
@@ -68,6 +71,14 @@ function makePost(overrides: Partial<PostWithRelations> = {}): PostWithRelations
     vet: null,
     media: [],
     likes: [],
+    savedBy: [],
+    groupId: null,
+    group: null,
+    kind: "NORMAL",
+    promoTitle: null,
+    discountText: null,
+    promoStartsAt: null,
+    promoEndsAt: null,
     _count: { likes: 0, comments: 0 },
     ...overrides,
   } as unknown as PostWithRelations;
@@ -116,9 +127,32 @@ function setup() {
   const vetRepository = { findById: jest.fn() } as unknown as jest.Mocked<VetRepository>;
   const petEventService = { publish: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<PetEventService>;
 
-  const service = new PostService(repository, petRepository, hospitalRepository, vetRepository, petEventService);
+  const favoriteRepository = { findFollowerIds: jest.fn().mockResolvedValue([]) } as unknown as jest.Mocked<FavoriteRepository>;
+  const notificationService = { create: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<NotificationService>;
+  const groupRepository = { findByIdRaw: jest.fn(), isMember: jest.fn() } as unknown as jest.Mocked<GroupRepository>;
 
-  return { service, repository, petRepository, hospitalRepository, vetRepository, petEventService };
+  const service = new PostService(
+    repository,
+    petRepository,
+    hospitalRepository,
+    vetRepository,
+    petEventService,
+    favoriteRepository,
+    notificationService,
+    groupRepository,
+  );
+
+  return {
+    service,
+    repository,
+    petRepository,
+    hospitalRepository,
+    vetRepository,
+    petEventService,
+    favoriteRepository,
+    notificationService,
+    groupRepository,
+  };
 }
 
 describe("PostService.create — Pet Owner", () => {
@@ -126,7 +160,7 @@ describe("PostService.create — Pet Owner", () => {
     const { service, repository, petEventService } = setup();
     repository.create.mockResolvedValue(makePost());
 
-    await service.create("owner-1", UserRole.PET_OWNER, { content: "Xin chào" });
+    await service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL" as const, content: "Xin chào" });
 
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "owner-1", content: "Xin chào", hospitalId: undefined }),
@@ -140,7 +174,7 @@ describe("PostService.create — Pet Owner", () => {
     petRepository.findById.mockResolvedValue(makePet());
     repository.create.mockResolvedValue(makePost({ petId: "pet-1" }));
 
-    await service.create("owner-1", UserRole.PET_OWNER, { content: "Ảnh dễ thương", petId: "pet-1" });
+    await service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL" as const, content: "Ảnh dễ thương", petId: "pet-1" });
 
     expect(petEventService.publish).toHaveBeenCalledWith(
       expect.objectContaining({ petId: "pet-1", eventType: "SOCIAL_POST", referenceId: "post-1" }),
@@ -152,7 +186,7 @@ describe("PostService.create — Pet Owner", () => {
     petRepository.findById.mockResolvedValue(makePet({ ownerId: "someone-else" }));
 
     await expect(
-      service.create("owner-1", UserRole.PET_OWNER, { content: "x", petId: "pet-1" }),
+      service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL" as const, content: "x", petId: "pet-1" }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
@@ -160,7 +194,7 @@ describe("PostService.create — Pet Owner", () => {
     const { service } = setup();
 
     await expect(
-      service.create("owner-1", UserRole.PET_OWNER, {
+      service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL" as const,
         content: "x",
         media: [
           { mediaUrl: "https://x.test/a.png", mediaType: "image" },
@@ -174,7 +208,7 @@ describe("PostService.create — Pet Owner", () => {
     const { service } = setup();
 
     await expect(
-      service.create("owner-1", UserRole.PET_OWNER, { content: "x", vetId: "vet-1" }),
+      service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL" as const, content: "x", vetId: "vet-1" }),
     ).rejects.toBeInstanceOf(BadRequestError);
   });
 });
@@ -186,7 +220,7 @@ describe("PostService.create — Hospital", () => {
     repository.create.mockResolvedValue(makePost({ hospitalId: "hospital-1" }));
 
     const media = Array.from({ length: 5 }, (_, i) => ({ mediaUrl: `https://x.test/${i}.png`, mediaType: "image" as const }));
-    await service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "Phòng khám của chúng tôi", media });
+    await service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL" as const, content: "Phòng khám của chúng tôi", media });
 
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({ hospitalId: "hospital-1", petId: undefined }),
@@ -200,7 +234,7 @@ describe("PostService.create — Hospital", () => {
     vetRepository.findById.mockResolvedValue(makeVet({ hospitalId: "another-hospital" }));
 
     await expect(
-      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x", vetId: "vet-1" }),
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL" as const, content: "x", vetId: "vet-1" }),
     ).rejects.toBeInstanceOf(BadRequestError);
   });
 
@@ -209,7 +243,7 @@ describe("PostService.create — Hospital", () => {
     hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
 
     await expect(
-      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x", petId: "pet-1" }),
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL" as const, content: "x", petId: "pet-1" }),
     ).rejects.toBeInstanceOf(BadRequestError);
   });
 
@@ -218,8 +252,89 @@ describe("PostService.create — Hospital", () => {
     hospitalRepository.findByOwnerId.mockResolvedValue(null);
 
     await expect(
-      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { content: "x" }),
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL" as const, content: "x" }),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("PostService.create — groups", () => {
+  it("lets a member post inside a group", async () => {
+    const { service, repository, groupRepository } = setup();
+    groupRepository.findByIdRaw.mockResolvedValue({ id: "group-1" } as never);
+    groupRepository.isMember.mockResolvedValue(true);
+    repository.create.mockResolvedValue(makePost());
+
+    await service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL", content: "Chào cả nhóm", groupId: "group-1" });
+
+    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ groupId: "group-1" }), "owner-1");
+  });
+
+  it("rejects posting in a group the user hasn't joined", async () => {
+    const { service, repository, groupRepository } = setup();
+    groupRepository.findByIdRaw.mockResolvedValue({ id: "group-1" } as never);
+    groupRepository.isMember.mockResolvedValue(false);
+
+    await expect(
+      service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL", content: "x", groupId: "group-1" }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(repository.create).not.toHaveBeenCalled();
+  });
+
+  it("raises NotFoundError for a group that doesn't exist", async () => {
+    const { service, groupRepository } = setup();
+    groupRepository.findByIdRaw.mockResolvedValue(null);
+
+    await expect(
+      service.create("owner-1", UserRole.PET_OWNER, { kind: "NORMAL", content: "x", groupId: "missing" }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("rejects a hospital posting in a group", async () => {
+    const { service } = setup();
+
+    await expect(
+      service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL", content: "x", groupId: "group-1" }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+});
+
+describe("PostService.create — promotions", () => {
+  const promo = {
+    kind: "PROMOTION" as const,
+    content: "Giảm giá tiêm phòng",
+    promoTitle: "Tiêm phòng -20%",
+    promoEndsAt: new Date(Date.now() + 86_400_000),
+  };
+
+  it("notifies everyone who favorited the clinic", async () => {
+    const { service, repository, hospitalRepository, favoriteRepository, notificationService } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
+    repository.create.mockResolvedValue(makePost({ hospitalId: "hospital-1" }));
+    favoriteRepository.findFollowerIds.mockResolvedValue(["fan-1", "fan-2"]);
+
+    await service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, promo);
+
+    expect(favoriteRepository.findFollowerIds).toHaveBeenCalledWith("hospital-1");
+    expect(notificationService.create).toHaveBeenCalledTimes(2);
+    expect(notificationService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "fan-1", type: "PROMOTION" }),
+    );
+  });
+
+  it("does not notify anyone for a normal hospital post", async () => {
+    const { service, repository, hospitalRepository, notificationService } = setup();
+    hospitalRepository.findByOwnerId.mockResolvedValue(makeHospital());
+    repository.create.mockResolvedValue(makePost({ hospitalId: "hospital-1" }));
+
+    await service.create("hospital-owner-1", UserRole.HOSPITAL_OWNER, { kind: "NORMAL", content: "Xin chào" });
+
+    expect(notificationService.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a Pet Owner posting a promotion", async () => {
+    const { service } = setup();
+
+    await expect(service.create("owner-1", UserRole.PET_OWNER, promo)).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
 

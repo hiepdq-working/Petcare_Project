@@ -77,6 +77,7 @@ function setup() {
 
   const hospitalRepository = {
     findByOwnerId: jest.fn(),
+    findById: jest.fn(),
   } as unknown as jest.Mocked<HospitalRepository>;
 
   const mailer = {
@@ -156,12 +157,14 @@ describe("VetService ownership checks", () => {
 
 describe("VetService.getMyProfile", () => {
   it("returns the vet profile linked to the requester's own user id", async () => {
-    const { service, repository } = setup();
+    const { service, repository, hospitalRepository } = setup();
     repository.findByUserId.mockResolvedValue(makeVet());
+    hospitalRepository.findById.mockResolvedValue(makeHospital({ brandColor: "#1f6b53" } as never));
 
     const vet = await service.getMyProfile("vet-user-1");
 
     expect(vet.name).toBe("BS. Minh");
+    expect(vet.hospitalBrandColor).toBe("#1f6b53");
   });
 
   it("raises NotFoundError when the user has no vet profile", async () => {

@@ -14,6 +14,7 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "check": "turbo run typecheck test",
     "db:migrate": "pnpm --filter @petcare/api prisma:migrate",
     "db:studio": "pnpm --filter @petcare/api prisma:studio"
   },
