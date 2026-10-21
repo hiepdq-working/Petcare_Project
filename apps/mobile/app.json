@@ -7,17 +7,32 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.petcare.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "PetCare kết nối tới máy chủ trong mạng nội bộ của bạn để tải dữ liệu."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#1f6b53",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "vn.petcare.app"
+      "package": "vn.petcare.app",
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,7 +44,37 @@
       "@react-native-community/datetimepicker",
       "expo-font",
       "expo-image",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "PetCare cần dùng camera để chụp ảnh đăng bài và ảnh thú cưng.",
+          "photosPermission": "PetCare cần truy cập ảnh để bạn chọn ảnh đại diện và ảnh gửi trong tin nhắn.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "PetCare dùng vị trí của bạn để tìm phòng khám thú y gần nhất."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#1f6b53",
+          "imageWidth": 200
+        }
+      ]
     ]
   }
 }

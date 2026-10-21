@@ -63,7 +63,8 @@ adb reverse tcp:4000 tcp:4000                    # emulator gọi được API v
 pnpm --filter @petcare/mobile start --android    # Expo tự cài Expo Go lên emulator
 ```
 
-- Điện thoại thật: đặt `EXPO_PUBLIC_API_URL=http://<IP-LAN-máy-bạn>:4000/api` và `API_PUBLIC_URL` của API cùng IP đó (ảnh upload trả về URL tuyệt đối).
+- Điện thoại thật (Android hoặc iPhone, cùng Wi‑Fi): chạy `pnpm --filter @petcare/mobile lan-url` để lấy IP, đặt `API_PUBLIC_URL=http://<IP>:4000` trong `.env` gốc (ảnh upload trả về URL tuyệt đối) và `EXPO_PUBLIC_API_URL=http://<IP>:4000/api` khi chạy `pnpm --filter @petcare/mobile start`, rồi quét mã QR bằng Expo Go.
+- File cài đặt phát hành (APK/AAB/iOS): cấu hình sẵn trong `apps/mobile/eas.json`; các bước build ở [docs/HUONG_DAN_SU_DUNG.md](docs/HUONG_DAN_SU_DUNG.md) mục 7.
 - Đăng nhập thử bằng tài khoản Pet Owner mẫu trong [docs/LOGIN_GUIDE.md](docs/LOGIN_GUIDE.md).
 
 ## Tài liệu

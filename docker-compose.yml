@@ -40,7 +40,10 @@ services:
       DATABASE_URL: postgresql://petcare:petcare_dev_password@postgres:5432/petcare?schema=public
       WEB_ORIGIN: http://localhost:5173
       APP_URL: http://localhost:5173
-      API_PUBLIC_URL: http://localhost:4000
+      # Photo URLs the API hands out. localhost is right for the browser and the
+      # Android emulator; set API_PUBLIC_URL=http://<IP-LAN-của-Mac>:4000 in .env to
+      # use a real phone (see apps/mobile/.env.example).
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:4000}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-change-me-before-deploying}
       JWT_ACCESS_EXPIRES_IN: 15m
       REFRESH_TOKEN_EXPIRES_IN_DAYS: "30"

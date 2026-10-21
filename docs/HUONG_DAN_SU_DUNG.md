@@ -7,11 +7,12 @@ Tài liệu này dành cho người muốn **chạy PetCare trên máy Mac của
 3. [Chạy bản web](#3-chạy-bản-web)
 4. [Tài khoản mẫu](#4-tài-khoản-mẫu-để-đăng-nhập-thử)
 5. [Hướng dẫn dùng bản web theo từng vai trò](#5-hướng-dẫn-dùng-bản-web-theo-từng-vai-trò)
-6. [Chạy bản mobile (Android) trên MacBook](#6-chạy-bản-mobile-android-trên-macbook)
-7. [Hướng dẫn dùng bản mobile](#7-hướng-dẫn-dùng-bản-mobile-chủ-nuôi)
-8. [Kịch bản thử từ đầu đến cuối (khoảng 15 phút)](#8-kịch-bản-thử-từ-đầu-đến-cuối-khoảng-15-phút)
-9. [Xử lý sự cố thường gặp](#9-xử-lý-sự-cố-thường-gặp)
-10. [Những gì chưa có](#10-những-gì-chưa-có)
+6. [Chạy bản mobile trên MacBook (Android và iPhone)](#6-chạy-bản-mobile-trên-macbook-android-và-iphone)
+7. [Tạo file cài đặt phát hành (APK / AAB / iOS)](#7-tạo-file-cài-đặt-phát-hành-apk--aab--ios)
+8. [Hướng dẫn dùng bản mobile](#8-hướng-dẫn-dùng-bản-mobile-chủ-nuôi)
+9. [Kịch bản thử từ đầu đến cuối (khoảng 15 phút)](#9-kịch-bản-thử-từ-đầu-đến-cuối-khoảng-15-phút)
+10. [Xử lý sự cố thường gặp](#10-xử-lý-sự-cố-thường-gặp)
+11. [Những gì chưa có](#11-những-gì-chưa-có)
 
 > Các lệnh bên dưới chạy trong **Terminal** (hoặc terminal tích hợp của VS Code), tại thư mục gốc dự án `Petcare_Project`, trừ khi có ghi chú khác.
 
@@ -215,9 +216,9 @@ Sidebar: **Duyệt đối tác · Phòng khám · Người dùng · Bảng tin**
 
 ---
 
-## 6. Chạy bản mobile (Android) trên MacBook
+## 6. Chạy bản mobile trên MacBook (Android và iPhone)
 
-Ứng dụng mobile chạy bằng **Expo Go** trong **máy ảo Android** (hoặc điện thoại thật). Không cần build file APK để thử.
+Ứng dụng mobile chạy bằng **Expo Go** trong **máy ảo Android** hoặc trên **điện thoại thật (Android/iPhone)**. Không cần build file cài đặt để thử; muốn có file cài đặt thì xem [mục 7](#7-tạo-file-cài-đặt-phát-hành-apk--aab--ios).
 
 ### Chuẩn bị một lần
 
@@ -267,22 +268,110 @@ Lần đầu Expo tự cài **Expo Go** vào máy ảo rồi mở app PetCare. �
 | **Mở lại app sau khi đóng** | `adb shell am start -a android.intent.action.VIEW -d "exp://localhost:8081"` |
 | **Tắt mạng để thử chế độ offline** | `adb shell svc wifi disable` và `adb shell svc data disable` (bật lại bằng `enable`). Lưu ý: nếu mở app lúc đó, hãy dùng địa chỉ `exp://localhost:8081` ở trên thay vì địa chỉ IP. |
 
-### Chạy trên điện thoại Android thật (tuỳ chọn)
+### Chạy trên điện thoại thật bằng Expo Go (Android hoặc iPhone)
 
-1. Điện thoại và Mac **cùng một mạng Wi‑Fi**; cài **Expo Go** từ Google Play.
-2. Tìm IP của Mac: `ipconfig getifaddr en0` (ví dụ `192.168.1.20`).
-3. Sửa `docker-compose.yml`, dòng `API_PUBLIC_URL: http://localhost:4000` thành `API_PUBLIC_URL: http://192.168.1.20:4000` (để đường dẫn ảnh upload điện thoại tải được), rồi `docker compose up -d api`.
-4. Chạy app với địa chỉ API đó (không dùng `adb reverse`):
+Cách này không cần Xcode hay Android Studio. Điện thoại và Mac phải **cùng một mạng Wi‑Fi**.
+
+1. Cài **Expo Go** trên điện thoại (Google Play hoặc App Store). Nếu app báo phiên bản không tương thích, hãy cập nhật Expo Go lên bản mới nhất.
+2. Lấy địa chỉ IP của Mac:
+   ```bash
+   pnpm --filter @petcare/mobile lan-url
+   ```
+   Lệnh in ra IP LAN (ví dụ `192.168.1.20`) cùng hai giá trị cần dùng bên dưới.
+3. Cho API biết địa chỉ công khai để **ảnh đã upload hiện được trên điện thoại**: tạo file `.env` ở **thư mục gốc dự án** (cạnh `docker-compose.yml`), thêm một dòng:
+   ```
+   API_PUBLIC_URL=http://192.168.1.20:4000
+   ```
+   rồi áp dụng: `docker compose up -d api`. (Dùng IP của bạn thay cho `192.168.1.20`.)
+4. Chạy app, truyền địa chỉ API (không dùng `adb reverse`, không thêm `--android`):
    ```bash
    EXPO_PUBLIC_API_URL=http://192.168.1.20:4000/api pnpm --filter @petcare/mobile start
    ```
-5. Mở Expo Go, quét mã QR hiện trong Terminal.
+5. Quét mã QR hiện trong Terminal: **Android** mở Expo Go → *Scan QR code*; **iPhone** mở ứng dụng **Camera** quét mã, bấm thông báo để mở Expo Go.
+6. Lần đầu, điện thoại sẽ hỏi quyền: **Mạng cục bộ** (iPhone), **Camera**, **Vị trí** — chọn Cho phép. Nếu macOS hỏi cho phép kết nối đến `node`/Docker thì chọn **Allow**. Nếu không kết nối được, kiểm tra Tường lửa: Cài đặt hệ thống → Mạng → Tường lửa.
 
-> Điện thoại thật và iPhone **chưa được kiểm thử** trong dự án này; chỉ máy ảo Android đã được thử đầy đủ.
+Khác biệt nhỏ trên iPhone: bộ chọn ngày/giờ khi đặt lịch hiện dạng **bảng trượt từ dưới lên** (nút *Huỷ / Xong*) thay vì hộp thoại của Android. Các tính năng còn lại giống hệt.
+
+> Máy ảo Android đã được kiểm thử đầy đủ. **Điện thoại thật và iPhone chưa được kiểm thử** trong dự án này; nếu gặp lỗi, hãy ghi lại màn hình và thông báo lỗi để sửa.
 
 ---
 
-## 7. Hướng dẫn dùng bản mobile (chủ nuôi)
+## 7. Tạo file cài đặt phát hành (APK / AAB / iOS)
+
+Để cài PetCare lên điện thoại **không cần Expo Go**, bạn tạo file cài đặt. Phần cấu hình đã được chuẩn bị sẵn trong dự án (tên ứng dụng **PetCare**, mã `vn.petcare.app`, phiên bản `1.0.0`, icon dấu chân, màn hình khởi động, các câu xin quyền camera/ảnh/vị trí bằng tiếng Việt, cho phép kết nối HTTP tới IP trong mạng nội bộ). Bạn chỉ cần chạy lệnh build.
+
+### 7.1. Các loại file
+
+| File | Dùng để | Cần gì |
+|---|---|---|
+| **APK** (Android) | Cài trực tiếp lên điện thoại Android để dùng/thử/nộp bài | Không cần tài khoản cửa hàng |
+| **AAB** (Android) | Đăng lên Google Play | Tài khoản Google Play Developer (25 USD, trả một lần) |
+| **IPA** (iOS) | Cài lên iPhone (TestFlight / App Store / cài trực tiếp) | Tài khoản **Apple Developer (99 USD/năm)** |
+| **Bản cho iOS Simulator** | Chạy trên máy ảo iPhone của Mac | Xcode đầy đủ (cần ≥ 25 GB trống) |
+
+> Không có tài khoản Apple Developer thì **không thể** tạo file iOS cài lên iPhone thật — hãy dùng Expo Go (mục 6).
+
+### 7.2. Điều cần biết trước khi build
+
+- **Địa chỉ API được "đóng cứng" vào file cài đặt lúc build.** Vì API của bạn đang chạy trên Mac, hãy dùng IP LAN của Mac (lấy bằng `pnpm --filter @petcare/mobile lan-url`). Hệ quả: điện thoại phải **cùng Wi‑Fi với Mac**, Mac phải **đang bật** và Docker đang chạy; nếu IP của Mac đổi thì phải **build lại** (hoặc đặt IP cố định trong router).
+- Trong file `.env` ở thư mục gốc phải có `API_PUBLIC_URL=http://<IP>:4000` (mục 6, bước 3) để ảnh hiện được.
+- Kết nối dùng HTTP (không mã hoá) — phù hợp demo/nộp bài, **không** phù hợp phát hành công khai. Để phát hành thật cần một máy chủ API có HTTPS.
+- Muốn đổi icon: sửa script rồi chạy `python3 apps/mobile/scripts/generate-icons.py` (cần `pip install pillow`).
+
+### 7.3. Cách A (khuyến nghị): Expo EAS Build trên cloud
+
+Expo build giúp trên máy chủ của họ — **không tốn dung lượng máy bạn** (máy bạn hiện chỉ còn ít chỗ trống) và làm được cả Android lẫn iOS. Gói miễn phí có giới hạn số lượt build mỗi tháng và phải xếp hàng chờ; mỗi lần build mất vài chục phút.
+
+1. Tạo tài khoản miễn phí tại **expo.dev**.
+2. Đăng nhập trong Terminal (bạn tự nhập tài khoản — đừng gửi mật khẩu cho ai):
+   ```bash
+   cd apps/mobile
+   npx eas-cli login
+   ```
+3. Liên kết dự án với tài khoản (chạy một lần; lệnh sẽ ghi `projectId` vào `app.json`, hãy commit lại):
+   ```bash
+   npx eas-cli init
+   ```
+4. Đặt địa chỉ API cho bản build: mở `apps/mobile/eas.json`, sửa dòng `"EXPO_PUBLIC_API_URL": "http://192.168.1.100:4000/api"` thành IP Mac của bạn (từ lệnh `lan-url`).
+5. **Android APK** (cài thẳng):
+   ```bash
+   pnpm --filter @petcare/mobile build:android:apk
+   ```
+   Khi xong, Expo hiện liên kết/QR để tải file `.apk`. Chép vào điện thoại Android, mở file và bật *Cho phép cài ứng dụng từ nguồn này*.
+6. **Android AAB** (đăng Google Play): `pnpm --filter @petcare/mobile build:android:aab`. EAS tự tạo và lưu **khoá ký (keystore)** — hãy sao lưu bằng `npx eas-cli credentials`; mất khoá thì không thể cập nhật app đã đăng.
+7. **iOS** (cần tài khoản Apple Developer): `pnpm --filter @petcare/mobile build:ios`. Lần đầu EAS hỏi đăng nhập Apple ID và tạo chứng chỉ; để cài lên iPhone của bạn cần đăng ký thiết bị bằng `npx eas-cli device:create` trước. Đăng lên TestFlight/App Store dùng `npx eas-cli build --platform ios --profile production` rồi `npx eas-cli submit --platform ios`.
+8. **Bản cho iOS Simulator** (không cần tài khoản Apple, nhưng cần Xcode): `pnpm --filter @petcare/mobile build:ios:simulator`, tải file về, giải nén và kéo ứng dụng `.app` vào cửa sổ Simulator.
+
+### 7.4. Cách B: build Android ngay trên Mac (không cần tài khoản Expo)
+
+Nặng hơn: cần **≥ 10 GB trống**. Hiện Docker đang giữ ~14 GB "build cache" có thể xoá an toàn (chỉ làm các lần build Docker sau chậm hơn một chút):
+
+```bash
+docker builder prune          # xem dung lượng trống trước/sau bằng: df -h /
+```
+
+Cài thêm trong **Android Studio → Settings → Android SDK → SDK Tools**: *Android SDK Command-line Tools* và *NDK (Side by side)*. Sau đó:
+
+```bash
+cd apps/mobile
+EXPO_PUBLIC_API_URL=http://<IP>:4000/api npx expo prebuild --platform android --clean
+cd android && ./gradlew assembleRelease
+```
+
+File APK nằm ở `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` (thư mục `android/` được bỏ qua trong git, có thể xoá sau khi build). APK này ký bằng khoá thử nghiệm của mẫu Expo nên **cài trực tiếp được nhưng chưa dùng để đăng Google Play**; muốn đăng Play hãy dùng Cách A (EAS tạo khoá ký giúp).
+
+> Cách B và toàn bộ phần iOS ở mục này **chưa được tôi chạy thử trên máy bạn** (thiếu dung lượng/Xcode/tài khoản). Tôi đã kiểm tra: cấu hình hợp lệ (`expo-doctor` đạt 20/20), mã biên dịch được cho cả Android và iOS, và các tệp cấu hình native sinh ra đúng (mã ứng dụng, quyền, HTTP nội bộ). Nếu build lỗi, hãy gửi lại nội dung lỗi.
+
+### 7.5. Kiểm tra sau khi cài
+
+1. Mở app → đăng nhập `owner@petcare.local` → bảng tin hiện ra và **ảnh hiện đầy đủ** (nếu ảnh trống: kiểm tra `API_PUBLIC_URL` trong `.env`).
+2. Vào **Khám phá** → hộp thoại xin vị trí bằng tiếng Việt → thấy phòng khám.
+3. Đặt thử một lịch hẹn (kiểm tra bộ chọn ngày giờ), thử chụp ảnh đăng bài (kiểm tra quyền camera).
+4. Tắt Wi‑Fi: banner "Không có mạng" hiện ra, bảng tin vẫn xem được.
+
+---
+
+## 8. Hướng dẫn dùng bản mobile (chủ nuôi)
 
 Dưới thanh điều hướng có 4 tab: **Trang chủ · Khám phá · Tin nhắn · Tài khoản**. Biểu tượng chuông (thông báo, có số chưa đọc) nằm ở đầu mỗi tab.
 
@@ -308,7 +397,7 @@ Dưới thanh điều hướng có 4 tab: **Trang chủ · Khám phá · Tin nh�
 
 ---
 
-## 8. Kịch bản thử từ đầu đến cuối (khoảng 15 phút)
+## 9. Kịch bản thử từ đầu đến cuối (khoảng 15 phút)
 
 Kịch bản này cho thấy cả hệ thống làm việc cùng nhau. Dùng 3 cửa sổ: **(A)** web Pet Owner, **(B)** web Hospital Owner (cửa sổ ẩn danh), **(C)** app mobile (Pet Owner).
 
@@ -327,7 +416,7 @@ Dọn dữ liệu thử khi cần làm lại từ đầu: `docker compose down -
 
 ---
 
-## 9. Xử lý sự cố thường gặp
+## 10. Xử lý sự cố thường gặp
 
 | Hiện tượng | Nguyên nhân & cách xử lý |
 |---|---|
@@ -339,19 +428,22 @@ Dọn dữ liệu thử khi cần làm lại từ đầu: `docker compose down -
 | Mobile: màn hình xanh "Something went wrong" | Expo Go không tải được mã từ Mac. Kiểm tra Metro còn chạy (Terminal bước 4), chạy `adb reverse tcp:8081 tcp:8081`, rồi mở lại bằng `exp://localhost:8081`. Thường gặp sau khi tắt Wi‑Fi của máy ảo. |
 | Mobile: `adb: command not found` | Chưa thêm Android vào PATH — xem mục 2. |
 | Mobile: Khám phá không có phòng khám nào | Bạn đã cho phép vị trí nhưng máy ảo đang ở California. Đặt vị trí máy ảo thành `10.7769, 106.7009` (xem mục 6) hoặc chọn **Không cho phép**; hoặc chuyển sang **Bản đồ** và chạm vào khu vực TP.HCM. |
-| Mobile: không đánh giá được | Cần có một lịch hẹn **Hoàn thành** tại phòng khám đó (xem kịch bản mục 8, bước 4). |
+| Mobile: không đánh giá được | Cần có một lịch hẹn **Hoàn thành** tại phòng khám đó (xem kịch bản mục 9, bước 4). |
 | Web: đăng bài báo lỗi camera | Trình duyệt đã chặn camera. Bấm biểu tượng ổ khoá cạnh địa chỉ → cho phép **Camera**; kiểm tra macOS: Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Camera → bật cho trình duyệt. |
+| iPhone/điện thoại thật: không kết nối được máy chủ | Chưa cùng Wi‑Fi với Mac; sai IP; Tường lửa macOS chặn (cho phép `node`/Docker); hoặc quên bước 3–4 ở mục 6 (`API_PUBLIC_URL` và `EXPO_PUBLIC_API_URL`). Thử mở `http://<IP>:4000/api` bằng trình duyệt của điện thoại để kiểm tra. |
+| Điện thoại thật: ảnh không hiện | `API_PUBLIC_URL` trong `.env` vẫn là `localhost`. Đặt thành `http://<IP>:4000` rồi `docker compose up -d api`. |
+| File APK cài xong nhưng không đăng nhập được | IP trong lúc build khác IP hiện tại của Mac, Mac đang tắt/ngủ, hoặc điện thoại khác mạng. Kiểm tra IP bằng `lan-url`, nếu đổi thì build lại. |
 | Bản đồ mobile trắng | Cần Internet để tải ô bản đồ OpenStreetMap; kiểm tra mạng của máy ảo. |
 | Sửa code nhưng web không đổi | Web chạy từ bản build trong Docker: `docker compose build api web && docker compose up -d api web`. (App mobile tự cập nhật, không cần.) |
 | Hết dung lượng đĩa khi build | `docker system prune` (xoá cache build không dùng); xem `df -h /`. |
 
 ---
 
-## 10. Những gì chưa có
+## 11. Những gì chưa có
 
 Để bạn không tìm nhầm: các mục sau **chưa** làm hoặc cần chuẩn bị thêm.
 
 - **Gửi email thật**, mã OTP, nội dung điều khoản sử dụng: tạm gác — hiện email chỉ in ra log.
-- **Mobile:** thông báo đẩy khi app đóng (cần Firebase), đăng nhập Google (cần Google client ID), bản iOS, file cài đặt phát hành (APK/AAB), và các vai trò Hospital/Vet/Admin/nhân viên (dùng web).
+- **Mobile:** thông báo đẩy khi app đóng (cần Firebase), đăng nhập Google (cần Google client ID), và các vai trò Hospital/Vet/Admin/nhân viên (dùng web). **iOS và file cài đặt phát hành:** mã và cấu hình đã sẵn sàng (mục 6, 7) nhưng **chưa được chạy thử trên iPhone/chưa tạo file thật** vì cần iPhone/tài khoản Apple Developer/tài khoản Expo của bạn.
 - **Gọi thoại/video** (cần máy chủ TURN), **đa ngôn ngữ** (hiện chỉ tiếng Việt), **Shop** (cửa hàng thú cưng).
 - Danh sách đầy đủ và chi tiết kỹ thuật từng tính năng: [FEATURES.md](../FEATURES.md). Cách đăng nhập từng vai trò theo luồng thật: [LOGIN_GUIDE.md](LOGIN_GUIDE.md).
